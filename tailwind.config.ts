@@ -61,6 +61,27 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Social Media Platform Colors
+				instagram: 'hsl(var(--instagram))',
+				'instagram-secondary': 'hsl(var(--instagram-secondary))',
+				facebook: 'hsl(var(--facebook))',
+				twitter: 'hsl(var(--twitter))',
+				pinterest: 'hsl(var(--pinterest))',
+				linkedin: 'hsl(var(--linkedin))',
+				tiktok: 'hsl(var(--tiktok))',
+				// Dashboard Colors
+				success: {
+					DEFAULT: 'hsl(var(--success))',
+					foreground: 'hsl(var(--success-foreground))'
+				},
+				warning: {
+					DEFAULT: 'hsl(var(--warning))',
+					foreground: 'hsl(var(--warning-foreground))'
+				},
+				info: {
+					DEFAULT: 'hsl(var(--info))',
+					foreground: 'hsl(var(--info-foreground))'
 				}
 			},
 			borderRadius: {
