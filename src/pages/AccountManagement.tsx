@@ -14,85 +14,12 @@ import {
   CheckCircle,
   AlertCircle,
   Tag,
-  Search
+  Search,
+  Loader2
 } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-
-const socialAccounts = [
-  {
-    id: 1,
-    platform: "Instagram",
-    handle: "@mycompany",
-    displayName: "My Company",
-    followers: "2.1K",
-    status: "active",
-    color: "bg-gradient-to-r from-purple-500 to-pink-500",
-    tags: ["Business", "Main"],
-    lastPost: "2h ago",
-    profileImage: "/placeholder-ig.jpg"
-  },
-  {
-    id: 2,
-    platform: "Twitter",
-    handle: "@mycompany",
-    displayName: "My Company",
-    followers: "1.8K",
-    status: "active",
-    color: "bg-twitter",
-    tags: ["Business", "Updates"],
-    lastPost: "5h ago",
-    profileImage: "/placeholder-twitter.jpg"
-  },
-  {
-    id: 3,
-    platform: "Facebook",
-    handle: "mycompany",
-    displayName: "My Company Page",
-    followers: "3.2K",
-    status: "inactive",
-    color: "bg-facebook",
-    tags: ["Business"],
-    lastPost: "2d ago",
-    profileImage: "/placeholder-fb.jpg"
-  },
-  {
-    id: 4,
-    platform: "LinkedIn",
-    handle: "my-company",
-    displayName: "My Company",
-    followers: "945",
-    status: "active",
-    color: "bg-linkedin",
-    tags: ["Professional", "B2B"],
-    lastPost: "1d ago",
-    profileImage: "/placeholder-linkedin.jpg"
-  },
-  {
-    id: 5,
-    platform: "Pinterest",
-    handle: "@mycompany",
-    displayName: "My Company",
-    followers: "567",
-    status: "active",
-    color: "bg-pinterest",
-    tags: ["Visual", "Marketing"],
-    lastPost: "3d ago",
-    profileImage: "/placeholder-pinterest.jpg"
-  },
-  {
-    id: 6,
-    platform: "TikTok",
-    handle: "@mycompany",
-    displayName: "My Company",
-    followers: "1.2K",
-    status: "pending",
-    color: "bg-tiktok",
-    tags: ["Video", "Creative"],
-    lastPost: "1w ago",
-    profileImage: "/placeholder-tiktok.jpg"
-  }
-]
+import { useAccounts } from "@/hooks/useAccounts"
 
 const platformOptions = [
   { value: "instagram", label: "Instagram" },
@@ -105,29 +32,50 @@ const platformOptions = [
 ]
 
 export default function AccountManagement() {
+  const { accounts, loading, error } = useAccounts()
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedPlatform, setSelectedPlatform] = useState("")
+  const [selectedPlatform, setSelectedPlatform] = useState("all")
   const [isAddAccountOpen, setIsAddAccountOpen] = useState(false)
 
-  const filteredAccounts = socialAccounts.filter(account => {
+  const filteredAccounts = accounts.filter(account => {
     const matchesSearch = account.platform.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          account.handle.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          account.displayName.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesPlatform = selectedPlatform === "" || account.platform.toLowerCase() === selectedPlatform
+    const matchesPlatform = selectedPlatform === "all" || account.platform.toLowerCase() === selectedPlatform
     return matchesSearch && matchesPlatform
   })
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "active":
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />Active</Badge>
+        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"><CheckCircle className="h-3 w-3 mr-1" />Active</Badge>
       case "inactive":
         return <Badge variant="secondary">Inactive</Badge>
       case "pending":
-        return <Badge className="bg-yellow-100 text-yellow-800"><AlertCircle className="h-3 w-3 mr-1" />Pending</Badge>
+        return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"><AlertCircle className="h-3 w-3 mr-1" />Pending</Badge>
       default:
         return <Badge variant="outline">Unknown</Badge>
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Loading accounts...</span>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-destructive">{error}</p>
+        <Button variant="outline" className="mt-4">
+          Try Again
+        </Button>
+      </div>
+    )
   }
 
   return (
@@ -205,7 +153,7 @@ export default function AccountManagement() {
                 <SelectValue placeholder="All platforms" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All platforms</SelectItem>
+                <SelectItem value="all">All platforms</SelectItem>
                 {platformOptions.map((platform) => (
                   <SelectItem key={platform.value} value={platform.value}>
                     {platform.label}
@@ -299,25 +247,25 @@ export default function AccountManagement() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">
-                {socialAccounts.filter(a => a.status === "active").length}
+                {accounts.filter(a => a.status === "active").length}
               </div>
               <div className="text-sm text-muted-foreground">Active Accounts</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-yellow-600">
-                {socialAccounts.filter(a => a.status === "pending").length}
+                {accounts.filter(a => a.status === "pending").length}
               </div>
               <div className="text-sm text-muted-foreground">Pending</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-gray-600">
-                {socialAccounts.filter(a => a.status === "inactive").length}
+                {accounts.filter(a => a.status === "inactive").length}
               </div>
               <div className="text-sm text-muted-foreground">Inactive</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-primary">
-                {socialAccounts.reduce((sum, account) => {
+                {accounts.reduce((sum, account) => {
                   const followers = parseFloat(account.followers.replace('K', '')) * 1000
                   return sum + followers
                 }, 0).toLocaleString()}

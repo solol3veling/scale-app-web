@@ -1,73 +1,190 @@
-# Welcome to your Lovable project
+# SocialHub Dashboard 🚀
 
-## Project info
+A modern, comprehensive social media management dashboard that allows users to manage multiple social media accounts, create posts, and track analytics from a single interface.
 
-**URL**: https://lovable.dev/projects/2b174ebd-2185-4b4c-b906-df8472031444
+## ✨ Features
 
-## How can I edit this code?
+- **Multi-Platform Management**: Connect and manage Facebook, Instagram, Twitter/X, LinkedIn, Pinterest, TikTok, and more
+- **Unified Post Creation**: Create and schedule posts across multiple platforms simultaneously
+- **Account Management**: Add, edit, remove, and organize social media accounts with custom tags
+- **Analytics Dashboard**: Track post performance and engagement metrics
+- **Modern UI/UX**: Beautiful, responsive design with smooth animations and intuitive navigation
+- **Real-time Updates**: Live notifications and status updates
 
-There are several ways of editing your application.
+## 🛠️ Technologies & Architecture
 
-**Use Lovable**
+### Frontend Framework
+- **React 18** - Modern React with hooks and functional components
+- **TypeScript** - Type-safe development experience
+- **Vite** - Fast build tool and development server
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/2b174ebd-2185-4b4c-b906-df8472031444) and start prompting.
+### UI & Styling
+- **Tailwind CSS** - Utility-first CSS framework with custom design system
+- **Shadcn/ui** - High-quality, accessible component library
+- **Lucide React** - Beautiful, customizable icons
+- **CSS Custom Properties** - Semantic design tokens for consistent theming
 
-Changes made via Lovable will be committed automatically to this repo.
+### Routing & Navigation
+- **React Router DOM** - Client-side routing with nested routes
+- **Protected Routes** - Authentication-aware navigation
 
-**Use your preferred IDE**
+### State Management
+- **React Query (@tanstack/react-query)** - Server state management and caching
+- **Custom Hooks** - Encapsulated business logic for data fetching
+- **React Context** - Global state for UI preferences
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### API & Data Layer
+- **Custom API Service** - Centralized HTTP client with error handling
+- **TypeScript Interfaces** - Strongly typed data models
+- **Mock Data Layer** - Development-ready data simulation
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Development Tools
+- **ESLint** - Code linting and quality assurance
+- **PostCSS** - CSS processing and optimization
+- **Class Variance Authority (CVA)** - Type-safe component variants
 
-Follow these steps:
+## 📁 Project Structure
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+```
+src/
+├── components/          # Reusable UI components
+│   ├── ui/             # Shadcn/ui components
+│   ├── AppSidebar.tsx  # Navigation sidebar
+│   └── DashboardLayout.tsx # Main layout wrapper
+├── hooks/              # Custom React hooks
+│   ├── useAccounts.ts  # Account management logic
+│   └── use-toast.ts    # Toast notifications
+├── pages/              # Route components
+│   ├── Overview.tsx    # Dashboard home
+│   ├── MakePost.tsx    # Post creation
+│   ├── Analytics.tsx   # Performance metrics
+│   ├── AccountManagement.tsx # Account CRUD
+│   └── Settings.tsx    # User preferences
+├── services/           # API and external services
+│   └── api.ts         # HTTP client and endpoints
+├── lib/               # Utility functions
+│   └── utils.ts       # Helper functions
+└── index.css          # Global styles and design tokens
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 🎨 Design System
 
-# Step 3: Install the necessary dependencies.
-npm i
+The project uses a comprehensive design system built with:
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+- **Semantic Color Tokens**: HSL-based color system for light/dark mode support
+- **Custom CSS Properties**: Centralized design tokens in `index.css`
+- **Tailwind Configuration**: Extended theme with custom colors and animations
+- **Component Variants**: Type-safe styling with class-variance-authority
+
+### Key Design Features
+- **Gradient Backgrounds**: Beautiful gradient overlays and buttons
+- **Smooth Animations**: CSS transitions and keyframe animations
+- **Responsive Design**: Mobile-first approach with breakpoint-specific layouts
+- **Accessibility**: WCAG-compliant color contrasts and keyboard navigation
+
+## 🔌 API Integration
+
+The application is structured for easy backend integration:
+
+### Current State (Development)
+- Mock data with realistic social media account examples
+- Simulated API calls with loading states and error handling
+- TypeScript interfaces defining data contracts
+
+### Production Ready
+- Centralized API service in `src/services/api.ts`
+- Custom hooks abstracting data fetching logic
+- Error boundaries and loading states
+- Automatic retry and caching with React Query
+
+### Backend Endpoints (To Implement)
+```
+GET    /api/accounts           # Fetch user's connected accounts
+POST   /api/accounts           # Connect new social account
+PUT    /api/accounts/:id       # Update account settings
+DELETE /api/accounts/:id       # Remove account
+POST   /api/posts              # Create new post
+GET    /api/posts              # Fetch user's posts
+GET    /api/analytics          # Fetch performance data
+```
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn package manager
+
+### Installation
+```bash
+# Clone the repository
+git clone <repository-url>
+cd socialhub-dashboard
+
+# Install dependencies
+npm install
+
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Environment Setup
+Create a `.env.local` file for environment variables:
+```env
+VITE_API_URL=your-backend-api-url
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 📦 Available Scripts
 
-**Use GitHub Codespaces**
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint checks
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🔄 State Management Strategy
 
-## What technologies are used for this project?
+### Local State
+- Component-specific state using `useState`
+- Form state management with controlled components
 
-This project is built with:
+### Server State
+- API data cached with React Query
+- Automatic background refetching
+- Optimistic updates for better UX
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Global State
+- UI preferences (theme, sidebar state)
+- User authentication context
+- Toast notifications
 
-## How can I deploy this project?
+## 🎯 Future Development
 
-Simply open [Lovable](https://lovable.dev/projects/2b174ebd-2185-4b4c-b906-df8472031444) and click on Share -> Publish.
+### Planned Features
+- [ ] Real-time post scheduling
+- [ ] Advanced analytics with charts
+- [ ] Team collaboration features
+- [ ] Content calendar view
+- [ ] AI-powered content suggestions
+- [ ] Multi-language support
 
-## Can I connect a custom domain to my Lovable project?
+### Technical Improvements
+- [ ] Progressive Web App (PWA) capabilities
+- [ ] Advanced caching strategies
+- [ ] Performance monitoring
+- [ ] Automated testing suite
+- [ ] CI/CD pipeline setup
 
-Yes, you can!
+## 🤝 Contributing
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+Built with ❤️ using modern web technologies and best practices.
