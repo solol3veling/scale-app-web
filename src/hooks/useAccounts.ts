@@ -1,17 +1,7 @@
-import { useState, useEffect } from 'react'
-
-export interface SocialAccount {
-  id: number
-  platform: string
-  handle: string
-  displayName: string
-  followers: string
-  status: 'active' | 'inactive' | 'pending'
-  color: string
-  tags: string[]
-  lastPost: string
-  profileImage: string
-}
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { api } from '@/services/api'
+import { SocialAccount } from '@/types'
+import { useToast } from '@/hooks/use-toast'
 
 // This will be replaced with actual API calls
 const mockAccounts: SocialAccount[] = [
@@ -25,7 +15,8 @@ const mockAccounts: SocialAccount[] = [
     color: "bg-gradient-to-r from-purple-500 to-pink-500",
     tags: ["Business", "Main"],
     lastPost: "2h ago",
-    profileImage: "/placeholder-ig.jpg"
+    profileImage: "/placeholder-ig.jpg",
+    isConnected: true
   },
   {
     id: 2,
@@ -37,7 +28,8 @@ const mockAccounts: SocialAccount[] = [
     color: "bg-twitter",
     tags: ["Business", "Updates"],
     lastPost: "5h ago",
-    profileImage: "/placeholder-twitter.jpg"
+    profileImage: "/placeholder-twitter.jpg",
+    isConnected: true
   },
   {
     id: 3,
@@ -49,7 +41,8 @@ const mockAccounts: SocialAccount[] = [
     color: "bg-facebook",
     tags: ["Business"],
     lastPost: "2d ago",
-    profileImage: "/placeholder-fb.jpg"
+    profileImage: "/placeholder-fb.jpg",
+    isConnected: true
   },
   {
     id: 4,
@@ -61,7 +54,8 @@ const mockAccounts: SocialAccount[] = [
     color: "bg-linkedin",
     tags: ["Professional", "B2B"],
     lastPost: "1d ago",
-    profileImage: "/placeholder-linkedin.jpg"
+    profileImage: "/placeholder-linkedin.jpg",
+    isConnected: true
   },
   {
     id: 5,
@@ -73,7 +67,8 @@ const mockAccounts: SocialAccount[] = [
     color: "bg-pinterest",
     tags: ["Visual", "Marketing"],
     lastPost: "3d ago",
-    profileImage: "/placeholder-pinterest.jpg"
+    profileImage: "/placeholder-pinterest.jpg",
+    isConnected: true
   },
   {
     id: 6,
@@ -85,74 +80,118 @@ const mockAccounts: SocialAccount[] = [
     color: "bg-tiktok",
     tags: ["Video", "Creative"],
     lastPost: "1w ago",
-    profileImage: "/placeholder-tiktok.jpg"
+    profileImage: "/placeholder-tiktok.jpg",
+    isConnected: false
   }
 ]
 
 export const useAccounts = () => {
-  const [accounts, setAccounts] = useState<SocialAccount[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  // Simulate API call
-  useEffect(() => {
-    const fetchAccounts = async () => {
+  return useQuery({
+    queryKey: ['accounts'],
+    queryFn: async () => {
       try {
-        setLoading(true)
-        // Replace with: const response = await api.get('/accounts')
-        await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate network delay
-        setAccounts(mockAccounts)
-      } catch (err) {
-        setError('Failed to fetch accounts')
-      } finally {
-        setLoading(false)
+        // Replace with actual API call when backend is ready
+        // return await api.getAccounts()
+        
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 800))
+        return mockAccounts
+      } catch (error) {
+        console.error('Failed to fetch accounts:', error)
+        throw error
       }
-    }
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
+}
 
-    fetchAccounts()
-  }, [])
+export const useCreateAccount = () => {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
 
-  const addAccount = async (accountData: Omit<SocialAccount, 'id'>) => {
-    try {
-      // Replace with: await api.post('/accounts', accountData)
-      const newAccount = { ...accountData, id: Date.now() }
-      setAccounts(prev => [...prev, newAccount])
-      return newAccount
-    } catch (err) {
-      setError('Failed to add account')
-      throw err
-    }
-  }
+  return useMutation({
+    mutationFn: async (accountData: Omit<SocialAccount, 'id'>) => {
+      // Replace with actual API call when backend is ready
+      // return await api.createAccount(accountData)
+      
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      return { ...accountData, id: Date.now() }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['accounts'] })
+      queryClient.invalidateQueries({ queryKey: ['overview'] })
+      toast({
+        title: "Account connected successfully!",
+        description: "Your social media account has been added.",
+      })
+    },
+    onError: (error) => {
+      console.error('Failed to create account:', error)
+      toast({
+        title: "Failed to connect account",
+        description: "Please try again later.",
+        variant: "destructive",
+      })
+    },
+  })
+}
 
-  const updateAccount = async (id: number, updates: Partial<SocialAccount>) => {
-    try {
-      // Replace with: await api.put(`/accounts/${id}`, updates)
-      setAccounts(prev => prev.map(acc => acc.id === id ? { ...acc, ...updates } : acc))
-    } catch (err) {
-      setError('Failed to update account')
-      throw err
-    }
-  }
+export const useUpdateAccount = () => {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
 
-  const deleteAccount = async (id: number) => {
-    try {
-      // Replace with: await api.delete(`/accounts/${id}`)
-      setAccounts(prev => prev.filter(acc => acc.id !== id))
-    } catch (err) {
-      setError('Failed to delete account')
-      throw err
-    }
-  }
+  return useMutation({
+    mutationFn: async ({ id, updates }: { id: number; updates: Partial<SocialAccount> }) => {
+      // Replace with actual API call when backend is ready
+      // return await api.updateAccount(id, updates)
+      
+      await new Promise(resolve => setTimeout(resolve, 500))
+      return { id, ...updates }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['accounts'] })
+      queryClient.invalidateQueries({ queryKey: ['overview'] })
+      toast({
+        title: "Account updated successfully!",
+      })
+    },
+    onError: (error) => {
+      console.error('Failed to update account:', error)
+      toast({
+        title: "Failed to update account",
+        description: "Please try again later.",
+        variant: "destructive",
+      })
+    },
+  })
+}
 
-  return {
-    accounts,
-    loading,
-    error,
-    addAccount,
-    updateAccount,
-    deleteAccount,
-    refetch: () => {
-      // Implement refetch logic
-    }
-  }
+export const useDeleteAccount = () => {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      // Replace with actual API call when backend is ready
+      // return await api.deleteAccount(id)
+      
+      await new Promise(resolve => setTimeout(resolve, 500))
+      return id
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['accounts'] })
+      queryClient.invalidateQueries({ queryKey: ['overview'] })
+      toast({
+        title: "Account removed successfully!",
+      })
+    },
+    onError: (error) => {
+      console.error('Failed to delete account:', error)
+      toast({
+        title: "Failed to remove account",
+        description: "Please try again later.",
+        variant: "destructive",
+      })
+    },
+  })
 }

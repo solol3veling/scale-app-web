@@ -32,7 +32,7 @@ const platformOptions = [
 ]
 
 export default function AccountManagement() {
-  const { accounts, loading, error } = useAccounts()
+  const { data: accounts = [], isLoading, error } = useAccounts()
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedPlatform, setSelectedPlatform] = useState("all")
   const [isAddAccountOpen, setIsAddAccountOpen] = useState(false)
@@ -58,7 +58,7 @@ export default function AccountManagement() {
     }
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -70,7 +70,7 @@ export default function AccountManagement() {
   if (error) {
     return (
       <div className="text-center py-8">
-        <p className="text-destructive">{error}</p>
+        <p className="text-destructive">{error.message}</p>
         <Button variant="outline" className="mt-4">
           Try Again
         </Button>

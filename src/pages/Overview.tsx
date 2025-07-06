@@ -11,8 +11,12 @@ import {
   Heart,
   MoreHorizontal,
   Calendar,
-  Clock
+  Clock,
+  Plus,
+  Loader2
 } from "lucide-react"
+import { useOverview } from "@/hooks/useOverview"
+import { useAccounts } from "@/hooks/useAccounts"
 
 const statsCards = [
   {
@@ -78,6 +82,27 @@ const recentPosts = [
 ]
 
 export default function Overview() {
+  const { data: overviewStats, isLoading, error } = useOverview()
+  const { data: accounts = [] } = useAccounts()
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Loading dashboard...</span>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-destructive">Failed to load dashboard data</p>
+        <Button variant="outline" className="mt-4">Try Again</Button>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
