@@ -9,7 +9,7 @@ import {
   Home,
   ChevronRight
 } from "lucide-react"
-import { NavLink, useLocation } from "react-router-dom"
+import { NavLink, useLocation, useNavigate } from "react-router-dom"
 
 import {
   Sidebar,
@@ -25,6 +25,9 @@ import {
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useAuth } from "@/hooks/useAuth"
+import { useProfile } from "@/hooks/useProfile"
+import { useToast } from "@/hooks/use-toast"
 
 const menuItems = [
   { title: "Overview", url: "/", icon: Home },
@@ -37,8 +40,29 @@ const menuItems = [
 export function AppSidebar() {
   const { state } = useSidebar()
   const location = useLocation()
+  const navigate = useNavigate()
   const currentPath = location.pathname
   const collapsed = state === "collapsed"
+  const { signOut } = useAuth()
+  const { profile, getDisplayName, getInitials } = useProfile()
+  const { toast } = useToast()
+
+  const handleLogout = async () => {
+    const { error } = await signOut()
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to sign out. Please try again.",
+        variant: "destructive",
+      })
+    } else {
+      navigate('/auth')
+      toast({
+        title: "Signed out",
+        description: "You've been successfully signed out.",
+      })
+    }
+  }
 
   const isActive = (path: string) => {
     if (path === "/") return currentPath === "/"
@@ -101,13 +125,17 @@ export function AppSidebar() {
       <div className="p-4 border-t">
         <div className="flex items-center gap-3 mb-4">
           <Avatar className="h-8 w-8">
-            <AvatarImage src="/placeholder-avatar.jpg" />
-            <AvatarFallback className="gradient-primary text-white">U</AvatarFallback>
+            <AvatarImage src={profile?.avatar_url || undefined} />
+            <AvatarFallback className="gradient-primary text-white">
+              {getInitials()}
+            </AvatarFallback>
           </Avatar>
           {!collapsed && (
             <div className="flex-1">
-              <p className="text-sm font-medium">John Doe</p>
-              <p className="text-xs text-muted-foreground">Free Plan</p>
+              <p className="text-sm font-medium">{getDisplayName()}</p>
+              <p className="text-xs text-muted-foreground">
+                {profile?.company_name || "Free Plan"}
+              </p>
             </div>
           )}
         </div>
@@ -115,6 +143,7 @@ export function AppSidebar() {
         <Button 
           variant="ghost" 
           size="sm" 
+          onClick={handleLogout}
           className={`w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/10 ${
             collapsed ? "px-2" : "px-3"
           }`}
