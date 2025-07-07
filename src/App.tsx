@@ -4,11 +4,13 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { DashboardLayout } from "./components/DashboardLayout";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import Overview from "./pages/Overview";
 import MakePost from "./pages/MakePost";
 import Analytics from "./pages/Analytics";
 import AccountManagement from "./pages/AccountManagement";
 import Settings from "./pages/Settings";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -19,16 +21,45 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <DashboardLayout>
-          <Routes>
-            <Route path="/" element={<Overview />} />
-            <Route path="/make-post" element={<MakePost />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/accounts" element={<AccountManagement />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </DashboardLayout>
+        <Routes>
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/" element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <Overview />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/make-post" element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <MakePost />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/analytics" element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <Analytics />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/accounts" element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <AccountManagement />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/settings" element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <Settings />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
