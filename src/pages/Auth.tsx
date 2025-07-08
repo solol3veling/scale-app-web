@@ -48,11 +48,12 @@ export default function Auth() {
     setIsLoading(true);
 
     try {
-      // Use Supabase's built-in OTP functionality
+      // Use Supabase's built-in OTP functionality for passwordless authentication
+      // This will automatically create the user if they don't exist
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          shouldCreateUser: true,
+          shouldCreateUser: true, // Auto-create user if they don't exist
         }
       });
 
