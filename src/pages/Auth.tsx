@@ -51,8 +51,11 @@ export default function Auth() {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
-        },
+          shouldCreateUser: true,
+          data: {
+            email_confirm: false
+          }
+        }
       });
 
       if (error) throw error;
@@ -60,7 +63,7 @@ export default function Auth() {
       setIsOtpSent(true);
       toast({
         title: "Check your email",
-        description: "We've sent you a verification code.",
+        description: "We've sent you a 6-digit verification code.",
       });
     } catch (error: any) {
       toast({
