@@ -12,7 +12,6 @@ import { Loader2, Mail } from "lucide-react";
 export default function Auth() {
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
-  const [generatedOtp, setGeneratedOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isOtpSent, setIsOtpSent] = useState(false);
   const navigate = useNavigate();
@@ -41,9 +40,6 @@ export default function Auth() {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const generateOTP = () => {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-  };
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,16 +48,12 @@ export default function Auth() {
     setIsLoading(true);
 
     try {
-      // Generate a 6-digit OTP
-      const newOtp = generateOTP();
-      setGeneratedOtp(newOtp);
-
-      // Send OTP via our custom edge function
-      const { data, error } = await supabase.functions.invoke('send-otp-email', {
-        body: {
-          email,
-          otp: newOtp,
-        },
+      // Use Supabase's built-in OTP functionality
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: true,
+        }
       });
 
       if (error) {
@@ -91,39 +83,15 @@ export default function Auth() {
     setIsLoading(true);
 
     try {
-      // Verify the OTP matches our generated one
-      if (otp !== generatedOtp) {
-        throw new Error("Invalid verification code");
-      }
-
-      // Check if user exists, if not create them
-      const { data: { user }, error: signUpError } = await supabase.auth.signUp({
+      // Verify the OTP using Supabase's built-in verification
+      const { error } = await supabase.auth.verifyOtp({
         email,
-        password: generatedOtp, // Use OTP as temporary password
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-        }
+        token: otp,
+        type: 'email',
       });
-
-      if (signUpError && !signUpError.message.includes('already been registered')) {
-        throw signUpError;
-      }
-
-      // Sign in the user
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password: generatedOtp,
-      });
-
-      if (signInError) {
-        // If sign in fails, try with OTP verification instead
-        const { error: otpError } = await supabase.auth.verifyOtp({
-          email,
-          token: otp,
-          type: 'email',
-        });
-        
-        if (otpError) throw new Error("Invalid verification code");
+      
+      if (error) {
+        throw new Error(error.message || "Invalid verification code");
       }
 
       toast({
