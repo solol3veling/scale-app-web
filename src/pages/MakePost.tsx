@@ -16,6 +16,7 @@ import { useNavigate } from "react-router-dom"
 import { AccountSelector } from "@/components/AccountSelector"
 import { PostComposer } from "@/components/PostComposer"
 import { PostPreviewWrapper } from "@/components/PostPreviewWrapper"
+import { PageHeader } from "@/components/PageHeader"
 
 
 export default function MakePost() {
@@ -154,16 +155,19 @@ export default function MakePost() {
 
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-0">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Create Post</h1>
-          <p className="text-muted-foreground">Share your content across multiple social media platforms</p>
+      <PageHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Create Post</h1>
+            <p className="text-muted-foreground text-sm">Share your content across multiple social media platforms</p>
+          </div>
         </div>
-      </div>
+      </PageHeader>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      {/* Main content area */}
+      <div className="grid gap-6 lg:grid-cols-2 p-6">
         {/* Post Creation Form */}
         <div className="space-y-6">
           <AccountSelector 

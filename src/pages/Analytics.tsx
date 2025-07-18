@@ -14,6 +14,7 @@ import {
   Download,
   Filter
 } from "lucide-react"
+import { PageHeader } from "@/components/PageHeader"
 
 const analyticsData = {
   overview: {
@@ -83,27 +84,31 @@ const analyticsData = {
 
 export default function Analytics() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-0">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
-          <p className="text-muted-foreground">Track your social media performance and engagement</p>
+      <PageHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Analytics</h1>
+            <p className="text-muted-foreground text-sm">Track your social media performance and engagement</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" className="hover-lift" size="sm">
+              <Filter className="h-4 w-4 mr-2" />
+              Filter
+            </Button>
+            <Button variant="outline" className="hover-lift" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="hover-lift">
-            <Filter className="h-4 w-4 mr-2" />
-            Filter
-          </Button>
-          <Button variant="outline" className="hover-lift">
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-        </div>
-      </div>
+      </PageHeader>
 
-      {/* Overview Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* Main content area */}
+      <div className="space-y-6 p-6">
+        {/* Overview Cards */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="hover-lift gradient-card border-0 shadow-soft">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Reach</CardTitle>
@@ -326,6 +331,7 @@ export default function Analytics() {
           </div>
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   )
 }

@@ -20,6 +20,7 @@ import {
   AlertCircle,
   CheckCircle2
 } from "lucide-react"
+import { PageHeader } from "@/components/PageHeader"
 import { useAuth } from "@/hooks/useAuth"
 import { useUserBilling, useBillingPlans, useUpgradePlan, useCancelSubscription, useResubscribe, useUpdatePaymentMethod, useSubscriptionManagement } from "@/hooks/useUserBilling"
 import { useToast } from "@/hooks/use-toast"
@@ -162,16 +163,20 @@ export default function Settings() {
   const getPlanByType = (type: PlanType) => plans.find(p => p.type === type)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-0">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-          <p className="text-muted-foreground">Manage your account and subscription preferences</p>
+      <PageHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
+            <p className="text-muted-foreground text-sm">Manage your account and subscription preferences</p>
+          </div>
         </div>
-      </div>
+      </PageHeader>
 
-      <Tabs defaultValue="profile" className="space-y-6">
+      {/* Main content area */}
+      <div className="p-6">
+        <Tabs defaultValue="profile" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
@@ -658,6 +663,7 @@ export default function Settings() {
           </Card>
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   )
 }

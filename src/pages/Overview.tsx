@@ -28,6 +28,7 @@ import { useAccounts, useSocialAccounts } from "@/hooks/useAccounts"
 import { PostDetailsModal } from "@/components/PostDetailsModal"
 import { useDeletePost } from "@/hooks/api/usePosts"
 import { useToast } from "@/hooks/use-toast"
+import { PageHeader } from "@/components/PageHeader"
 
 // Utility function to format large numbers
 const formatNumber = (num: number): string => {
@@ -768,27 +769,32 @@ export default function Overview() {
   const navigate = useNavigate()
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-0">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard Overview</h1>
-          <p className="text-muted-foreground">Welcome back! Here's what's happening with your social media.</p>
+      <PageHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Dashboard Overview</h1>
+            <p className="text-muted-foreground text-sm">Welcome back! Here's what's happening with your social media.</p>
+          </div>
+          <Button 
+            className="gradient-primary hover-scale"
+            onClick={() => navigate('/make-post')}
+            size="sm"
+          >
+            <Share2 className="h-4 w-4 mr-2" />
+            Quick Post
+          </Button>
         </div>
-        <Button 
-          className="gradient-primary hover-scale"
-          onClick={() => navigate('/make-post')}
-        >
-          <Share2 className="h-4 w-4 mr-2" />
-          Quick Post
-        </Button>
-      </div>
+      </PageHeader>
 
-      {/* Stats Cards - Isolated Error Handling */}
-      <StatsSection />
+      {/* Main content area */}
+      <div className="space-y-6 p-6">
+        {/* Stats Cards - Isolated Error Handling */}
+        <StatsSection />
 
-      {/* Recent Activity */}
-      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Recent Activity */}
+        <div className="grid gap-6 lg:grid-cols-3">
         {/* Recent Posts - Isolated Error Handling */}
         <div className="lg:col-span-2">
           <RecentPostsSection />
@@ -829,6 +835,7 @@ export default function Overview() {
 
           {/* Connected Accounts - Isolated Error Handling */}
           <ConnectedAccountsSection />
+        </div>
         </div>
       </div>
     </div>

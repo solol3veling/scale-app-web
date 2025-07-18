@@ -6,6 +6,7 @@ import { AddAccountDialog } from "@/components/AddAccountDialog"
 import { useAccounts } from "@/hooks/useAccounts"
 import { useQueryClient } from "@tanstack/react-query"
 import { socialAccountKeys } from "@/hooks/api/useSocialAccounts"
+import { PageHeader } from "@/components/PageHeader"
 
 
 export default function AccountManagement() {
@@ -22,32 +23,37 @@ export default function AccountManagement() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-0">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Accounts</h1>
-          <p className="text-muted-foreground">Manage your connected social media accounts</p>
+      <PageHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Accounts</h1>
+            <p className="text-muted-foreground text-sm">Manage your connected social media accounts</p>
+          </div>
+          <AddAccountDialog onAccountAdded={handleAccountAdded} />
         </div>
-        <AddAccountDialog onAccountAdded={handleAccountAdded} />
+      </PageHeader>
+
+      {/* Main content area */}
+      <div className="space-y-6 p-6">
+        {/* Filters */}
+        <AccountsFilter 
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          selectedPlatform={selectedPlatform}
+          setSelectedPlatform={setSelectedPlatform}
+        />
+
+        {/* Accounts Grid */}
+        <AccountsList 
+          searchTerm={searchTerm}
+          selectedPlatform={selectedPlatform}
+        />
+
+        {/* Stats Summary */}
+        <AccountsSummary />
       </div>
-
-      {/* Filters */}
-      <AccountsFilter 
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        selectedPlatform={selectedPlatform}
-        setSelectedPlatform={setSelectedPlatform}
-      />
-
-      {/* Accounts Grid */}
-      <AccountsList 
-        searchTerm={searchTerm}
-        selectedPlatform={selectedPlatform}
-      />
-
-      {/* Stats Summary */}
-      <AccountsSummary />
     </div>
   )
 }

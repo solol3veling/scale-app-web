@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Search, Plus, Filter, Calendar, Clock, CheckCircle, Circle, Edit, Trash2, Copy, Eye, FileText, Sparkles, ArrowUpDown, X } from 'lucide-react';
+import { Search, Plus, Filter, Calendar, Clock, CheckCircle, Circle, Edit, Trash2, Copy, Eye, FileText, Sparkles, ArrowUpDown, X, MessageSquare, Heart, ChevronLeft, ChevronRight, ImageOff } from 'lucide-react';
 import { format } from 'date-fns';
 import { usePosts, useDeletePost, useDuplicatePost } from '@/hooks/api/usePosts';
 import { PostStatus } from '@/types/api';
@@ -12,6 +12,106 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { PostDetailsModal } from '@/components/PostDetailsModal';
+import { PageHeader } from '@/components/PageHeader';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAuth } from '@/hooks/useAuth';
+
+// Helper functions for user profile data
+const useUserProfile = () => {
+  const { user } = useAuth();
+  
+  const getDisplayName = () => {
+    return user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+  };
+  
+  const getInitials = () => {
+    const name = getDisplayName();
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+  
+  const getAvatarUrl = () => {
+    return user?.user_metadata?.avatar_url;
+  };
+  
+  return { getDisplayName, getInitials, getAvatarUrl };
+};
+
+// Media Carousel Component
+function MediaCarousel({ media }: { media: any[] }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  
+  if (!media || media.length === 0) return null;
+  
+  const nextSlide = () => {
+    setCurrentIndex((prev) => (prev + 1) % media.length);
+  };
+  
+  const prevSlide = () => {
+    setCurrentIndex((prev) => (prev - 1 + media.length) % media.length);
+  };
+  
+  return (
+    <div className="relative w-full h-full bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden">
+      {/* Media Display */}
+      <div className="w-full h-full flex items-center justify-center">
+        {media[currentIndex]?.type === 'image' ? (
+          <img 
+            src={media[currentIndex].url} 
+            alt="Post media" 
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="text-center">
+            <FileText className="h-6 w-6 mx-auto mb-2 text-gray-400" />
+            <p className="text-xs text-gray-500">{media[currentIndex]?.filename || 'Media file'}</p>
+          </div>
+        )}
+      </div>
+      
+      {/* Navigation buttons */}
+      {media.length > 1 && (
+        <>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              prevSlide();
+            }}
+            className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              nextSlide();
+            }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </>
+      )}
+      
+      {/* Slide indicators */}
+      {media.length > 1 && (
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+          {media.map((_, index) => (
+            <button
+              key={index}
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentIndex(index);
+              }}
+              className={`w-2 h-2 rounded-full transition-colors ${
+                index === currentIndex ? 'bg-white' : 'bg-white/50'
+              }`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // Static Header Component - Independent of data fetching
 function PostsHeader({ 
@@ -198,6 +298,7 @@ function PostsContent({
   
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { getDisplayName, getInitials, getAvatarUrl } = useUserProfile();
   
   // Build query params
   const queryParams = useMemo(() => {
@@ -373,7 +474,7 @@ function PostsContent({
     const bgColor = colors[platformLower as keyof typeof colors] || 'bg-gray-500';
     
     return (
-      <div className={`w-6 h-6 rounded-full ${bgColor} flex items-center justify-center text-white text-xs font-bold border-2 border-white`}>
+      <div className={`w-5 h-5 rounded-full ${bgColor} flex items-center justify-center text-white text-xs font-bold border border-white dark:border-gray-900`}>
         {platform.charAt(0).toUpperCase()}
       </div>
     );
@@ -382,76 +483,121 @@ function PostsContent({
   // Posts list
   return (
     <>
-      <div className="space-y-3 px-6">
+      <div className="flex flex-row flex-wrap gap-3 px-6 py-4 sm:mx-auto sm:justify-center lg:mx-0 lg:justify-start">
         {posts.map((post) => (
-          <div 
+          <article 
             key={post.id} 
-            className="group bg-card/40 backdrop-blur-sm rounded-xl p-5 border border-border/50 hover:bg-card/60 hover:border-border/80 transition-all duration-200 hover:shadow-md cursor-pointer hover:-translate-y-0.5"
-            onClick={() => setSelectedPostId(post.id)}
+            className="group bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-all duration-200 hover:shadow-lg overflow-hidden w-full sm:w-80 h-96 flex-shrink-0 flex flex-col relative"
           >
-            <div className="space-y-4">
-              {/* Main Content */}
-              <div className="space-y-2">
-                <p className="text-foreground font-medium text-base leading-relaxed line-clamp-3">
-                  {post.content}
-                </p>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Clock className="h-3 w-3" />
-                  <span>
-                    {post.status === PostStatus.SCHEDULED && post.scheduledFor
-                      ? `Scheduled for ${format(new Date(post.scheduledFor), 'MMM dd, yyyy HH:mm')}`
-                      : `Created ${format(new Date(post.createdAt), 'MMM dd, yyyy')}`}
-                  </span>
-                  {getStatusBadge(post.status)}
-                </div>
-              </div>
-              
-              {/* Bottom Section: Social Avatars and Media Count */}
-              <div className="flex items-center justify-between">
-                {/* Overlapping Social Media Avatars */}
-                <div className="flex items-center gap-3">
-                  {post.accounts && post.accounts.length > 0 ? (
-                    <div className="flex items-center">
-                      <div className="flex -space-x-2">
-                        {post.accounts.slice(0, 4).map((account, index) => (
-                          <div key={account.id} className="relative" style={{ zIndex: 10 - index }}>
-                            {getSocialPlatformIcon(account.platform)}
-                          </div>
-                        ))}
-                        {post.accounts.length > 4 && (
-                          <div className="w-6 h-6 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-xs font-bold text-gray-600">
-                            +{post.accounts.length - 4}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="w-6 h-6 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center">
-                      <span className="text-xs text-gray-400">-</span>
-                    </div>
-                  )}
-                  
-                  {/* Media Count */}
-                  {post.media && post.media.length > 0 && (
-                    <div className="flex items-center gap-1 text-gray-500 text-sm">
-                      <FileText className="h-3 w-3" />
-                      <span>{post.media.length}</span>
-                    </div>
-                  )}
-                </div>
-                
-                {/* Status Indicator */}
-                <div className="flex items-center gap-2">
-                  {getStatusIcon(post.status)}
+            {/* Top section with avatar and source */}
+            <div className="p-3 pb-2 flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <Avatar className="w-8 h-8">
+                  <AvatarImage src={getAvatarUrl()} />
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-bold">
+                    {getInitials()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-900 dark:text-white truncate">{getDisplayName()}</span>
+                    {getStatusBadge(post.status)}
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                    <span className="truncate">
+                      {post.status === PostStatus.SCHEDULED && post.scheduledFor
+                        ? `Scheduled for ${format(new Date(post.scheduledFor), 'MMM dd, HH:mm')}`
+                        : format(new Date(post.createdAt), 'MMM dd, yyyy')}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+
+            {/* Main content */}
+            <div className="px-3 pb-2 flex-1 flex flex-col min-h-0">
+              <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
+                {post.content.length > 80 ? post.content.substring(0, 80) + '...' : post.content}
+              </h3>
+              
+              {/* Media preview with carousel */}
+              <div className="flex-1 min-h-0">
+                {post.media && post.media.length > 0 ? (
+                  <div className="h-full">
+                    <MediaCarousel media={post.media} />
+                  </div>
+                ) : (
+                  <div className="w-full h-full bg-gray-200 dark:bg-gray-700 rounded-xl flex items-center justify-center">
+                    <div className="text-center">
+                      <ImageOff className="h-8 w-8 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">No media</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Bottom section with actions */}
+            <div className="px-3 pb-3 flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                  >
+                    <Eye className="h-3 w-3" />
+                    <span className="text-xs">{post.analytics?.views || 0}</span>
+                  </button>
+                  <button 
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                  >
+                    <MessageSquare className="h-3 w-3" />
+                    <span className="text-xs">{post.analytics?.comments || 0}</span>
+                  </button>
+                  <button 
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                  >
+                    <Heart className="h-3 w-3" />
+                    <span className="text-xs">{post.analytics?.likes || 0}</span>
+                  </button>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  {post.accounts && post.accounts.length > 0 ? (
+                    <div className="flex -space-x-1">
+                      {post.accounts.slice(0, 3).map((account, index) => (
+                        <div key={account.id} className="relative" style={{ zIndex: 10 - index }}>
+                          {getSocialPlatformIcon(account.platform)}
+                        </div>
+                      ))}
+                      {post.accounts.length > 3 && (
+                        <div className="w-4 h-4 rounded-full bg-gray-100 dark:bg-gray-700 border border-white dark:border-gray-900 flex items-center justify-center text-xs font-medium text-gray-600 dark:text-gray-300">
+                          +{post.accounts.length - 3}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-gray-400 dark:text-gray-500">No platforms</span>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            {/* Hover button for opening modal */}
+            <button
+              onClick={() => setSelectedPostId(post.id)}
+              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/50 hover:bg-black/70 text-white rounded-full w-8 h-8 flex items-center justify-center"
+            >
+              <Eye className="h-4 w-4" />
+            </button>
+          </article>
         ))}
       </div>
       
       {/* Pagination */}
-      {totalPages > 1 && (
+      {posts.length > 8 && totalPages > 1 && (
         <div className="flex justify-center items-center gap-2 mt-12 px-6">
           <Button
             variant="outline"
@@ -575,18 +721,16 @@ export default function Posts() {
   return (
     <div className="space-y-0">
       {/* Header directly after topbar */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="px-6 py-4">
-          <PostsHeader 
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            statusFilter={statusFilter}
-            onStatusChange={(value) => setStatusFilter(value as PostStatus | 'all')}
-            sortBy={sortBy}
-            onSortChange={setSortBy}
-          />
-        </div>
-      </div>
+      <PageHeader>
+        <PostsHeader 
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          statusFilter={statusFilter}
+          onStatusChange={(value) => setStatusFilter(value as PostStatus | 'all')}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+        />
+      </PageHeader>
       
       {/* Main content area */}
       <div className="space-y-4">
