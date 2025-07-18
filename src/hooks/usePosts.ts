@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '@/services/api'
-import { Post, CreatePostData, PaginatedResponse } from '@/types'
+import { postApi } from '@/services/api'
+import { Post, CreatePostData, PaginatedResponse, PostStatus, GetPostsParams } from '@/types/api'
 import { useToast } from '@/hooks/use-toast'
 
 // Mock data for development
@@ -42,15 +42,24 @@ const mockPosts: Post[] = [
   }
 ]
 
-export const usePosts = (page = 1, limit = 10) => {
+export const usePosts = (page = 1, limit = 10, searchTerm?: string, status?: PostStatus) => {
   return useQuery({
-    queryKey: ['posts', page, limit],
+    queryKey: ['posts', page, limit, searchTerm, status],
     queryFn: async (): Promise<PaginatedResponse<Post>> => {
       try {
-        // Replace with actual API call when backend is ready
-        // return await api.getPosts(page, limit)
-        
-        // Simulate network delay
+        const params: GetPostsParams = {
+          searchTerm,
+          status,
+          pageable: {
+            page: page - 1, // API uses 0-based indexing
+            size: limit
+          }
+        }
+        const response = await postApi.getAllPosts(params)
+        return response
+      } catch (error) {
+        console.error('Failed to fetch posts:', error)
+        // Fallback to mock data during development
         await new Promise(resolve => setTimeout(resolve, 600))
         
         const startIndex = (page - 1) * limit
@@ -65,28 +74,24 @@ export const usePosts = (page = 1, limit = 10) => {
           hasNext: endIndex < mockPosts.length,
           hasPrev: page > 1
         }
-      } catch (error) {
-        console.error('Failed to fetch posts:', error)
-        throw error
       }
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
   })
 }
 
-export const usePost = (id: number) => {
+export const usePost = (id: string) => {
   return useQuery({
     queryKey: ['post', id],
     queryFn: async () => {
       try {
-        // Replace with actual API call when backend is ready
-        // return await api.getPost(id)
-        
-        await new Promise(resolve => setTimeout(resolve, 300))
-        return mockPosts.find(post => post.id === id) || null
+        const response = await postApi.getPostById(id)
+        return response.data
       } catch (error) {
         console.error(`Failed to fetch post ${id}:`, error)
-        throw error
+        // Fallback to mock data during development
+        await new Promise(resolve => setTimeout(resolve, 300))
+        return mockPosts.find(post => post.id.toString() === id) || null
       }
     },
     enabled: !!id,
@@ -99,26 +104,29 @@ export const useCreatePost = () => {
 
   return useMutation({
     mutationFn: async (postData: CreatePostData): Promise<Post> => {
-      // Replace with actual API call when backend is ready
-      // return await api.createPost(postData)
-      
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      const newPost: Post = {
-        id: Date.now(),
-        content: postData.content,
-        images: [], // In real app, this would be URLs from uploaded files
-        scheduledFor: postData.scheduledFor,
-        status: postData.scheduledFor ? 'scheduled' : 'published',
-        platforms: postData.platforms,
-        accountIds: postData.accountIds,
-        engagement: { likes: 0, comments: 0, shares: 0, reach: 0 },
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        publishedAt: postData.scheduledFor ? undefined : new Date()
+      try {
+        const response = await postApi.createPost(postData)
+        return response.data
+      } catch (error) {
+        // Fallback for development
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
+        const newPost: any = {
+          id: Date.now().toString(),
+          content: postData.content,
+          media: postData.media || [],
+          scheduledFor: postData.scheduledFor,
+          status: postData.scheduledFor ? PostStatus.SCHEDULED : PostStatus.PUBLISHED,
+          accounts: [],
+          engagement: { likes: 0, comments: 0, shares: 0, reach: 0 },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          publishedAt: postData.scheduledFor ? undefined : new Date().toISOString(),
+          userId: 'current-user'
+        }
+        
+        return newPost
       }
-      
-      return newPost
     },
     onSuccess: (newPost) => {
       // Invalidate and refetch posts

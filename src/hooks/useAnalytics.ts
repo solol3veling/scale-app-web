@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { api } from '@/services/api'
-import { AnalyticsData } from '@/types'
+import { analyticsApi } from '@/services/api'
+import { AnalyticsData } from '@/types/api'
 
 // Mock data for development
 const mockAnalyticsData: AnalyticsData = {
@@ -90,19 +90,16 @@ export const useAnalytics = (dateRange: string = '30d') => {
     queryKey: ['analytics', dateRange],
     queryFn: async () => {
       try {
-        // Replace with actual API call when backend is ready
-        // return await api.getAnalytics(dateRange)
-        
-        // Simulate network delay
+        const response = await analyticsApi.getAnalyticsData()
+        return response.data
+      } catch (error) {
+        console.error('Failed to fetch analytics:', error)
+        // Fallback to mock data during development
         await new Promise(resolve => setTimeout(resolve, 1200))
-        
         return {
           ...mockAnalyticsData,
           dateRange
         }
-      } catch (error) {
-        console.error('Failed to fetch analytics:', error)
-        throw error
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes

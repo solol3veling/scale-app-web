@@ -1,6 +1,10 @@
-// Core data models for the application
+// Re-export from API types for backward compatibility
+export * from './api'
 
-export interface SocialAccount {
+// Legacy types for backward compatibility - these maintain the old structure
+// while the new API types follow the OpenAPI schema
+
+export interface LegacySocialAccount {
   id: number
   platform: string
   handle: string
@@ -15,7 +19,7 @@ export interface SocialAccount {
   accessToken?: string
 }
 
-export interface Post {
+export interface LegacyPost {
   id: number
   content: string
   images: string[]
@@ -34,58 +38,10 @@ export interface Post {
   updatedAt: Date
 }
 
-export interface OverviewStats {
-  totalPosts: number
-  totalReach: number
-  totalEngagement: number
-  activeAccounts: number
-  scheduledPosts: number
-  recentPosts: Post[]
-  topPerformingPost?: Post
-  engagementRate: number
-  growthRate: number
-}
-
-export interface AnalyticsData {
-  dateRange: string
-  totalReach: number
-  totalEngagement: number
-  engagementRate: number
-  platformBreakdown: {
-    platform: string
-    reach: number
-    engagement: number
-    posts: number
-  }[]
-  timeSeriesData: {
-    date: string
-    reach: number
-    engagement: number
-    posts: number
-  }[]
-  topPosts: Post[]
-}
-
-export interface CreatePostData {
+export interface LegacyCreatePostData {
   content: string
   images?: File[]
   scheduledFor?: Date
   accountIds: number[]
   platforms: string[]
-}
-
-export interface ApiResponse<T> {
-  data: T
-  message?: string
-  success: boolean
-  errors?: string[]
-}
-
-export interface PaginatedResponse<T> {
-  data: T[]
-  total: number
-  page: number
-  limit: number
-  hasNext: boolean
-  hasPrev: boolean
 }

@@ -1,68 +1,157 @@
 import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { 
-  Image as ImageIcon, 
-  Video, 
-  Calendar, 
   Send, 
-  Plus,
-  X,
-  Eye,
-  Heart,
-  MessageSquare,
-  Share2
+  Clock,
+  Save,
+  Loader2
 } from "lucide-react"
+import { format } from "date-fns"
+import { useCreatePost } from "@/hooks/api/usePosts"
+import { CreatePostData, MediaItem } from "@/types/api"
+import { useToast } from "@/hooks/use-toast"
+import { useNavigate } from "react-router-dom"
+import { AccountSelector } from "@/components/AccountSelector"
+import { PostComposer } from "@/components/PostComposer"
+import { PostPreviewWrapper } from "@/components/PostPreviewWrapper"
 
-const socialPlatforms = [
-  { id: "instagram", name: "Instagram", color: "bg-gradient-to-r from-purple-500 to-pink-500", handle: "@mycompany" },
-  { id: "facebook", name: "Facebook", color: "bg-facebook", handle: "My Company" },
-  { id: "twitter", name: "Twitter", color: "bg-twitter", handle: "@mycompany" },
-  { id: "linkedin", name: "LinkedIn", color: "bg-linkedin", handle: "My Company" },
-  { id: "pinterest", name: "Pinterest", color: "bg-pinterest", handle: "@mycompany" },
-  { id: "tiktok", name: "TikTok", color: "bg-tiktok", handle: "@mycompany" }
-]
-
-const mockPostPreview = {
-  content: "Check out our latest product update! 🚀 We've been working hard to bring you the best experience possible. What do you think? #innovation #tech #startup",
-  author: "My Company",
-  handle: "@mycompany",
-  time: "2m",
-  image: "/placeholder-post-preview.jpg"
-}
 
 export default function MakePost() {
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(["instagram", "twitter"])
+  const [selectedAccountIds, setSelectedAccountIds] = useState<string[]>([])
   const [postContent, setPostContent] = useState("")
-  const [scheduledPost, setScheduledPost] = useState(false)
-  const [uploadedImages, setUploadedImages] = useState<string[]>([])
+  const [uploadedMedia, setUploadedMedia] = useState<MediaItem[]>([])
+  const [isScheduled, setIsScheduled] = useState(false)
+  const [scheduledDate, setScheduledDate] = useState<Date>()
+  const [scheduledTime, setScheduledTime] = useState("")
+  const [isMediaUploading, setIsMediaUploading] = useState(false)
+  
+  const createPost = useCreatePost()
+  const { toast } = useToast()
+  const navigate = useNavigate()
 
-  const handlePlatformToggle = (platformId: string) => {
-    setSelectedPlatforms(prev => 
-      prev.includes(platformId) 
-        ? prev.filter(id => id !== platformId)
-        : [...prev, platformId]
+  const handleAccountToggle = (accountId: string) => {
+    setSelectedAccountIds(prev => 
+      prev.includes(accountId) 
+        ? prev.filter(id => id !== accountId)
+        : [...prev, accountId]
     )
   }
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files
-    if (files) {
-      // In a real app, you'd upload these files and get URLs
-      const newImages = Array.from(files).map(file => URL.createObjectURL(file))
-      setUploadedImages(prev => [...prev, ...newImages])
+  const handleSelectionChange = (accountIds: string[]) => {
+    setSelectedAccountIds(accountIds)
+  }
+
+  const buildScheduledDateTime = (): string | undefined => {
+    if (!isScheduled || !scheduledDate || !scheduledTime) return undefined
+    
+    const [hours, minutes] = scheduledTime.split(':')
+    const dateTime = new Date(scheduledDate)
+    dateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0)
+    
+    return dateTime.toISOString()
+  }
+
+  const handlePublishNow = async () => {
+    if (!postContent.trim()) {
+      toast({
+        title: "Content required",
+        description: "Please enter some content for your post.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (isMediaUploading) {
+      toast({
+        title: "Media uploading",
+        description: "Please wait for media uploads to complete before publishing.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const postData: CreatePostData = {
+      content: postContent,
+      media: uploadedMedia,
+      accountIds: selectedAccountIds,
+    }
+
+    try {
+      await createPost.mutateAsync(postData)
+      if (selectedAccountIds.length > 0) {
+        toast({
+          title: "Post published!",
+          description: `Your post has been published to ${selectedAccountIds.length} account${selectedAccountIds.length > 1 ? 's' : ''}.`,
+        })
+      } else {
+        toast({
+          title: "Draft saved!",
+          description: "Your post has been saved as a draft. You can publish it later by selecting accounts.",
+        })
+      }
+      navigate('/posts')
+    } catch (error) {
+      console.error('Failed to publish post:', error)
     }
   }
 
-  const removeImage = (index: number) => {
-    setUploadedImages(prev => prev.filter((_, i) => i !== index))
+  const handleSchedulePost = async () => {
+    if (!postContent.trim()) {
+      toast({
+        title: "Content required",
+        description: "Please enter some content for your post.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (isMediaUploading) {
+      toast({
+        title: "Media uploading",
+        description: "Please wait for media uploads to complete before scheduling.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const scheduledFor = buildScheduledDateTime()
+    if (!scheduledFor) {
+      toast({
+        title: "Schedule date required",
+        description: "Please select a date and time for scheduling.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const postData: CreatePostData = {
+      content: postContent,
+      media: uploadedMedia,
+      scheduledFor,
+      accountIds: selectedAccountIds,
+    }
+
+    try {
+      await createPost.mutateAsync(postData)
+      if (selectedAccountIds.length > 0) {
+        toast({
+          title: "Post scheduled!",
+          description: `Your post has been scheduled for ${format(new Date(scheduledFor), 'PPP p')} on ${selectedAccountIds.length} account${selectedAccountIds.length > 1 ? 's' : ''}.`,
+        })
+      } else {
+        toast({
+          title: "Draft scheduled!",
+          description: `Your post draft has been scheduled for ${format(new Date(scheduledFor), 'PPP p')}. Select accounts to publish it.`,
+        })
+      }
+      navigate('/posts')
+    } catch (error) {
+      console.error('Failed to schedule post:', error)
+    }
   }
+
 
   return (
     <div className="space-y-6">
@@ -77,146 +166,72 @@ export default function MakePost() {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Post Creation Form */}
         <div className="space-y-6">
-          {/* Platform Selection */}
-          <Card className="shadow-medium">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Share2 className="h-5 w-5" />
-                Select Platforms
-              </CardTitle>
-              <CardDescription>Choose where to publish your post</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-3">
-                {socialPlatforms.map((platform) => (
-                  <div
-                    key={platform.id}
-                    className={`relative border rounded-lg p-4 cursor-pointer transition-all hover-lift ${
-                      selectedPlatforms.includes(platform.id)
-                        ? "ring-2 ring-primary bg-accent/20"
-                        : "hover:bg-accent/50"
-                    }`}
-                    onClick={() => handlePlatformToggle(platform.id)}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        checked={selectedPlatforms.includes(platform.id)}
-                        onChange={() => handlePlatformToggle(platform.id)}
-                        className="pointer-events-none"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-4 h-4 rounded ${platform.color}`} />
-                          <span className="font-medium text-sm">{platform.name}</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">{platform.handle}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {selectedPlatforms.map((platformId) => {
-                  const platform = socialPlatforms.find(p => p.id === platformId)
-                  return platform ? (
-                    <Badge key={platformId} variant="secondary" className="flex items-center gap-1">
-                      <div className={`w-2 h-2 rounded ${platform.color}`} />
-                      {platform.name}
-                    </Badge>
-                  ) : null
-                })}
-              </div>
-            </CardContent>
-          </Card>
+          <AccountSelector 
+            selectedAccountIds={selectedAccountIds}
+            onAccountToggle={handleAccountToggle}
+            onSelectionChange={handleSelectionChange}
+          />
 
-          {/* Post Content */}
-          <Card className="shadow-medium">
-            <CardHeader>
-              <CardTitle>Post Content</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="content">Message</Label>
-                <Textarea
-                  id="content"
-                  placeholder="What's on your mind?"
-                  value={postContent}
-                  onChange={(e) => setPostContent(e.target.value)}
-                  className="min-h-[120px] resize-none"
-                />
-                <div className="flex justify-between items-center mt-2">
-                  <p className="text-xs text-muted-foreground">
-                    {postContent.length}/280 characters
-                  </p>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
-                      <Calendar className="h-4 w-4 mr-1" />
-                      Schedule
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Media Upload */}
-              <div className="space-y-3">
-                <Label>Media</Label>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="relative">
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                    />
-                    <ImageIcon className="h-4 w-4 mr-1" />
-                    Add Images
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Video className="h-4 w-4 mr-1" />
-                    Add Video
-                  </Button>
-                </div>
-
-                {/* Uploaded Images */}
-                {uploadedImages.length > 0 && (
-                  <div className="grid grid-cols-2 gap-2">
-                    {uploadedImages.map((image, index) => (
-                      <div key={index} className="relative group">
-                        <img
-                          src={image}
-                          alt={`Upload ${index + 1}`}
-                          className="w-full h-24 object-cover rounded-lg"
-                        />
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => removeImage(index)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <PostComposer 
+            postContent={postContent}
+            setPostContent={setPostContent}
+            uploadedMedia={uploadedMedia}
+            setUploadedMedia={setUploadedMedia}
+            isScheduled={isScheduled}
+            setIsScheduled={setIsScheduled}
+            scheduledDate={scheduledDate}
+            setScheduledDate={setScheduledDate}
+            scheduledTime={scheduledTime}
+            setScheduledTime={setScheduledTime}
+            onUploadStateChange={setIsMediaUploading}
+          />
 
           {/* Post Actions */}
           <Card className="shadow-medium">
             <CardContent className="pt-6">
+              {selectedAccountIds.length === 0 && (
+                <div className="mb-4 p-3 bg-muted/30 rounded-lg border border-muted">
+                  <p className="text-sm text-muted-foreground">
+                    <span className="font-medium">💡 Tip:</span> No accounts selected. Your post will be saved as a draft and can be published later.
+                  </p>
+                </div>
+              )}
               <div className="flex gap-3">
-                <Button className="flex-1 gradient-primary hover-scale">
-                  <Send className="h-4 w-4 mr-2" />
-                  Publish Now
-                </Button>
+                {isScheduled ? (
+                  <Button 
+                    className="flex-1 gradient-primary hover-scale"
+                    onClick={handleSchedulePost}
+                    disabled={createPost.isPending || isMediaUploading}
+                  >
+                    {createPost.isPending ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : isMediaUploading ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Clock className="h-4 w-4 mr-2" />
+                    )}
+                    {isMediaUploading ? "Uploading Media..." : selectedAccountIds.length > 0 ? "Schedule Post" : "Schedule Draft"}
+                  </Button>
+                ) : (
+                  <Button 
+                    className="flex-1 gradient-primary hover-scale"
+                    onClick={handlePublishNow}
+                    disabled={createPost.isPending || isMediaUploading}
+                  >
+                    {createPost.isPending ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : isMediaUploading ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : selectedAccountIds.length > 0 ? (
+                      <Send className="h-4 w-4 mr-2" />
+                    ) : (
+                      <Save className="h-4 w-4 mr-2" />
+                    )}
+                    {isMediaUploading ? "Uploading Media..." : selectedAccountIds.length > 0 ? "Publish Now" : "Save as Draft"}
+                  </Button>
+                )}
                 <Button variant="outline" className="hover-lift">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Schedule
-                </Button>
-                <Button variant="outline" className="hover-lift">
+                  <Save className="h-4 w-4 mr-2" />
                   Save Draft
                 </Button>
               </div>
@@ -226,149 +241,13 @@ export default function MakePost() {
 
         {/* Preview Panel */}
         <div className="space-y-6">
-          <Card className="shadow-medium">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Eye className="h-5 w-5" />
-                Preview
-              </CardTitle>
-              <CardDescription>See how your post will look</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="instagram" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="instagram">Instagram</TabsTrigger>
-                  <TabsTrigger value="twitter">Twitter</TabsTrigger>
-                  <TabsTrigger value="facebook">Facebook</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="instagram" className="mt-4">
-                  <div className="bg-white border rounded-lg overflow-hidden shadow-sm">
-                    {/* Instagram Post Header */}
-                    <div className="flex items-center gap-3 p-3 border-b">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">MC</span>
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-semibold text-sm">mycompany</p>
-                        <p className="text-xs text-gray-500">2m</p>
-                      </div>
-                    </div>
-                    
-                    {/* Post Image */}
-                    {uploadedImages.length > 0 && (
-                      <img
-                        src={uploadedImages[0]}
-                        alt="Post"
-                        className="w-full aspect-square object-cover"
-                      />
-                    )}
-                    
-                    {/* Post Actions */}
-                    <div className="p-3 space-y-2">
-                      <div className="flex items-center gap-4">
-                        <Heart className="h-6 w-6" />
-                        <MessageSquare className="h-6 w-6" />
-                        <Share2 className="h-6 w-6" />
-                      </div>
-                      <p className="font-semibold text-sm">42 likes</p>
-                      <p className="text-sm">
-                        <span className="font-semibold">mycompany</span>{" "}
-                        {postContent || "Your post content will appear here..."}
-                      </p>
-                    </div>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="twitter" className="mt-4">
-                  <div className="bg-white border rounded-lg p-4 shadow-sm">
-                    <div className="flex gap-3">
-                      <div className="w-12 h-12 rounded-full bg-twitter flex items-center justify-center">
-                        <span className="text-white font-bold">MC</span>
-                      </div>
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold">My Company</span>
-                          <span className="text-gray-500">@mycompany</span>
-                          <span className="text-gray-500">·</span>
-                          <span className="text-gray-500">2m</span>
-                        </div>
-                        <p className="text-sm">
-                          {postContent || "Your post content will appear here..."}
-                        </p>
-                        {uploadedImages.length > 0 && (
-                          <img
-                            src={uploadedImages[0]}
-                            alt="Post"
-                            className="w-full rounded-lg max-h-64 object-cover"
-                          />
-                        )}
-                        <div className="flex items-center justify-between pt-2 text-gray-500">
-                          <div className="flex items-center gap-1">
-                            <MessageSquare className="h-4 w-4" />
-                            <span className="text-sm">12</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Share2 className="h-4 w-4" />
-                            <span className="text-sm">8</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Heart className="h-4 w-4" />
-                            <span className="text-sm">45</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="facebook" className="mt-4">
-                  <div className="bg-white border rounded-lg shadow-sm">
-                    <div className="flex items-center gap-3 p-4 border-b">
-                      <div className="w-10 h-10 rounded-full bg-facebook flex items-center justify-center">
-                        <span className="text-white font-bold">MC</span>
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-semibold">My Company</p>
-                        <p className="text-xs text-gray-500">2 minutes ago</p>
-                      </div>
-                    </div>
-                    
-                    <div className="p-4 space-y-3">
-                      <p className="text-sm">
-                        {postContent || "Your post content will appear here..."}
-                      </p>
-                      
-                      {uploadedImages.length > 0 && (
-                        <img
-                          src={uploadedImages[0]}
-                          alt="Post"
-                          className="w-full rounded-lg max-h-64 object-cover"
-                        />
-                      )}
-                      
-                      <div className="flex items-center justify-between pt-2 border-t">
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-1 text-gray-600">
-                            <Heart className="h-4 w-4" />
-                            <span className="text-sm">Like</span>
-                          </div>
-                          <div className="flex items-center gap-1 text-gray-600">
-                            <MessageSquare className="h-4 w-4" />
-                            <span className="text-sm">Comment</span>
-                          </div>
-                          <div className="flex items-center gap-1 text-gray-600">
-                            <Share2 className="h-4 w-4" />
-                            <span className="text-sm">Share</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+          <PostPreviewWrapper 
+            postContent={postContent}
+            uploadedMedia={uploadedMedia}
+            selectedAccountIds={selectedAccountIds}
+            isScheduled={isScheduled}
+            scheduledDate={scheduledDate}
+          />
         </div>
       </div>
     </div>

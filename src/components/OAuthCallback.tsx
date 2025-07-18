@@ -1,0 +1,113 @@
+import { useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { oauthApi } from '@/services/api/oauth';
+
+export function OAuthCallback() {
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const handleCallback = async () => {
+      try {
+        const oauthVerifier = searchParams.get('oauth_verifier');
+        const denied = searchParams.get('denied');
+        const error = searchParams.get('error');
+        const errorDescription = searchParams.get('error_description');
+
+        // Check for authorization denial or errors
+        if (denied) {
+          sendMessageToParent('UNAUTHORIZED', 'Authorization was denied or cancelled');
+          return;
+        }
+
+        if (error) {
+          sendMessageToParent('ERROR', errorDescription || error);
+          return;
+        }
+
+        if (!oauthVerifier) {
+          sendMessageToParent('ERROR', 'Missing OAuth verifier parameter');
+          return;
+        }
+
+        // Get the oauth_request_token from cookies
+        const cookies = document.cookie.split(';');
+        let oauthRequestToken = null;
+        
+        for (const cookie of cookies) {
+          const [name, value] = cookie.trim().split('=');
+          if (name === 'oauth_request_token' || name === 'oauth1_state') {
+            oauthRequestToken = value;
+            break;
+          }
+        }
+
+        // Complete the OAuth flow
+        const response = await oauthApi.completeJson({
+          oauth_verifier: oauthVerifier,
+          oauth_request_token: oauthRequestToken
+        });
+
+        // Send success message to parent window
+        sendMessageToParent('OK', 'Account connected successfully');
+
+      } catch (error) {
+        console.error('OAuth callback error:', error);
+        sendMessageToParent('ERROR', error instanceof Error ? error.message : 'OAuth connection failed');
+      }
+    };
+
+    const sendMessageToParent = (status: string, message: string) => {
+      if (window.opener && !window.opener.closed) {
+        try {
+          window.opener.postMessage({ status, message }, window.location.origin);
+          console.log('OAuth callback: Message sent to parent:', { status, message });
+        } catch (error) {
+          console.error('OAuth callback: Failed to send message to parent:', error);
+        }
+        // Close the popup after a short delay
+        setTimeout(() => {
+          window.close();
+        }, 1000);
+      } else {
+        console.warn('OAuth callback: No valid parent window found');
+      }
+    };
+
+    handleCallback();
+  }, [searchParams]);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="text-center space-y-6 p-8 bg-white rounded-lg shadow-lg">
+        <div className="flex justify-center">
+          <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-semibold text-gray-900">
+            Connecting Your Account
+          </h2>
+          <p className="text-gray-600">
+            Please wait while we complete the connection...
+          </p>
+        </div>
+        
+        {/* Status indicators */}
+        <div className="flex justify-center space-x-4 text-sm">
+          <div className="flex items-center space-x-2 text-blue-600">
+            <CheckCircle className="h-4 w-4" />
+            <span>Authenticating</span>
+          </div>
+          <div className="flex items-center space-x-2 text-gray-400">
+            <div className="h-4 w-4 border-2 border-gray-300 rounded-full"></div>
+            <span>Completing</span>
+          </div>
+        </div>
+        
+        <p className="text-xs text-gray-500">
+          This window will close automatically when done.
+        </p>
+      </div>
+    </div>
+  );
+}
