@@ -7,7 +7,8 @@ import {
     Settings as SettingsIcon,
     LogOut,
     Home,
-    ChevronRight
+    ChevronRight,
+    FileText
 } from "lucide-react"
 import { NavLink, useLocation, useNavigate } from "react-router-dom"
 
@@ -32,6 +33,7 @@ import { useToast } from "@/hooks/use-toast"
 
 const menuItems = [
     { title: "Overview", url: "/", icon: Home },
+    { title: "Posts", url: "/posts", icon: FileText },
     { title: "Make Post", url: "/make-post", icon: PenTool },
     { title: "Analytics", url: "/analytics", icon: TrendingUp },
     { title: "Accounts", url: "/accounts", icon: Users },
