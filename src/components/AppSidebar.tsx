@@ -41,11 +41,11 @@ const menuItems = [
 ]
 
 export function AppSidebar() {
-    const { state } = useSidebar()
+    const { state, isMobile } = useSidebar()
     const location = useLocation()
     const navigate = useNavigate()
     const currentPath = location.pathname
-    const collapsed = state === "collapsed"
+    const collapsed = state === "collapsed" && !isMobile
     const { signOut } = useAuth()
     const { profile, getDisplayName, getInitials } = useProfile()
     const { toast } = useToast()
@@ -178,34 +178,72 @@ export function AppSidebar() {
                 </SidebarGroup>
             </SidebarContent>
 
-            <div className="p-4 border-t">
-                <div className="flex items-center gap-3 mb-4">
-                    <Avatar className="h-8 w-8">
-                        <AvatarImage src={profile?.avatar_url || undefined} />
-                        <AvatarFallback className="gradient-primary text-white">
-                            {getInitials()}
-                        </AvatarFallback>
-                    </Avatar>
-                    {!collapsed && (
-                        <div className="flex-1">
-                            <p className="text-sm font-medium">{getDisplayName()}</p>
-                            <p className="text-xs text-muted-foreground">
-                                {profile?.company_name || "Free Plan"}
-                            </p>
-                        </div>
+            <div className={`${collapsed ? "p-2" : "p-4"} border-t`}>
+                <div className={`flex items-center ${collapsed ? "justify-center mb-3" : "gap-3 mb-4"}`}>
+                    {collapsed ? (
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Avatar className="h-8 w-8">
+                                    <AvatarImage src={profile?.avatar_url || undefined} />
+                                    <AvatarFallback className="gradient-primary text-white">
+                                        {getInitials()}
+                                    </AvatarFallback>
+                                </Avatar>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">
+                                <div>
+                                    <p className="font-medium">{getDisplayName()}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {profile?.company_name || "Free Plan"}
+                                    </p>
+                                </div>
+                            </TooltipContent>
+                        </Tooltip>
+                    ) : (
+                        <>
+                            <Avatar className="h-8 w-8">
+                                <AvatarImage src={profile?.avatar_url || undefined} />
+                                <AvatarFallback className="gradient-primary text-white">
+                                    {getInitials()}
+                                </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                                <p className="text-sm font-medium">{getDisplayName()}</p>
+                                <p className="text-xs text-muted-foreground">
+                                    {profile?.company_name || "Free Plan"}
+                                </p>
+                            </div>
+                        </>
                     )}
                 </div>
 
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleLogout}
-                    className={`w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/10 ${collapsed ? "px-2" : "px-3"
-                        }`}
-                >
-                    <LogOut className="h-4 w-4" />
-                    {!collapsed && <span className="ml-2">Logout</span>}
-                </Button>
+                {collapsed ? (
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleLogout}
+                                className="w-full justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            >
+                                <LogOut className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                            <p>Logout</p>
+                        </TooltipContent>
+                    </Tooltip>
+                ) : (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleLogout}
+                        className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    >
+                        <LogOut className="h-4 w-4" />
+                        <span className="ml-2">Logout</span>
+                    </Button>
+                )}
             </div>
         </Sidebar>
         </TooltipProvider>

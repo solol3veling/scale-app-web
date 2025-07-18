@@ -14,28 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { PostDetailsModal } from '@/components/PostDetailsModal';
 
 // Static Header Component - Independent of data fetching
-function PostsHeader() {
-  const navigate = useNavigate();
-  
-  return (
-    <div className="flex justify-between items-center mb-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Posts</h1>
-        <p className="text-muted-foreground mt-1">Manage and track your social media posts</p>
-      </div>
-      <Button 
-        onClick={() => navigate('/make-post')} 
-        className="gap-2 gradient-primary hover-scale"
-      >
-        <Plus className="h-4 w-4" />
-        Create Post
-      </Button>
-    </div>
-  );
-}
-
-// Search and Filter Component - Independent of data fetching
-function PostsSearchAndFilter({ 
+function PostsHeader({ 
   searchTerm, 
   onSearchChange, 
   statusFilter, 
@@ -50,58 +29,80 @@ function PostsSearchAndFilter({
   sortBy: string;
   onSortChange: (value: string) => void;
 }) {
+  const navigate = useNavigate();
+  
   return (
-    <div className="flex flex-col sm:flex-row gap-4 mb-8">
-      <div className="flex-1 relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search posts..."
-          value={searchTerm}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10 pr-10 bg-background/50 backdrop-blur-sm border-border/50"
-        />
-        {searchTerm && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-background/80"
-            onClick={() => onSearchChange('')}
-          >
-            <X className="h-3 w-3" />
-          </Button>
-        )}
+    <div className="space-y-4">
+      {/* Title and Create Button */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Posts</h1>
+          <p className="text-muted-foreground text-sm">Manage and track your social media posts</p>
+        </div>
+        <Button 
+          onClick={() => navigate('/make-post')} 
+          className="gap-2 gradient-primary hover-scale"
+          size="sm"
+        >
+          <Plus className="h-4 w-4" />
+          Create Post
+        </Button>
       </div>
-      
-      <Select value={statusFilter} onValueChange={onStatusChange}>
-        <SelectTrigger className="w-[180px] bg-background/50 backdrop-blur-sm border-border/50">
-          <Filter className="h-4 w-4 mr-2" />
-          <SelectValue placeholder="Filter by status" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Posts</SelectItem>
-          <SelectItem value={PostStatus.PUBLISHED}>Published</SelectItem>
-          <SelectItem value={PostStatus.SCHEDULED}>Scheduled</SelectItem>
-          <SelectItem value={PostStatus.DRAFT}>Draft</SelectItem>
-          <SelectItem value={PostStatus.FAILED}>Failed</SelectItem>
-        </SelectContent>
-      </Select>
 
-      <Select value={sortBy} onValueChange={onSortChange}>
-        <SelectTrigger className="w-[180px] bg-background/50 backdrop-blur-sm border-border/50">
-          <ArrowUpDown className="h-4 w-4 mr-2" />
-          <SelectValue placeholder="Sort by" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="createdAt,desc">Newest First</SelectItem>
-          <SelectItem value="createdAt,asc">Oldest First</SelectItem>
-          <SelectItem value="updatedAt,desc">Recently Updated</SelectItem>
-          <SelectItem value="status,asc">Status</SelectItem>
-          <SelectItem value="scheduledFor,desc">Scheduled Date</SelectItem>
-        </SelectContent>
-      </Select>
+      {/* Search and Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search posts..."
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="pl-10 pr-10 bg-background/50 backdrop-blur-sm border-border/50"
+          />
+          {searchTerm && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-background/80"
+              onClick={() => onSearchChange('')}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
+        
+        <Select value={statusFilter} onValueChange={onStatusChange}>
+          <SelectTrigger className="w-[180px] bg-background/50 backdrop-blur-sm border-border/50">
+            <Filter className="h-4 w-4 mr-2" />
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Posts</SelectItem>
+            <SelectItem value={PostStatus.PUBLISHED}>Published</SelectItem>
+            <SelectItem value={PostStatus.SCHEDULED}>Scheduled</SelectItem>
+            <SelectItem value={PostStatus.DRAFT}>Draft</SelectItem>
+            <SelectItem value={PostStatus.FAILED}>Failed</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={sortBy} onValueChange={onSortChange}>
+          <SelectTrigger className="w-[180px] bg-background/50 backdrop-blur-sm border-border/50">
+            <ArrowUpDown className="h-4 w-4 mr-2" />
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="createdAt,desc">Newest First</SelectItem>
+            <SelectItem value="createdAt,asc">Oldest First</SelectItem>
+            <SelectItem value="updatedAt,desc">Recently Updated</SelectItem>
+            <SelectItem value="status,asc">Status</SelectItem>
+            <SelectItem value="scheduledFor,desc">Scheduled Date</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 }
+
 
 // Modern No Posts Illustration
 function NoPostsIllustration() {
@@ -279,7 +280,7 @@ function PostsContent({
   
   if (error) {
     return (
-      <div className="text-center py-12">
+      <div className="text-center py-12 px-6">
         <div className="bg-destructive/10 backdrop-blur-sm rounded-2xl p-8 border border-destructive/20">
           <h2 className="text-xl font-semibold text-destructive mb-2">Error Loading Posts</h2>
           <p className="text-muted-foreground mb-6">There was an error loading your posts. Please try again.</p>
@@ -295,7 +296,7 @@ function PostsContent({
   // Loading state
   if (isLoading) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-3 px-6">
         {[...Array(5)].map((_, i) => (
           <div 
             key={i} 
@@ -321,7 +322,7 @@ function PostsContent({
   // Empty state
   if (posts.length === 0) {
     return (
-      <div className="text-center py-16">
+      <div className="text-center py-16 px-6">
         <div className="bg-card/30 backdrop-blur-sm rounded-3xl p-12 border border-border/30">
           <NoPostsIllustration />
           <div className="mt-8 space-y-3">
@@ -381,7 +382,7 @@ function PostsContent({
   // Posts list
   return (
     <>
-      <div className="space-y-3">
+      <div className="space-y-3 px-6">
         {posts.map((post) => (
           <div 
             key={post.id} 
@@ -451,7 +452,7 @@ function PostsContent({
       
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-12">
+        <div className="flex justify-center items-center gap-2 mt-12 px-6">
           <Button
             variant="outline"
             size="sm"
@@ -572,27 +573,31 @@ export default function Posts() {
   };
   
   return (
-    <div className="container mx-auto px-4 py-8 space-y-8">
-      {/* Static Header */}
-      <PostsHeader />
+    <div className="space-y-0">
+      {/* Header directly after topbar */}
+      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="px-6 py-4">
+          <PostsHeader 
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            statusFilter={statusFilter}
+            onStatusChange={(value) => setStatusFilter(value as PostStatus | 'all')}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+          />
+        </div>
+      </div>
       
-      {/* Static Search and Filters */}
-      <PostsSearchAndFilter 
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        statusFilter={statusFilter}
-        onStatusChange={(value) => setStatusFilter(value as PostStatus | 'all')}
-        sortBy={sortBy}
-        onSortChange={setSortBy}
-      />
-      
-      {/* Dynamic Posts Content */}
-      <PostsContent 
-        searchTerm={searchTerm}
-        statusFilter={statusFilter}
-        sortBy={sortBy}
-        onClearFilters={handleClearFilters}
-      />
+      {/* Main content area */}
+      <div className="space-y-4">
+        {/* Dynamic Posts Content */}
+        <PostsContent 
+          searchTerm={searchTerm}
+          statusFilter={statusFilter}
+          sortBy={sortBy}
+          onClearFilters={handleClearFilters}
+        />
+      </div>
     </div>
   );
 }
