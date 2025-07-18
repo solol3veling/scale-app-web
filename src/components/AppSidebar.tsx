@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useAuth } from "@/hooks/useAuth"
 import { useProfile } from "@/hooks/useProfile"
 import { useToast } from "@/hooks/use-toast"
@@ -77,8 +78,9 @@ export function AppSidebar() {
     }
 
     return (
-        <Sidebar className="transition-all duration-300"
-            collapsible="icon" style={{ width: collapsed ? "60px" : "200px" }}>
+        <TooltipProvider>
+            <Sidebar className="transition-all duration-300"
+                collapsible="icon" style={{ width: collapsed ? "60px" : "200px" }}>
             <SidebarHeader className="p-4">
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
@@ -102,20 +104,34 @@ export function AppSidebar() {
                         <SidebarMenu>
                             {menuItems.map((item) => (
                                 <SidebarMenuItem key={item.title}>
-                                    <SidebarMenuButton asChild>
-                                        <NavLink
-                                            to={item.url}
-                                            className={`${getNavClass(item.url)} flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover-lift`}
-                                        >
-                                            <item.icon className="h-5 w-5 flex-shrink-0" />
-                                            {!collapsed && (
-                                                <>
-                                                    <span className="flex-1">{item.title}</span>
-                                                    {isActive(item.url) && <ChevronRight className="h-4 w-4" />}
-                                                </>
-                                            )}
-                                        </NavLink>
-                                    </SidebarMenuButton>
+                                    {collapsed ? (
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <SidebarMenuButton asChild>
+                                                    <NavLink
+                                                        to={item.url}
+                                                        className={`${getNavClass(item.url)} flex items-center justify-center rounded-lg p-2 transition-all hover-lift`}
+                                                    >
+                                                        <item.icon className="h-5 w-5 flex-shrink-0" />
+                                                    </NavLink>
+                                                </SidebarMenuButton>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="right">
+                                                <p>{item.title}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    ) : (
+                                        <SidebarMenuButton asChild>
+                                            <NavLink
+                                                to={item.url}
+                                                className={`${getNavClass(item.url)} flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover-lift`}
+                                            >
+                                                <item.icon className="h-5 w-5 flex-shrink-0" />
+                                                <span className="flex-1">{item.title}</span>
+                                                {isActive(item.url) && <ChevronRight className="h-4 w-4" />}
+                                            </NavLink>
+                                        </SidebarMenuButton>
+                                    )}
                                 </SidebarMenuItem>
                             ))}
                         </SidebarMenu>
@@ -153,5 +169,6 @@ export function AppSidebar() {
                 </Button>
             </div>
         </Sidebar>
+        </TooltipProvider>
     )
 }

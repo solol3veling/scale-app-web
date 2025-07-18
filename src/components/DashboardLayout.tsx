@@ -29,19 +29,9 @@ function DashboardContent({ children }: DashboardLayoutProps) {
       <div className="flex-1 flex flex-col" >
           {/* Header */}
           <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="flex h-16 items-center gap-4 px-6">
+            <div className="flex h-16 items-center justify-between px-6">
               <SidebarTrigger className="hover:bg-accent/50 hover-scale" />
               
-              <div className="flex-1 flex items-center gap-4 max-w-lg">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    placeholder="Search posts, accounts, analytics..." 
-                    className="pl-10 bg-muted/50 border-0 focus-visible:ring-1 focus-visible:ring-primary"
-                  />
-                </div>
-              </div>
-
               <div className="flex items-center gap-3">
                 <Button variant="ghost" size="icon" className="relative hover-scale">
                   <Bell className="h-5 w-5" />
