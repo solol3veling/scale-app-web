@@ -1,4 +1,4 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar"
 import { AppSidebar } from "./AppSidebar"
 import { Bell, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -11,15 +11,22 @@ interface DashboardLayoutProps {
   children: React.ReactNode
 }
 
-export function DashboardLayout({ children }: DashboardLayoutProps) {
+function DashboardContent({ children }: DashboardLayoutProps) {
   const { profile, getDisplayName, getInitials } = useProfile()
+  const { state } = useSidebar()
+  const collapsed = state === "collapsed"
   
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        <AppSidebar />
-        
-        <div className="flex-1 flex flex-col">
+    <div 
+      className="min-h-screen flex w-full bg-background"
+      style={{
+        "--sidebar-width": "200px",
+        "--sidebar-width-icon": "60px"
+      } as React.CSSProperties}
+    >
+      <AppSidebar />
+      
+      <div className="flex-1 flex flex-col" >
           {/* Header */}
           <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="flex h-16 items-center gap-4 px-6">
@@ -64,6 +71,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </main>
         </div>
       </div>
+  )
+}
+
+export function DashboardLayout({ children }: DashboardLayoutProps) {
+  return (
+    <SidebarProvider>
+      <DashboardContent>{children}</DashboardContent>
     </SidebarProvider>
   )
 }
