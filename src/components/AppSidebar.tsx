@@ -8,7 +8,8 @@ import {
     LogOut,
     Home,
     ChevronRight,
-    FileText
+    FileText,
+    Plus
 } from "lucide-react"
 import { NavLink, useLocation, useNavigate } from "react-router-dom"
 
@@ -34,7 +35,6 @@ import { useToast } from "@/hooks/use-toast"
 const menuItems = [
     { title: "Overview", url: "/", icon: Home },
     { title: "Posts", url: "/posts", icon: FileText },
-    { title: "Make Post", url: "/make-post", icon: PenTool },
     { title: "Analytics", url: "/analytics", icon: TrendingUp },
     { title: "Accounts", url: "/accounts", icon: Users },
     { title: "Settings", url: "/settings", icon: SettingsIcon },
@@ -96,6 +96,43 @@ export function AppSidebar() {
                     )}
                 </div>
             </SidebarHeader>
+
+            {/* Make Post Button */}
+            <div className={`${collapsed ? "px-2 pt-4 pb-2" : "px-4 pt-4 pb-2"}`}>
+                {collapsed ? (
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                asChild
+                                size="sm"
+                                className="w-full bg-gray-800 hover:bg-gray-700 text-white border-0 shadow-sm p-2"
+                            >
+                                <NavLink to="/make-post">
+                                    <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
+                                        <Plus className="h-3 w-3 text-gray-800" />
+                                    </div>
+                                </NavLink>
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                            <p>Make Post</p>
+                        </TooltipContent>
+                    </Tooltip>
+                ) : (
+                    <Button
+                        asChild
+                        size="sm"
+                        className="w-full bg-gray-800 hover:bg-gray-700 text-white border-0 shadow-sm justify-between"
+                    >
+                        <NavLink to="/make-post">
+                            <span className="font-medium">Make Post</span>
+                            <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
+                                <Plus className="h-3 w-3 text-gray-800" />
+                            </div>
+                        </NavLink>
+                    </Button>
+                )}
+            </div>
 
             <SidebarContent className="px-2">
                 <SidebarGroup>
