@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Search, Plus, Filter, Calendar, Clock, CheckCircle, Circle, Edit, Trash2, Copy, Eye, FileText, Sparkles, ArrowUpDown, X, MessageSquare, Heart, ChevronLeft, ChevronRight, ImageOff } from 'lucide-react';
+import { Search, Plus, Filter, Calendar, Clock, CheckCircle, Circle, Edit, Trash2, Copy, Eye, FileText, Sparkles, ArrowUpDown, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { usePosts, useDeletePost, useDuplicatePost } from '@/hooks/api/usePosts';
 import { PostStatus } from '@/types/api';
@@ -51,7 +51,7 @@ function MediaCarousel({ media }: { media: any[] }) {
   };
   
   return (
-    <div className="relative w-full h-full bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden">
+    <div className="relative w-full h-32 bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden">
       {/* Media Display */}
       <div className="w-full h-full flex items-center justify-center">
         {media[currentIndex]?.type === 'image' ? (
@@ -325,6 +325,17 @@ function PostsContent({
   const hasNext = data?.hasNext || false;
   const hasPrev = data?.hasPrev || false;
 
+  // Helper function to extract meaningful error message
+  const getErrorMessage = (error: any) => {
+    if (typeof error === 'string') return error;
+    if (error?.message) return error.message;
+    if (error?.error) return error.error;
+    if (error?.response?.data?.message) return error.response.data.message;
+    if (error?.response?.data?.error) return error.response.data.error;
+    if (error?.response?.statusText) return error.response.statusText;
+    return 'There was an error loading your posts. Please try again.';
+  };
+
   // Reset to first page when search, filter, or sort changes
   useMemo(() => {
     setCurrentPage(0);
@@ -384,7 +395,7 @@ function PostsContent({
       <div className="text-center py-12 px-6">
         <div className="bg-destructive/10 backdrop-blur-sm rounded-2xl p-8 border border-destructive/20">
           <h2 className="text-xl font-semibold text-destructive mb-2">Error Loading Posts</h2>
-          <p className="text-muted-foreground mb-6">There was an error loading your posts. Please try again.</p>
+          <p className="text-muted-foreground mb-6">{getErrorMessage(error)}</p>
           <Button onClick={() => refetch()} variant="outline" className="hover-scale">
             <FileText className="h-4 w-4 mr-2" />
             Retry
@@ -483,11 +494,11 @@ function PostsContent({
   // Posts list
   return (
     <>
-      <div className="flex flex-row flex-wrap gap-3 px-6 py-4 sm:mx-auto sm:justify-center lg:mx-0 lg:justify-start">
+      <div className="flex flex-row flex-wrap gap-3 px-6 py-4 justify-start">
         {posts.map((post) => (
           <article 
             key={post.id} 
-            className="group bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-all duration-200 hover:shadow-lg overflow-hidden w-full sm:w-80 h-96 flex-shrink-0 flex flex-col relative"
+            className="group bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-all duration-200 hover:shadow-lg overflow-hidden w-full sm:w-80 max-h-96 flex-shrink-0 flex flex-col relative"
           >
             {/* Top section with avatar and source */}
             <div className="p-3 pb-2 flex-shrink-0">
@@ -521,20 +532,11 @@ function PostsContent({
               </h3>
               
               {/* Media preview with carousel */}
-              <div className="flex-1 min-h-0">
-                {post.media && post.media.length > 0 ? (
-                  <div className="h-full">
-                    <MediaCarousel media={post.media} />
-                  </div>
-                ) : (
-                  <div className="w-full h-full bg-gray-200 dark:bg-gray-700 rounded-xl flex items-center justify-center">
-                    <div className="text-center">
-                      <ImageOff className="h-8 w-8 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
-                      <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">No media</p>
-                    </div>
-                  </div>
-                )}
-              </div>
+              {post.media && post.media.length > 0 && (
+                <div className="mb-2">
+                  <MediaCarousel media={post.media} />
+                </div>
+              )}
             </div>
 
             {/* Bottom section with actions */}
@@ -547,20 +549,6 @@ function PostsContent({
                   >
                     <Eye className="h-3 w-3" />
                     <span className="text-xs">{post.analytics?.views || 0}</span>
-                  </button>
-                  <button 
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-                  >
-                    <MessageSquare className="h-3 w-3" />
-                    <span className="text-xs">{post.analytics?.comments || 0}</span>
-                  </button>
-                  <button 
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-                  >
-                    <Heart className="h-3 w-3" />
-                    <span className="text-xs">{post.analytics?.likes || 0}</span>
                   </button>
                 </div>
                 
@@ -597,7 +585,7 @@ function PostsContent({
       </div>
       
       {/* Pagination */}
-      {posts.length > 8 && totalPages > 1 && (
+      {totalPages > 1 && (
         <div className="flex justify-center items-center gap-2 mt-12 px-6">
           <Button
             variant="outline"

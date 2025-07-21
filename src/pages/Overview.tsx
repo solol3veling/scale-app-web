@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { ErrorState } from "@/components/ErrorState"
+import { format } from "date-fns"
 import { 
   TrendingUp, 
   Users, 
@@ -29,6 +30,27 @@ import { PostDetailsModal } from "@/components/PostDetailsModal"
 import { useDeletePost } from "@/hooks/api/usePosts"
 import { useToast } from "@/hooks/use-toast"
 import { PageHeader } from "@/components/PageHeader"
+import { useAuth } from "@/hooks/useAuth"
+
+// Helper functions for user profile data
+const useUserProfile = () => {
+  const { user } = useAuth();
+  
+  const getDisplayName = () => {
+    return user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+  };
+  
+  const getInitials = () => {
+    const name = getDisplayName();
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+  
+  const getAvatarUrl = () => {
+    return user?.user_metadata?.avatar_url;
+  };
+  
+  return { getDisplayName, getInitials, getAvatarUrl };
+};
 
 // Utility function to format large numbers
 const formatNumber = (num: number): string => {
@@ -40,6 +62,17 @@ const formatNumber = (num: number): string => {
   }
   return num.toString()
 }
+
+// Helper function to extract meaningful error message
+const getErrorMessage = (error: any, fallback: string) => {
+  if (typeof error === 'string') return error;
+  if (error?.message) return error.message;
+  if (error?.error) return error.error;
+  if (error?.response?.data?.message) return error.response.data.message;
+  if (error?.response?.data?.error) return error.response.data.error;
+  if (error?.response?.statusText) return error.response.statusText;
+  return fallback;
+};
 
 // Calculate growth rate percentage (placeholder logic)
 const calculateGrowthPercentage = (current: number, growth: number): string => {
@@ -80,7 +113,7 @@ function StatsSection() {
             <CardContent className="flex items-center justify-center py-8">
               <ErrorState
                 title="Failed to load statistics"
-                description="Unable to fetch your dashboard statistics."
+                description={getErrorMessage(error, "Unable to fetch your dashboard statistics.")}
                 onRetry={refetch}
                 size="sm"
               />
@@ -200,6 +233,7 @@ function RecentPostsSection() {
   const { data: apiResponse, isLoading, error, refetch } = useRecentActivity(5)
   const deletePost = useDeletePost()
   const { toast } = useToast()
+  const { getDisplayName, getInitials, getAvatarUrl } = useUserProfile()
   
   // Extract posts from API response structure
   const recentPosts = apiResponse?.data || []
@@ -252,6 +286,27 @@ function RecentPostsSection() {
         return <Badge variant="outline">{status}</Badge>
     }
   }
+
+  // Helper function for social platform icons
+  const getSocialPlatformIcon = (platform: string) => {
+    const platformLower = platform.toLowerCase();
+    const colors = {
+      twitter: 'bg-blue-500',
+      facebook: 'bg-blue-600', 
+      instagram: 'bg-pink-500',
+      linkedin: 'bg-blue-700',
+      tiktok: 'bg-black',
+      youtube: 'bg-red-500',
+    };
+    
+    const bgColor = colors[platformLower as keyof typeof colors] || 'bg-gray-500';
+    
+    return (
+      <div className={`w-5 h-5 rounded-full ${bgColor} flex items-center justify-center text-white text-xs font-bold border border-white dark:border-gray-900`}>
+        {platform.charAt(0).toUpperCase()}
+      </div>
+    );
+  };
 
   // Empty state SVG for recent posts
   const EmptyPostsSVG = () => (
@@ -329,7 +384,7 @@ function RecentPostsSection() {
         <CardContent>
           <ErrorState
             title="Failed to load recent posts"
-            description="Unable to fetch your recent social media activity."
+            description={getErrorMessage(error, "Unable to fetch your recent social media activity.")}
             onRetry={refetch}
             size="sm"
           />
@@ -382,82 +437,95 @@ function RecentPostsSection() {
         <CardDescription>Your latest social media activity</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {recentPosts.map((post: any) => (
-          <div key={post.id} className="flex gap-4 p-4 rounded-lg border hover:bg-accent/20 transition-colors">
-            <div className="flex-1 space-y-2">
-              <p className="text-sm leading-relaxed">{post.content}</p>
-              
-              <div className="flex items-center gap-2 flex-wrap">
-                {post.accounts?.map((account: any) => (
-                  <Badge key={account.id} variant="secondary" className="text-xs">
-                    {account.platform}
-                  </Badge>
-                ))}
-                {getStatusBadge(post.status)}
+        <div className="space-y-3">
+          {recentPosts.map((post: any) => (
+            <article 
+              key={post.id} 
+              className="group bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-all duration-200 hover:shadow-lg overflow-hidden w-full max-h-96 flex flex-col relative"
+            >
+              {/* Top section with avatar and source */}
+              <div className="p-3 pb-2 flex-shrink-0">
+                <div className="flex items-center gap-3">
+                  <Avatar className="w-8 h-8">
+                    <AvatarImage src={getAvatarUrl()} />
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-bold">
+                      {getInitials()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-gray-900 dark:text-white truncate">{getDisplayName()}</span>
+                      {getStatusBadge(post.status)}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                      <span className="truncate">
+                        {post.status === "SCHEDULED" && post.scheduledFor
+                          ? `Scheduled for ${format(new Date(post.scheduledFor), 'MMM dd, HH:mm')}`
+                          : format(new Date(post.createdAt), 'MMM dd, yyyy')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {post.status === "PUBLISHED" && post.engagement && (
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Heart className="h-3 w-3" />
-                    {post.engagement.likes || 0}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <MessageSquare className="h-3 w-3" />
-                    {post.engagement.comments || 0}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Share2 className="h-3 w-3" />
-                    {post.engagement.shares || 0}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Eye className="h-3 w-3" />
-                    {post.engagement.reach || 0}
-                  </span>
-                  <span className="flex items-center gap-1 ml-auto">
-                    <Clock className="h-3 w-3" />
-                    {formatRelativeTime(post.publishedAt || post.createdAt)}
-                  </span>
-                </div>
-              )}
+              {/* Main content */}
+              <div className="px-3 pb-2 flex-1 flex flex-col min-h-0">
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-2 overflow-hidden">
+                  {post.content.length > 80 ? post.content.substring(0, 80) + '...' : post.content}
+                </h3>
+                
+                {/* Media indicator */}
+                {post.media && post.media.length > 0 && (
+                  <div className="mb-2 text-xs text-gray-500 dark:text-gray-400">
+                    ...media attached
+                  </div>
+                )}
+              </div>
 
-              {post.status === "SCHEDULED" && post.scheduledFor && (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Calendar className="h-3 w-3" />
-                  Scheduled for {new Date(post.scheduledFor).toLocaleDateString()} at {new Date(post.scheduledFor).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              {/* Bottom section with actions */}
+              <div className="px-3 pb-3 flex-shrink-0">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                    >
+                      <Eye className="h-3 w-3" />
+                      <span className="text-xs">{post.analytics?.views || 0}</span>
+                    </button>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    {post.accounts && post.accounts.length > 0 ? (
+                      <div className="flex -space-x-1">
+                        {post.accounts.slice(0, 3).map((account: any, index: number) => (
+                          <div key={account.id} className="relative" style={{ zIndex: 10 - index }}>
+                            {getSocialPlatformIcon(account.platform)}
+                          </div>
+                        ))}
+                        {post.accounts.length > 3 && (
+                          <div className="w-4 h-4 rounded-full bg-gray-100 dark:bg-gray-700 border border-white dark:border-gray-900 flex items-center justify-center text-xs font-medium text-gray-600 dark:text-gray-300">
+                            +{post.accounts.length - 3}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400 dark:text-gray-500">No platforms</span>
+                    )}
+                  </div>
                 </div>
-              )}
-
-              {post.status === "DRAFT" && (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Clock className="h-3 w-3" />
-                  Created {formatRelativeTime(post.createdAt)}
-                </div>
-              )}
-            </div>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setSelectedPostId(post.id)}>
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Details
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => setDeleteDialog({ open: true, postId: post.id })}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        ))}
+              </div>
+              
+              {/* Hover button for opening modal */}
+              <button
+                onClick={() => setSelectedPostId(post.id)}
+                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/50 hover:bg-black/70 text-white rounded-full w-8 h-8 flex items-center justify-center"
+              >
+                <Eye className="h-4 w-4" />
+              </button>
+            </article>
+          ))}
+        </div>
         
         {/* View All Posts Link */}
         <div className="pt-2 border-t">
@@ -681,7 +749,7 @@ function ConnectedAccountsSection() {
         <CardContent>
           <ErrorState
             title="Failed to load accounts"
-            description="Unable to fetch your connected social media accounts."
+            description={getErrorMessage(error, "Unable to fetch your connected social media accounts.")}
             onRetry={refetch}
             size="sm"
           />

@@ -9,7 +9,8 @@ import {
     Home,
     ChevronRight,
     FileText,
-    Plus
+    Plus,
+    PanelLeft
 } from "lucide-react"
 import { NavLink, useLocation, useNavigate } from "react-router-dom"
 
@@ -23,6 +24,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
     SidebarHeader,
+    SidebarTrigger,
     useSidebar,
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
@@ -84,16 +86,13 @@ export function AppSidebar() {
             <Sidebar className="transition-all duration-300"
                 collapsible="icon" style={{ width: collapsed ? "60px" : "200px" }}>
             <SidebarHeader className="p-4">
-                <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
-                        <span className="text-white font-bold text-sm">SM</span>
-                    </div>
+                <div className="flex items-center justify-between">
                     {!collapsed && (
-                        <div>
-                            <h2 className="font-semibold text-lg">SocialHub</h2>
-                            <p className="text-xs text-muted-foreground">Dashboard</p>
+                        <div className="w-12 h-12 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 cursor-pointer">
+                            <img src="/logo.svg" alt="Logo" className="w-12 h-12" />
                         </div>
                     )}
+                    <SidebarTrigger className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 rounded-lg p-2" />
                 </div>
             </SidebarHeader>
 

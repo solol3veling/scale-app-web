@@ -90,20 +90,28 @@ export const useAnalytics = (dateRange: string = '30d') => {
     queryKey: ['analytics', dateRange],
     queryFn: async () => {
       try {
-        const response = await analyticsApi.getAnalyticsData()
-        return response.data
+        const response = await analyticsApi.getAnalytics({ dateRange })
+        console.log('📊 Analytics API Response:', response)
+        return response
       } catch (error) {
-        console.error('Failed to fetch analytics:', error)
-        // Fallback to mock data during development
-        await new Promise(resolve => setTimeout(resolve, 1200))
-        return {
-          ...mockAnalyticsData,
-          dateRange
-        }
+        console.error('📊 Analytics API Error:', error)
+        // Throw the error to be handled by the component
+        throw error
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchInterval: 15 * 60 * 1000, // Refetch every 15 minutes
+    refetchInterval: false, // Disable auto-refetch for now during testing
+    retry: (failureCount, error) => {
+      // Don't retry on 403 or 401 errors
+      if (error?.response?.status === 403 || error?.response?.status === 401) {
+        return false
+      }
+      // Don't retry on network errors during initial testing
+      if (!error?.response) {
+        return false
+      }
+      return failureCount < 2
+    }
   })
 }
 

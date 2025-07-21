@@ -1,4 +1,4 @@
-import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar"
+import { SidebarProvider, useSidebar } from "@/components/ui/sidebar"
 import { AppSidebar } from "./AppSidebar"
 import { Bell, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -29,9 +29,7 @@ function DashboardContent({ children }: DashboardLayoutProps) {
       <div className="flex-1 flex flex-col" >
           {/* Header */}
           <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="flex h-16 items-center justify-between px-6">
-              <SidebarTrigger className="hover:bg-accent/50 hover-scale" />
-              
+            <div className="flex h-16 items-center justify-end px-6">
               <div className="flex items-center gap-3">
                 <Button variant="ghost" size="icon" className="relative hover-scale">
                   <Bell className="h-5 w-5" />
