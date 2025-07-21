@@ -10,7 +10,8 @@ import {
     ChevronRight,
     FileText,
     Plus,
-    PanelLeft
+    PanelLeft,
+    Calendar
 } from "lucide-react"
 import { NavLink, useLocation, useNavigate } from "react-router-dom"
 
@@ -37,6 +38,7 @@ import { useToast } from "@/hooks/use-toast"
 const menuItems = [
     { title: "Overview", url: "/", icon: Home },
     { title: "Posts", url: "/posts", icon: FileText },
+    { title: "Calendar", url: "/calendar", icon: Calendar },
     { title: "Analytics", url: "/analytics", icon: TrendingUp },
     { title: "Accounts", url: "/accounts", icon: Users },
     { title: "Settings", url: "/settings", icon: SettingsIcon },
@@ -89,47 +91,44 @@ export function AppSidebar() {
                 <div className="flex items-center justify-between">
                     {!collapsed && (
                         <div className="w-12 h-12 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 cursor-pointer">
-                            <img src="/logo.svg" alt="Logo" className="w-12 h-12" />
+                            <img src="/logo.svg" alt="Logo" className="w-10 h-10" />
                         </div>
                     )}
-                    <SidebarTrigger className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 rounded-lg p-2" />
+                    {/* Only show trigger on desktop - mobile has it in the top bar */}
+                    {!isMobile && (
+                        <SidebarTrigger className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 rounded-lg p-2" />
+                    )}
                 </div>
             </SidebarHeader>
 
-            {/* Make Post Button */}
+            {/* Create Post */}
             <div className={`${collapsed ? "px-2 pt-4 pb-2" : "px-4 pt-4 pb-2"}`}>
                 {collapsed ? (
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button
-                                asChild
-                                size="sm"
-                                className="w-full bg-gray-800 hover:bg-gray-700 text-white border-0 shadow-sm p-2"
+                            <NavLink
+                                to="/make-post"
+                                className="flex items-center justify-center w-full h-10 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
                             >
-                                <NavLink to="/make-post">
-                                    <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
-                                        <Plus className="h-3 w-3 text-gray-800" />
-                                    </div>
-                                </NavLink>
-                            </Button>
+                                <div className="w-6 h-6 bg-gray-800 rounded-full flex items-center justify-center">
+                                    <Plus className="h-4 w-4 text-white" />
+                                </div>
+                            </NavLink>
                         </TooltipTrigger>
                         <TooltipContent side="right">
-                            <p>Make Post</p>
+                            <p>Create Post</p>
                         </TooltipContent>
                     </Tooltip>
                 ) : (
-                    <Button
-                        asChild
-                        size="sm"
-                        className="w-full bg-gray-800 hover:bg-gray-700 text-white border-0 shadow-sm justify-between"
+                    <NavLink
+                        to="/make-post"
+                        className="flex items-center gap-3 w-full px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
                     >
-                        <NavLink to="/make-post">
-                            <span className="font-medium">Make Post</span>
-                            <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
-                                <Plus className="h-3 w-3 text-gray-800" />
-                            </div>
-                        </NavLink>
-                    </Button>
+                        <div className="w-6 h-6 bg-gray-800 rounded-full flex items-center justify-center">
+                            <Plus className="h-4 w-4 text-white" />
+                        </div>
+                        <span className="text-sm font-medium">Create Post</span>
+                    </NavLink>
                 )}
             </div>
 

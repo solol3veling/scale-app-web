@@ -15,6 +15,8 @@ import AccountManagement from "./pages/AccountManagement";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import { Calendar } from "./pages/Calendar";
+import { WithCalendarErrorBoundary } from "./components/CalendarErrorBoundary";
 
 // Import API testing utilities for development
 if (import.meta.env.DEV) {
@@ -51,6 +53,15 @@ const App = () => (
             <ProtectedRoute>
               <DashboardLayout>
                 <MakePost />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/calendar" element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <WithCalendarErrorBoundary>
+                  <Calendar />
+                </WithCalendarErrorBoundary>
               </DashboardLayout>
             </ProtectedRoute>
           } />

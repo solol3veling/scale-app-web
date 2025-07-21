@@ -4,10 +4,12 @@ import {
   ApiResponseListPublishingEventResponse,
   ApiResponsePublishingEventResponse,
   ApiResponseObject,
+  ApiResponseCalendarPosts,
   PaginatedResponsePost,
   CreatePostData,
   ExtendPostRequest,
   GetPostsParams,
+  CalendarPostsParams,
   Post,
   PublishingEventResponse,
 } from '@/types/api';
@@ -145,6 +147,22 @@ export const postsApi = {
   getMetrics: async (id: string): Promise<any> => {
     const response = await makeApiCall<ApiResponseObject>(
       () => apiClient.get(buildApiUrl(`/post/${id}/metrics`))
+    );
+    return response.data;
+  },
+
+  /**
+   * Get posts for calendar view
+   */
+  getCalendarPosts: async (params: CalendarPostsParams): Promise<Post[]> => {
+    const queryString = buildQueryParams({
+      startDate: params.startDate,
+      endDate: params.endDate,
+      dateType: params.dateType || 'created',
+    });
+    
+    const response = await makeApiCall<ApiResponseCalendarPosts>(
+      () => apiClient.get(buildApiUrl(`/posts/calendar?${queryString}`))
     );
     return response.data;
   },

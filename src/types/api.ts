@@ -333,3 +333,12 @@ export interface OAuthCallbackParams {
     oauth_verifier: string;
     oauth_request_token?: string;
 }
+
+// Calendar API Types
+export interface CalendarPostsParams {
+    startDate: string; // ISO date string
+    endDate: string;   // ISO date string
+    dateType?: 'created' | 'scheduled';
+}
+
+export type ApiResponseCalendarPosts = ApiResponse<Post[]>;
