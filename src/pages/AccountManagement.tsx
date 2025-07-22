@@ -15,6 +15,7 @@ export default function AccountManagement() {
   const [searchParams, setSearchParams] = useSearchParams();
   const action = searchParams.get("action");
   const accountId = searchParams.get("accountId");
+  const platform = searchParams.get("platform");
 
   const { refetch } = useAccounts()
   const queryClient = useQueryClient()
@@ -50,7 +51,7 @@ export default function AccountManagement() {
             <Plus className="h-4 w-4 mr-2" />
             Add Account
           </Button>
-          <AddAccountDialog onAccountAdded={handleAccountAdded} open={action === 'add'} onOpenChange={(open) => !open && closeDialog()} />
+          <AddAccountDialog onAccountAdded={handleAccountAdded} open={action === 'add'} onOpenChange={(open) => !open && closeDialog()} platform={platform} />
         </div>
       </PageHeader>
 

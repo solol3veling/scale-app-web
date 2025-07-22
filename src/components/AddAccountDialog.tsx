@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -24,15 +24,25 @@ interface AddAccountDialogProps {
   onAccountAdded?: () => void;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  defaultPlatform?: string | null;
 }
 
-export function AddAccountDialog({ onAccountAdded, open, onOpenChange }: AddAccountDialogProps) {
+export function AddAccountDialog({ onAccountAdded, open, onOpenChange, defaultPlatform }: AddAccountDialogProps) {
   
   const [platform, setPlatform] = useState("")
   const [accountName, setAccountName] = useState("")
   const [isConnecting, setIsConnecting] = useState(false)
   const { toast } = useToast()
   const queryClient = useQueryClient()
+
+  useEffect(() => {
+    if (defaultPlatform && platformOptions.some(option => option.value === defaultPlatform)) {
+      setPlatform(defaultPlatform);
+    } else if (defaultPlatform) {
+      // If defaultPlatform is provided but not valid, clear it to avoid issues
+      setPlatform("");
+    }
+  }, [defaultPlatform]);
 
   const handleConnectAccount = async () => {
     if (!platform || !accountName) {

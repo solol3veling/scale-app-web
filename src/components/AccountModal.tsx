@@ -150,10 +150,7 @@ export function AccountModal({ account, isOpen, onClose, mode, onSave }: Account
               <h3 className="font-medium">Platform</h3>
               <p className="text-sm text-muted-foreground">{platformConfig.name}</p>
             </div>
-            <div className="text-right">
-              <p className="font-medium">{account.followers || '0'}</p>
-              <p className="text-sm text-muted-foreground">Followers</p>
-            </div>
+            
             <Button variant="ghost" size="sm" className="gap-2">
               <ExternalLink className="h-4 w-4" />
               View Profile
