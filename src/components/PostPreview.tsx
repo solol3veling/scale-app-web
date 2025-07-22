@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { 
   Eye,
@@ -15,6 +16,15 @@ const platformColors = {
   [Platform.TWITTER]: "bg-sky-500",
   [Platform.LINKEDIN]: "bg-blue-700",
 }
+
+const MAX_POST_LENGTH = 150; // Max characters for the preview
+
+const truncateText = (text: string, maxLength: number) => {
+  if (text.length <= maxLength) {
+    return text;
+  }
+  return text.substring(0, maxLength) + "...";
+};
 
 interface PostPreviewProps {
   postContent: string
@@ -71,8 +81,8 @@ export function PostPreview({
           
           {/* Post Content */}
           <div className="p-3 space-y-2">
-            <p className="text-sm">
-              {postContent || "Your post content will appear here..."}
+            <p className="text-sm font-normal text-muted-foreground">
+              {truncateText(postContent || "Your post content will appear here...", MAX_POST_LENGTH)}
             </p>
             
             {/* Media Preview */}

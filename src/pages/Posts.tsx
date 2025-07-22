@@ -36,6 +36,16 @@ const useUserProfile = () => {
   return { getDisplayName, getInitials, getAvatarUrl };
 };
 
+const MAX_POST_DESCRIPTION_LENGTH = 20; // Max words for the post description in the list
+
+const truncateWords = (text: string, maxWords: number) => {
+  const words = text.split(/\s+/);
+  if (words.length <= maxWords) {
+    return text;
+  }
+  return words.slice(0, maxWords).join(' ') + '...';
+};
+
 // Media Carousel Component
 function MediaCarousel({ media }: { media: any[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -527,9 +537,9 @@ function PostsContent({
 
             {/* Main content */}
             <div className="px-3 pb-2 flex-1 flex flex-col min-h-0">
-              <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
-                {post.content.length > 80 ? post.content.substring(0, 80) + '...' : post.content}
-              </h3>
+              <p className="text-sm font-normal text-muted-foreground mb-2">
+                {truncateWords(post.content, MAX_POST_DESCRIPTION_LENGTH)}
+              </p>
               
               {/* Media preview with carousel */}
               {post.media && post.media.length > 0 && (
