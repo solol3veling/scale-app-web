@@ -1,8 +1,10 @@
 import { useState } from "react"
-import { ChevronLeft, ChevronRight, Filter } from "lucide-react"
+import { ChevronLeft, ChevronRight, Filter, Calendar as CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar as DatePickerCalendar } from "@/components/ui/calendar"
 import { useMonthlyCalendarPosts } from "@/hooks/api/useCalendarPosts"
 import { Post, PostStatus } from "@/types/api"
 import { 
@@ -28,6 +30,7 @@ const HOURS = Array.from({ length: 24 }, (_, i) => {
 export function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [dateType, setDateType] = useState<"created" | "scheduled">("created")
+  const [datePickerOpen, setDatePickerOpen] = useState(false)
   const navigate = useNavigate()
 
   const year = currentDate.getFullYear()
@@ -100,15 +103,15 @@ export function Calendar() {
   const getEventColor = (status: PostStatus) => {
     switch (status) {
       case PostStatus.DRAFT: 
-        return 'bg-gray-700 border border-gray-600'
+        return 'bg-gray-100 border-l-4 border-l-gray-400 text-gray-700 hover:bg-gray-200'
       case PostStatus.SCHEDULED: 
-        return 'bg-blue-700 border border-blue-600'
+        return 'bg-blue-50 border-l-4 border-l-blue-500 text-blue-800 hover:bg-blue-100'
       case PostStatus.PUBLISHED: 
-        return 'bg-green-700 border border-green-600'
+        return 'bg-green-50 border-l-4 border-l-green-500 text-green-800 hover:bg-green-100'
       case PostStatus.FAILED: 
-        return 'bg-red-700 border border-red-600'
+        return 'bg-red-50 border-l-4 border-l-red-500 text-red-800 hover:bg-red-100'
       default: 
-        return 'bg-gray-700 border border-gray-600'
+        return 'bg-gray-100 border-l-4 border-l-gray-400 text-gray-700 hover:bg-gray-200'
     }
   }
 
@@ -126,6 +129,13 @@ export function Calendar() {
 
   const handlePostClick = (postId: string) => {
     navigate(`/posts?post=${postId}`)
+  }
+
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      setCurrentDate(date)
+      setDatePickerOpen(false)
+    }
   }
 
   const isNetworkError = error?.message.includes('Network') || error?.message.includes('connection')
@@ -206,29 +216,29 @@ export function Calendar() {
 
     // Show time-slot calendar grid
     return (
-      <div className="h-full bg-gray-900 text-white">
+      <div className="h-full bg-white text-gray-900">
         {/* Week header */}
-        <div className="sticky top-0 bg-gray-900 border-b border-gray-700 z-10">
+        <div className="sticky top-0 bg-white border-b border-gray-200 z-10">
           <div className="grid grid-cols-8 h-16">
-            <div className="flex items-center justify-center border-r border-gray-700">
-              <span className="text-sm text-gray-400">Time</span>
+            <div className="flex items-center justify-center border-r border-gray-200">
+              <span className="text-sm text-gray-500 font-medium">Time</span>
             </div>
             {weekDates.map((date, index) => {
               const isToday = today.toDateString() === date.toDateString()
               return (
                 <div
                   key={index}
-                  className={`flex flex-col items-center justify-center border-r border-gray-700 ${
-                    isToday ? 'bg-blue-600/20 border-blue-500' : ''
+                  className={`flex flex-col items-center justify-center border-r border-gray-200 ${
+                    isToday ? 'bg-blue-50' : ''
                   }`}
                 >
-                  <div className="text-xs text-gray-400 uppercase tracking-wider">
+                  <div className="text-xs text-gray-500 uppercase tracking-wider font-medium">
                     {WEEKDAYS[index]}
                   </div>
-                  <div className={`text-lg font-medium ${
-                    isToday ? 'text-blue-400' : 'text-gray-200'
+                  <div className={`text-lg font-semibold ${
+                    isToday ? 'text-blue-600 bg-blue-100 w-8 h-8 rounded-full flex items-center justify-center' : 'text-gray-700'
                   }`}>
-                    {date.getDate().toString().padStart(2, '0')}
+                    {date.getDate()}
                   </div>
                 </div>
               )
@@ -239,10 +249,10 @@ export function Calendar() {
         {/* Time slots grid */}
         <div className="overflow-y-auto max-h-[calc(100vh-200px)]">
           {HOURS.map(hour => (
-            <div key={hour.value} className="grid grid-cols-8 min-h-[80px] border-b border-gray-800">
+            <div key={hour.value} className="grid grid-cols-8 min-h-[70px] border-b border-gray-100">
               {/* Time label */}
-              <div className="flex items-start justify-end p-4 border-r border-gray-700 bg-gray-900/50">
-                <span className="text-sm text-gray-400 font-medium">{hour.display}</span>
+              <div className="flex items-start justify-end p-3 border-r border-gray-200 bg-gray-50/30">
+                <span className="text-xs text-gray-500 font-medium">{hour.display}</span>
               </div>
               
               {/* Day columns */}
@@ -253,40 +263,39 @@ export function Calendar() {
                 return (
                   <div
                     key={dayIndex}
-                    className={`relative p-2 border-r border-gray-700 hover:bg-gray-800/50 transition-colors ${
-                      isCurrentTime ? 'bg-blue-600/10 border-blue-500/50' : ''
+                    className={`relative p-1 border-r border-gray-200 hover:bg-gray-50/50 transition-colors overflow-hidden ${
+                      isCurrentTime ? 'bg-blue-50/70' : ''
                     }`}
                   >
                     {postsForHour.map(post => (
                       <div
                         key={post.id}
-                        className={`group mb-2 p-3 rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg ${
+                        className={`group mb-1 px-2 py-1.5 rounded-md cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.01] overflow-hidden ${
                           getEventColor(post.status)
                         }`}
                         onClick={() => handlePostClick(post.id)}
                         title={post.content}
                       >
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="flex items-center gap-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="text-xs font-medium leading-tight truncate flex-1 mr-1">
+                            {post.content.length > 20 ? `${post.content.substring(0, 20)}...` : post.content}
+                          </div>
+                          <div className="flex items-center gap-0.5 flex-shrink-0">
                             {post.accounts.slice(0, 2).map(account => (
                               <div
                                 key={account.id}
-                                className={`w-3 h-3 rounded-full ${getPlatformColor(account.platform)} ring-1 ring-white/20`}
+                                className={`w-2 h-2 rounded-full ${getPlatformColor(account.platform)}`}
                                 title={account.platform}
                               />
                             ))}
+                            {post.accounts.length > 2 && (
+                              <span className="text-[9px] ml-0.5 opacity-60">+{post.accounts.length - 2}</span>
+                            )}
                           </div>
-                          {post.accounts.length > 2 && (
-                            <span className="text-xs text-gray-400">+{post.accounts.length - 2}</span>
-                          )}
-                        </div>
-                        
-                        <div className="text-sm font-medium text-white leading-tight mb-1">
-                          {post.content.length > 30 ? `${post.content.substring(0, 30)}...` : post.content}
                         </div>
                         
                         {/* Smart positioned hover tooltip */}
-                        <div className={`absolute bg-gray-800 text-white p-3 rounded-lg shadow-xl border border-gray-600 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 z-50 min-w-[250px] max-w-[300px] ${
+                        <div className={`absolute bg-gray-800 text-white p-3 rounded-lg shadow-xl border border-gray-600 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 z-[60] min-w-[250px] max-w-[320px] max-h-[200px] overflow-hidden ${
                           // Position based on day of week - right side for early days, left for later days
                           dayIndex < 4 
                             ? 'left-full ml-2 top-0' 
@@ -299,7 +308,9 @@ export function Calendar() {
                               : '-right-1 border-l border-t'
                           }`}></div>
                           
-                          <div className="text-sm font-medium mb-2 leading-tight">{post.content}</div>
+                          <div className="text-sm font-medium mb-2 leading-tight">
+                            {post.content.length > 120 ? `${post.content.substring(0, 120)}...` : post.content}
+                          </div>
                           <div className="text-xs text-gray-400 mb-2">
                             {post.scheduledFor ? (
                               <>Scheduled for {format(new Date(post.scheduledFor), 'MMM dd, h:mm a')}</>
@@ -414,12 +425,35 @@ export function Calendar() {
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
+            
+            <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="mx-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors"
+                  disabled={isLoading}
+                >
+                  <CalendarIcon className="h-4 w-4 mr-2" />
+                  {format(currentDate, "MMM d, yyyy")}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="center">
+                <DatePickerCalendar
+                  mode="single"
+                  selected={currentDate}
+                  onSelect={handleDateSelect}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            
             <Button
               variant="default"
               size="sm"
               onClick={() => setCurrentDate(new Date())}
               disabled={isLoading}
-              className="mx-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:shadow-md"
+              className="mr-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:shadow-md"
             >
               Today
             </Button>
