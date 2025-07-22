@@ -41,7 +41,7 @@ export function AccountModal({ account, isOpen, onClose, mode, onSave }: Account
     if (account) {
       setFormData({
         displayName: account.displayName,
-        color: account.color,
+
         tags: account.tags
       })
     }
@@ -81,7 +81,6 @@ export function AccountModal({ account, isOpen, onClose, mode, onSave }: Account
   const handleCancel = () => {
     setFormData({
       displayName: account.displayName,
-      color: account.color,
       tags: account.tags
     })
     setIsEditing(false)
@@ -188,32 +187,7 @@ export function AccountModal({ account, isOpen, onClose, mode, onSave }: Account
                 <p className="text-xs text-muted-foreground">Handle cannot be modified</p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="color">Account Color</Label>
-                {isEditing ? (
-                  <Select
-                    value={formData.color}
-                    onValueChange={(value) => setFormData({ ...formData, color: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select color" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="bg-blue-500">Blue</SelectItem>
-                      <SelectItem value="bg-green-500">Green</SelectItem>
-                      <SelectItem value="bg-purple-500">Purple</SelectItem>
-                      <SelectItem value="bg-red-500">Red</SelectItem>
-                      <SelectItem value="bg-yellow-500">Yellow</SelectItem>
-                      <SelectItem value="bg-pink-500">Pink</SelectItem>
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <div className="flex items-center gap-2 px-3 py-2 border rounded-md bg-muted/50">
-                    <div className={`w-4 h-4 rounded ${account.color}`} />
-                    {account.color}
-                  </div>
-                )}
-              </div>
+              
 
               <div className="space-y-2">
                 <Label htmlFor="tags">Tags</Label>
