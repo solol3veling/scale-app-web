@@ -21,11 +21,13 @@ const platformOptions = [
 ]
 
 interface AddAccountDialogProps {
-  onAccountAdded?: () => void
+  onAccountAdded?: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function AddAccountDialog({ onAccountAdded }: AddAccountDialogProps) {
-  const [isOpen, setIsOpen] = useState(false)
+export function AddAccountDialog({ onAccountAdded, open, onOpenChange }: AddAccountDialogProps) {
+  
   const [platform, setPlatform] = useState("")
   const [accountName, setAccountName] = useState("")
   const [isConnecting, setIsConnecting] = useState(false)
@@ -65,7 +67,7 @@ export function AddAccountDialog({ onAccountAdded }: AddAccountDialogProps) {
       }
 
       // Close modal immediately and show progress toast
-      setIsOpen(false)
+      onOpenChange?.(false)
       setIsConnecting(false)
       setPlatform("")
       setAccountName("")
@@ -166,19 +168,14 @@ export function AddAccountDialog({ onAccountAdded }: AddAccountDialogProps) {
   }
 
   const handleCancel = () => {
-    setIsOpen(false)
+    onOpenChange?.(false)
     setPlatform("")
     setAccountName("")
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button className="gradient-primary hover-scale">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Account
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Connect New Account</DialogTitle>

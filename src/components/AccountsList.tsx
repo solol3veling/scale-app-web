@@ -36,9 +36,12 @@ import { socialAccountsApi } from "@/services/api/social-accounts"
 interface AccountsListProps {
   searchTerm: string
   selectedPlatform: string
+  action: string | null;
+  accountId: string | null;
+  setSearchParams: (params: any) => void;
 }
 
-export function AccountsList({ searchTerm, selectedPlatform }: AccountsListProps) {
+export function AccountsList({ searchTerm, selectedPlatform, action, accountId, setSearchParams }: AccountsListProps) {
   const { toast } = useToast()
   const [selectedAccount, setSelectedAccount] = useState<SocialAccount | null>(null)
   const [modalMode, setModalMode] = useState<'edit' | 'view'>('view')
@@ -73,20 +76,19 @@ export function AccountsList({ searchTerm, selectedPlatform }: AccountsListProps
   const showPagination = totalAccounts > 0
 
   const handleEditAccount = (account: SocialAccount) => {
-    setSelectedAccount(account)
-    setModalMode('edit')
-    setIsModalOpen(true)
+    setSearchParams({ action: 'edit', accountId: account.id });
   }
 
   const handleViewSettings = (account: SocialAccount) => {
-    setSelectedAccount(account)
-    setModalMode('view')
-    setIsModalOpen(true)
+    setSearchParams({ action: 'view', accountId: account.id });
   }
 
   const handleCloseModal = () => {
-    setIsModalOpen(false)
-    setSelectedAccount(null)
+    setSearchParams(prev => {
+      prev.delete("action");
+      prev.delete("accountId");
+      return prev;
+    });
   }
 
   const handleSaveAccount = async () => {
@@ -138,12 +140,25 @@ export function AccountsList({ searchTerm, selectedPlatform }: AccountsListProps
     setCurrentPage(newPage)
   }
 
-  // Reset to first page when search/filter changes
+  useEffect(() => {
+    if (action && accountId) {
+      const account = accounts.find(acc => acc.id === accountId);
+      if (account) {
+        setSelectedAccount(account);
+        setModalMode(action === 'edit' ? 'edit' : 'view');
+        setIsModalOpen(true);
+      }
+    } else {
+      setIsModalOpen(false);
+      setSelectedAccount(null);
+    }
+  }, [action, accountId, accounts]);
+
   useEffect(() => {
     if (currentPage !== 0) {
       setCurrentPage(0)
     }
-  }, [searchTerm, selectedPlatform])
+  }, [searchTerm, selectedPlatform]);
 
   const getStatusBadge = (status: string, connected: boolean) => {
     if (!connected) {

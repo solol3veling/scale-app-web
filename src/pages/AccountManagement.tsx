@@ -1,4 +1,7 @@
-import { useState } from "react"
+import { useState } from "react";
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useSearchParams } from "react-router-dom"
 import { AccountsFilter } from "@/components/AccountsFilter"
 import { AccountsList } from "@/components/AccountsList"
 import { AddAccountDialog } from "@/components/AddAccountDialog"
@@ -9,6 +12,10 @@ import { PageHeader } from "@/components/PageHeader"
 
 
 export default function AccountManagement() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const action = searchParams.get("action");
+  const accountId = searchParams.get("accountId");
+
   const { refetch } = useAccounts()
   const queryClient = useQueryClient()
   const [searchTerm, setSearchTerm] = useState("")
@@ -19,7 +26,16 @@ export default function AccountManagement() {
     await queryClient.invalidateQueries({ queryKey: socialAccountKeys.all })
     await queryClient.refetchQueries({ queryKey: socialAccountKeys.all })
     await refetch()
+    closeDialog();
   }
+
+  const closeDialog = () => {
+    setSearchParams(prev => {
+      prev.delete("action");
+      prev.delete("accountId");
+      return prev;
+    });
+  };
 
   return (
     <div className="space-y-0">
@@ -30,7 +46,11 @@ export default function AccountManagement() {
             <h1 className="text-2xl font-bold tracking-tight">Accounts</h1>
             <p className="text-muted-foreground text-sm">Manage your connected social media accounts</p>
           </div>
-          <AddAccountDialog onAccountAdded={handleAccountAdded} />
+          <Button className="gradient-primary hover-scale" onClick={() => setSearchParams({ action: 'add' })}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Account
+          </Button>
+          <AddAccountDialog onAccountAdded={handleAccountAdded} open={action === 'add'} onOpenChange={(open) => !open && closeDialog()} />
         </div>
       </PageHeader>
 
@@ -48,6 +68,9 @@ export default function AccountManagement() {
         <AccountsList 
           searchTerm={searchTerm}
           selectedPlatform={selectedPlatform}
+          action={action}
+          accountId={accountId}
+          setSearchParams={setSearchParams}
         />
       </div>
     </div>
