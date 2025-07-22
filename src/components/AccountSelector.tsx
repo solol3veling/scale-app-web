@@ -93,7 +93,7 @@ export function AccountSelector({
                 </Button>
               </div>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
               {socialAccounts.map((account) => {
                 const isSelected = selectedAccountIds.includes(account.id)
                 const isDisabled = !account.connected || account.status !== 'ACTIVE'
@@ -107,11 +107,11 @@ export function AccountSelector({
                   >
                     <div className="relative">
                       <Avatar
-                          className={`h-16 w-16 border-4 cursor-pointer transition-all duration-200 active:scale-95 active:shadow-inner
+                        className={`h-14 w-14 border-4 cursor-pointer transition-all duration-200 active:scale-95 active:shadow-inner
                             ${isSelected ? "border-primary" : "border-transparent hover:border-muted"}
                           `}
-                          onClick={() => !isDisabled && onAccountToggle(account.id)}
-                        >
+                        onClick={() => !isDisabled && onAccountToggle(account.id)}
+                      >
                         <AvatarImage src={account.profileImage} alt={`${account.handle}'s avatar`} />
                         <AvatarFallback>{account.handle ? account.handle[0].toUpperCase() : '?'}</AvatarFallback>
                       </Avatar>

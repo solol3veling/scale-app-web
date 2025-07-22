@@ -57,7 +57,7 @@ export function PostPreview({
         <CardDescription>See how your post will look</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="bg-white border rounded-lg overflow-hidden shadow-sm">
+        <div className="bg-background border border-border rounded-lg overflow-hidden shadow-sm">
           {/* Generic Post Preview */}
           <div className="flex items-center gap-3 p-3 border-b">
             <div className={`w-8 h-8 rounded-full ${

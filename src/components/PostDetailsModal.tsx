@@ -293,25 +293,41 @@ export function PostDetailsModal({ isOpen, onClose, postId }: PostDetailsModalPr
                     <Separator />
                     <div className="space-y-4">
                       <h4 className="font-medium text-sm">Extend to Additional Accounts</h4>
-                      <div className="space-y-3">
-                        {availableAccounts.map((account) => (
-                          <div key={account.id} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={account.id}
-                              checked={selectedAccountIds.includes(account.id)}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setSelectedAccountIds([...selectedAccountIds, account.id])
-                                } else {
-                                  setSelectedAccountIds(selectedAccountIds.filter(id => id !== account.id))
-                                }
-                              }}
-                            />
-                            <label htmlFor={account.id} className="text-sm">
-                              {account.displayName} ({account.platform})
-                            </label>
-                          </div>
-                        ))}
+                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
+                        {availableAccounts.map((account) => {
+                          const isSelected = selectedAccountIds.includes(account.id)
+
+                          return (
+                            <div
+                              key={account.id}
+                              className={`relative flex flex-col items-center p-2 rounded-lg transition-all duration-200 hover:bg-accent/50`}
+                            >
+                              <div className="relative">
+                                <Avatar
+                                  className={`h-14 w-14 border-4 cursor-pointer transition-all duration-200 active:scale-95 active:shadow-inner
+                                    ${isSelected ? "border-primary" : "border-transparent hover:border-muted"}
+                                  `}
+                                  onClick={() => {
+                                    if (isSelected) {
+                                      setSelectedAccountIds(selectedAccountIds.filter(id => id !== account.id))
+                                    } else {
+                                      setSelectedAccountIds([...selectedAccountIds, account.id])
+                                    }
+                                  }}
+                                >
+                                  <AvatarImage src={account.profileImage} alt={`${account.handle}'s avatar`} />
+                                  <AvatarFallback>{account.handle ? account.handle[0].toUpperCase() : '?'}</AvatarFallback>
+                                </Avatar>
+                                {isSelected && (
+                                  <div className="absolute bottom-0 right-0 bg-primary rounded-full p-1">
+                                    <CheckCircle className="h-4 w-4 text-primary-foreground" />
+                                  </div>
+                                )}
+                              </div>
+                              <p className="text-sm mt-2 text-center font-medium truncate w-full px-1">{account.handle}</p>
+                            </div>
+                          )
+                        })}
                       </div>
                       <div className="flex gap-2">
                         <Button
