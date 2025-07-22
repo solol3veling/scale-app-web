@@ -1,3 +1,4 @@
+import { useSearchParams } from "react-router-dom";
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -104,7 +105,14 @@ export default function Settings() {
   const { toast } = useToast()
   
   const plans = plansData?.data || []
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") || "profile";
   const [showCancelModal, setShowCancelModal] = useState(false)
+
+
+  const handleTabChange = (value: string) => {
+    setSearchParams({ tab: value });
+  };
   
 
 
@@ -176,7 +184,7 @@ export default function Settings() {
 
       {/* Main content area */}
       <div className="p-6">
-        <Tabs defaultValue="profile" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
