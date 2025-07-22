@@ -107,7 +107,7 @@ export function AccountSelector({
                   >
                     <div className="relative">
                       <Avatar
-                          className={`h-16 w-16 border-4 cursor-pointer transition-all duration-200
+                          className={`h-16 w-16 border-4 cursor-pointer transition-all duration-200 active:scale-95 active:shadow-inner
                             ${isSelected ? "border-primary" : "border-transparent hover:border-muted"}
                           `}
                           onClick={() => !isDisabled && onAccountToggle(account.id)}
