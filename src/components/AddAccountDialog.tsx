@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -35,6 +36,8 @@ export function AddAccountDialog({ onAccountAdded, open, onOpenChange, defaultPl
     const [isConnecting, setIsConnecting] = useState(false)
     const { toast } = useToast()
     const queryClient = useQueryClient()
+    const navigate = useNavigate()
+
 
     useEffect(() => {
         if (defaultPlatform && platformOptions.some(option => option.value === defaultPlatform)) {
@@ -77,7 +80,7 @@ export function AddAccountDialog({ onAccountAdded, open, onOpenChange, defaultPl
             }
 
             // Close modal immediately and show progress toast
-            onOpenChange?.(false)
+            // onOpenChange?.(false) // Removed to delay closure
             setIsConnecting(false)
             setPlatform("")
             setAccountName("")
@@ -88,83 +91,82 @@ export function AddAccountDialog({ onAccountAdded, open, onOpenChange, defaultPl
 
             // Track if we received a message to prevent false cancellation
             let popupClosed = false
-            let checkClosed: NodeJS.Timeout
+            let checkClosed: NodeJS.Timeout | null = null // Initialize as null
 
             // Listen for messages from the popup
             const handlePopupMessage = async (event: MessageEvent) => {
-                // Only handle messages from our OAuth popup
+                // Only handle messages from our OAuth popup and ensure it has a status
                 if (!event.data || !event.data.status) return
 
                 console.log('AddAccountDialog: Received message from popup:', event.data)
-                const { status, message } = event.data
 
-                // Mark that we received a message to prevent cancellation toast
+                // Immediately mark that a message was received
                 popupClosed = true
 
+                // Clear the interval as soon as a message is received
+                if (checkClosed) {
+                    clearInterval(checkClosed)
+                    checkClosed = null // Clear reference
+                }
+
+                const { status, message } = event.data
+
                 if (status === "OK") {
+                    const { platformId, platform, username, name } = event.data
                     toast({
                         title: "Account Connected!",
-                        description: "Your social media account has been connected successfully.",
+                        description: `Successfully connected ${name || username} on ${platform}.`,
                     })
-
-                    // Small delay to ensure backend has processed the account
-                    setTimeout(async () => {
-                        // Invalidate all social account queries to force refresh
-                        await queryClient.invalidateQueries({ queryKey: socialAccountKeys.all })
-
-                        // Also force refetch to ensure immediate update
-                        await queryClient.refetchQueries({ queryKey: socialAccountKeys.all })
-
-                        // Notify parent component to refresh data
-                        onAccountAdded?.()
-                    }, 100)
+                    onOpenChange?.(false) // Close modal on success
+                    navigate(`/accounts?action=view&accountId=${platformId}`)
                 } else if (status === "ERROR") {
                     toast({
                         title: "Connection Failed",
                         description: `Error: ${message}`,
                         variant: "destructive",
                     })
+                    onOpenChange?.(false) // Close modal on error
                 } else if (status === "UNAUTHORIZED") {
                     toast({
                         title: "Authorization Failed",
                         description: "The authorization was denied or cancelled.",
                         variant: "destructive",
                     })
+                    onOpenChange?.(false) // Close modal on unauthorized
                 } else if (status === "INTERNAL_SERVER_ERROR") {
                     toast({
                         title: "Server Error",
                         description: `Error: ${message}`,
                         variant: "destructive",
                     })
+                    onOpenChange?.(false) // Close modal on server error
                 }
 
-                // Clean up event listener and interval
+                // Clean up event listener
                 window.removeEventListener("message", handlePopupMessage)
-                if (checkClosed) {
-                    clearInterval(checkClosed)
-                }
             }
 
+            console.log('AddAccountDialog: Setting up message listener and interval.');
             // Add message listener
             window.addEventListener("message", handlePopupMessage)
 
-            // Handle popup close
-            checkClosed = setInterval(() => {
-                if (popup.closed) {
-                    clearInterval(checkClosed)
-                    window.removeEventListener("message", handlePopupMessage)
+            // Introduce a small delay before starting the interval to allow postMessage to be processed
+            setTimeout(() => {
+                // Handle popup close
+                checkClosed = setInterval(() => {
+                    console.log('AddAccountDialog: Checking popup status. popup.closed:', popup.closed, 'popupClosed flag:', popupClosed);
+                    if (popup.closed) {
+                        clearInterval(checkClosed)
+                        checkClosed = null // Clear reference
+                        window.removeEventListener("message", handlePopupMessage)
 
-                    // Only show cancellation if we haven't received a success/error message
-                    if (!popupClosed) {
-                        popupClosed = true
-                        toast({
-                            title: "Connection Cancelled",
-                            description: "The account connection was cancelled.",
-                            variant: "default",
-                        })
+                        // Only show cancellation if no message was received
+                        if (!popupClosed) {
+                            window.location.href = '/accounts';
+                        }
                     }
-                }
-            }, 1000)
+                }, 200) // Reduced interval to 200ms
+            }, 100); // Small delay (e.g., 100ms)
 
         } catch (error) {
             console.error('OAuth initialization error:', error)
