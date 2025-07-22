@@ -1,7 +1,6 @@
 import { useState } from "react"
 import { AccountsFilter } from "@/components/AccountsFilter"
 import { AccountsList } from "@/components/AccountsList"
-import { AccountsSummary } from "@/components/AccountsSummary"
 import { AddAccountDialog } from "@/components/AddAccountDialog"
 import { useAccounts } from "@/hooks/useAccounts"
 import { useQueryClient } from "@tanstack/react-query"
@@ -50,9 +49,6 @@ export default function AccountManagement() {
           searchTerm={searchTerm}
           selectedPlatform={selectedPlatform}
         />
-
-        {/* Stats Summary */}
-        <AccountsSummary />
       </div>
     </div>
   )

@@ -70,7 +70,7 @@ export function AccountsList({ searchTerm, selectedPlatform }: AccountsListProps
   const totalAccounts = paginatedData?.total || 0
   const hasNext = paginatedData?.hasNext || false
   const hasPrev = paginatedData?.hasPrev || false
-  const showPagination = totalAccounts > 10
+  const showPagination = totalAccounts > 0
 
   const handleEditAccount = (account: SocialAccount) => {
     setSelectedAccount(account)
@@ -182,27 +182,86 @@ export function AccountsList({ searchTerm, selectedPlatform }: AccountsListProps
     )
   }
 
+  // Empty state when no accounts
+  if (!isLoading && accounts.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 px-4">
+        <svg
+          width="120"
+          height="120"
+          viewBox="0 0 24 24"
+          fill="none"
+          className="text-gray-400 dark:text-gray-600 mb-6"
+        >
+          <path
+            d="M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M12 14C8.13401 14 5 17.134 5 21H19C19 17.134 15.866 14 12 14Z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M19 8L21 10L19 12"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M5 8L3 10L5 12"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          No Social Accounts
+        </h3>
+        <p className="text-gray-600 dark:text-gray-400 text-center max-w-md mb-6">
+          {searchTerm || selectedPlatform !== "all" 
+            ? "No accounts match your current filters. Try adjusting your search or filters."
+            : "Connect your social media accounts to start managing your posts across platforms."
+          }
+        </p>
+        {!searchTerm && selectedPlatform === "all" && (
+          <Button onClick={() => window.location.reload()} className="gap-2">
+            <ExternalLink className="h-4 w-4" />
+            Add Your First Account
+          </Button>
+        )}
+      </div>
+    )
+  }
+
   return (
     <TooltipProvider>
       <div className="space-y-6">
-        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4">
           {accounts.map((account) => (
-        <Card key={account.id} className="shadow-medium hover-lift flex flex-col">
-          <CardHeader className="pb-3">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <Card key={account.id} className="shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02] flex flex-col h-full border border-gray-200 dark:border-gray-700">
+          <CardHeader className="pb-3 px-4 pt-4">
+            <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0 flex-1">
-                <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
+                <Avatar className="h-12 w-12 flex-shrink-0">
                   <AvatarImage src={account.profileImage} />
                   <AvatarFallback className={`${getPlatformConfig(account.platform).color} text-white`}>
                     {(() => {
                       const PlatformIcon = getPlatformConfig(account.platform).icon
-                      return <PlatformIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+                      return <PlatformIcon className="w-6 h-6" />
                     })()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold text-sm sm:text-base truncate">{account.displayName}</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">{account.handle}</p>
+                  <h3 className="font-semibold text-base leading-tight">{account.displayName}</h3>
+                  <p className="text-sm text-muted-foreground truncate">{account.handle}</p>
                 </div>
               </div>
               <div className="flex-shrink-0">
@@ -210,30 +269,24 @@ export function AccountsList({ searchTerm, selectedPlatform }: AccountsListProps
               </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4 flex-1">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-xs text-muted-foreground">Platform</p>
-                <div className="flex items-center gap-2">
-                  {(() => {
-                    const platformConfig = getPlatformConfig(account.platform)
-                    const PlatformIcon = platformConfig.icon
-                    return (
-                      <>
-                        <div className={`p-1 rounded-md ${platformConfig.bgColor}`}>
-                          <PlatformIcon className={`w-3 h-3 sm:w-4 sm:h-4 ${platformConfig.textColor}`} />
-                        </div>
-                        <span className={`text-sm font-medium truncate ${platformConfig.textColor}`}>
-                          {platformConfig.name}
-                        </span>
-                      </>
-                    )
-                  })()}
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-xs text-muted-foreground">Followers</p>
-                <p className="text-sm font-semibold">{account.followers || '0'}</p>
+          <CardContent className="space-y-4 flex-1 px-4 pb-4">
+            <div>
+              <p className="text-xs text-muted-foreground">Platform</p>
+              <div className="flex items-center gap-2">
+                {(() => {
+                  const platformConfig = getPlatformConfig(account.platform)
+                  const PlatformIcon = platformConfig.icon
+                  return (
+                    <>
+                      <div className={`p-1.5 rounded-md ${platformConfig.bgColor}`}>
+                        <PlatformIcon className={`w-4 h-4 ${platformConfig.textColor}`} />
+                      </div>
+                      <span className={`text-sm font-medium truncate ${platformConfig.textColor}`}>
+                        {platformConfig.name}
+                      </span>
+                    </>
+                  )
+                })()}
               </div>
             </div>
 
@@ -243,8 +296,8 @@ export function AccountsList({ searchTerm, selectedPlatform }: AccountsListProps
                 <div className="flex flex-wrap gap-1">
                   {account.tags.slice(0, 3).map((tag, index) => (
                     <Badge key={index} variant="outline" className="text-xs">
-                      <Tag className="h-2 w-2 sm:h-3 sm:w-3 mr-1" />
-                      <span className="truncate max-w-[60px]">{tag}</span>
+                      <Tag className="h-3 w-3 mr-1" />
+                      <span className="truncate max-w-[80px]">{tag}</span>
                     </Badge>
                   ))}
                   {account.tags.length > 3 && (
@@ -256,20 +309,20 @@ export function AccountsList({ searchTerm, selectedPlatform }: AccountsListProps
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 pt-2 border-t mt-auto">
-              <span className="text-xs text-muted-foreground truncate">
-                Last post: {account.lastPost || 'Never'}
+            <div className="flex justify-between items-center gap-2 pt-3 border-t mt-auto">
+              <span className="text-xs text-muted-foreground truncate flex-1">
+                Last: {account.lastPost || 'Never'}
               </span>
-              <div className="flex gap-1 justify-end">
+              <div className="flex gap-1">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      className="h-7 w-7 sm:h-8 sm:w-8 hover-scale"
+                      className="h-8 w-8 hover:scale-105 transition-transform"
                       onClick={() => handleEditAccount(account)}
                     >
-                      <Edit3 className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <Edit3 className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -279,8 +332,8 @@ export function AccountsList({ searchTerm, selectedPlatform }: AccountsListProps
 
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 hover-scale">
-                      <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:scale-105 transition-transform">
+                      <ExternalLink className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -293,10 +346,10 @@ export function AccountsList({ searchTerm, selectedPlatform }: AccountsListProps
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      className="h-7 w-7 sm:h-8 sm:w-8 hover-scale"
+                      className="h-8 w-8 hover:scale-105 transition-transform"
                       onClick={() => handleViewSettings(account)}
                     >
-                      <SettingsIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <SettingsIcon className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -309,10 +362,10 @@ export function AccountsList({ searchTerm, selectedPlatform }: AccountsListProps
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      className="h-7 w-7 sm:h-8 sm:w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10 hover:scale-105 transition-transform"
                       onClick={() => handleDeleteClick(account.id)}
                     >
-                      <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
