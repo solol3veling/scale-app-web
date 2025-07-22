@@ -103,15 +103,15 @@ export function Calendar() {
   const getEventColor = (status: PostStatus) => {
     switch (status) {
       case PostStatus.DRAFT: 
-        return 'bg-gray-100 border-l-4 border-l-gray-400 text-gray-700 hover:bg-gray-200'
+        return 'bg-gray-100 dark:bg-gray-800 border-l-4 border-l-gray-400 dark:border-l-gray-500 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
       case PostStatus.SCHEDULED: 
-        return 'bg-blue-50 border-l-4 border-l-blue-500 text-blue-800 hover:bg-blue-100'
+        return 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-l-blue-500 dark:border-l-blue-400 text-blue-800 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50'
       case PostStatus.PUBLISHED: 
-        return 'bg-green-50 border-l-4 border-l-green-500 text-green-800 hover:bg-green-100'
+        return 'bg-green-50 dark:bg-green-900/30 border-l-4 border-l-green-500 dark:border-l-green-400 text-green-800 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/50'
       case PostStatus.FAILED: 
-        return 'bg-red-50 border-l-4 border-l-red-500 text-red-800 hover:bg-red-100'
+        return 'bg-red-50 dark:bg-red-900/30 border-l-4 border-l-red-500 dark:border-l-red-400 text-red-800 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/50'
       default: 
-        return 'bg-gray-100 border-l-4 border-l-gray-400 text-gray-700 hover:bg-gray-200'
+        return 'bg-gray-100 dark:bg-gray-800 border-l-4 border-l-gray-400 dark:border-l-gray-500 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
     }
   }
 
@@ -216,27 +216,27 @@ export function Calendar() {
 
     // Show time-slot calendar grid
     return (
-      <div className="h-full bg-white text-gray-900">
+      <div className="h-full bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
         {/* Week header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 z-10">
+        <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 z-10">
           <div className="grid grid-cols-8 h-16">
-            <div className="flex items-center justify-center border-r border-gray-200">
-              <span className="text-sm text-gray-500 font-medium">Time</span>
+            <div className="flex items-center justify-center border-r border-gray-200 dark:border-gray-700">
+              <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">Time</span>
             </div>
             {weekDates.map((date, index) => {
               const isToday = today.toDateString() === date.toDateString()
               return (
                 <div
                   key={index}
-                  className={`flex flex-col items-center justify-center border-r border-gray-200 ${
-                    isToday ? 'bg-blue-50' : ''
+                  className={`flex flex-col items-center justify-center border-r border-gray-200 dark:border-gray-700 ${
+                    isToday ? 'bg-blue-50 dark:bg-blue-900/30' : ''
                   }`}
                 >
-                  <div className="text-xs text-gray-500 uppercase tracking-wider font-medium">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-medium">
                     {WEEKDAYS[index]}
                   </div>
                   <div className={`text-lg font-semibold ${
-                    isToday ? 'text-blue-600 bg-blue-100 w-8 h-8 rounded-full flex items-center justify-center' : 'text-gray-700'
+                    isToday ? 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-800 w-8 h-8 rounded-full flex items-center justify-center' : 'text-gray-700 dark:text-gray-300'
                   }`}>
                     {date.getDate()}
                   </div>
@@ -249,10 +249,10 @@ export function Calendar() {
         {/* Time slots grid */}
         <div className="overflow-y-auto max-h-[calc(100vh-200px)]">
           {HOURS.map(hour => (
-            <div key={hour.value} className="grid grid-cols-8 min-h-[70px] border-b border-gray-100">
+            <div key={hour.value} className="grid grid-cols-8 min-h-[70px] border-b border-gray-100 dark:border-gray-800">
               {/* Time label */}
-              <div className="flex items-start justify-end p-3 border-r border-gray-200 bg-gray-50/30">
-                <span className="text-xs text-gray-500 font-medium">{hour.display}</span>
+              <div className="flex items-start justify-end p-3 border-r border-gray-200 dark:border-gray-700 bg-gray-50/30 dark:bg-gray-800/30">
+                <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">{hour.display}</span>
               </div>
               
               {/* Day columns */}
@@ -263,8 +263,8 @@ export function Calendar() {
                 return (
                   <div
                     key={dayIndex}
-                    className={`relative p-1 border-r border-gray-200 hover:bg-gray-50/50 transition-colors overflow-hidden ${
-                      isCurrentTime ? 'bg-blue-50/70' : ''
+                    className={`relative p-1 border-r border-gray-200 dark:border-gray-700 hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors overflow-hidden ${
+                      isCurrentTime ? 'bg-blue-50/70 dark:bg-blue-900/30' : ''
                     }`}
                   >
                     {postsForHour.map(post => (
@@ -295,14 +295,14 @@ export function Calendar() {
                         </div>
                         
                         {/* Smart positioned hover tooltip */}
-                        <div className={`absolute bg-gray-800 text-white p-3 rounded-lg shadow-xl border border-gray-600 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 z-[60] min-w-[250px] max-w-[320px] max-h-[200px] overflow-hidden ${
+                        <div className={`absolute bg-white dark:bg-gray-800 text-gray-900 dark:text-white p-3 rounded-lg shadow-xl border border-gray-200 dark:border-gray-600 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 z-[60] min-w-[250px] max-w-[320px] max-h-[200px] overflow-hidden ${
                           // Position based on day of week - right side for early days, left for later days
                           dayIndex < 4 
                             ? 'left-full ml-2 top-0' 
                             : 'right-full mr-2 top-0'
                         }`}>
                           {/* Arrow indicator */}
-                          <div className={`absolute top-3 w-2 h-2 bg-gray-800 border-gray-600 rotate-45 ${
+                          <div className={`absolute top-3 w-2 h-2 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 rotate-45 ${
                             dayIndex < 4 
                               ? '-left-1 border-r border-b' 
                               : '-right-1 border-l border-t'
@@ -311,7 +311,7 @@ export function Calendar() {
                           <div className="text-sm font-medium mb-2 leading-tight">
                             {post.content.length > 120 ? `${post.content.substring(0, 120)}...` : post.content}
                           </div>
-                          <div className="text-xs text-gray-400 mb-2">
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
                             {post.scheduledFor ? (
                               <>Scheduled for {format(new Date(post.scheduledFor), 'MMM dd, h:mm a')}</>
                             ) : post.publishedAt ? (
@@ -324,7 +324,7 @@ export function Calendar() {
                             {post.accounts.map(account => (
                               <div
                                 key={account.id}
-                                className={`w-2.5 h-2.5 rounded-full ${getPlatformColor(account.platform)} ring-1 ring-white/20`}
+                                className={`w-2.5 h-2.5 rounded-full ${getPlatformColor(account.platform)} ring-1 ring-white/20 dark:ring-gray-600/50`}
                                 title={account.platform}
                               />
                             ))}
