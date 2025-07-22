@@ -3,17 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
-import { Share2, Save, Loader2 } from "lucide-react"
+import { Share2, Save, Loader2, CheckCircle } from "lucide-react"
 import { useSocialAccounts } from "@/hooks/api/useSocialAccounts"
 import { Platform } from "@/types/api"
 import { useNavigate } from "react-router-dom"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
-const platformColors = {
-  [Platform.INSTAGRAM]: "bg-gradient-to-r from-purple-500 to-pink-500",
-  [Platform.FACEBOOK]: "bg-blue-600",
-  [Platform.TWITTER]: "bg-sky-500",
-  [Platform.LINKEDIN]: "bg-blue-700",
-}
+
 
 interface AccountSelectorProps {
   selectedAccountIds: string[]
@@ -97,55 +93,43 @@ export function AccountSelector({
                 </Button>
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-3">
-              {socialAccounts.map((account) => (
-                <div
-                  key={account.id}
-                  className={`relative border rounded-lg p-4 cursor-pointer transition-all hover-lift ${
-                    selectedAccountIds.includes(account.id)
-                      ? "ring-2 ring-primary bg-accent/20"
-                      : "hover:bg-accent/50"
-                  } ${!account.connected ? "opacity-50" : ""}`}
-                  onClick={() => account.connected && onAccountToggle(account.id)}
-                >
-                  <div className="flex items-center space-x-3">
-                    <Checkbox
-                      checked={selectedAccountIds.includes(account.id)}
-                      disabled={!account.connected}
-                      onChange={() => onAccountToggle(account.id)}
-                      className="pointer-events-none"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-4 h-4 rounded ${platformColors[account.platform] || 'bg-gray-400'}`} />
-                        <div>
-                          <span className="font-medium">{account.platform}</span>
-                          <p className="text-sm text-muted-foreground">{account.handle}</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+              {socialAccounts.map((account) => {
+                const isSelected = selectedAccountIds.includes(account.id)
+                const isDisabled = !account.connected || account.status !== 'ACTIVE'
+
+                return (
+                  <div
+                    key={account.id}
+                    className={`relative flex flex-col items-center p-2 rounded-lg transition-all duration-200
+                      ${isDisabled ? "opacity-50 cursor-not-allowed" : "hover:bg-accent/50"}
+                    `}
+                  >
+                    <div className="relative">
+                      <Avatar
+                          className={`h-16 w-16 border-4 cursor-pointer transition-all duration-200
+                            ${isSelected ? "border-primary" : "border-transparent hover:border-muted"}
+                          `}
+                          onClick={() => !isDisabled && onAccountToggle(account.id)}
+                        >
+                        <AvatarImage src={account.profileImage} alt={`${account.handle}'s avatar`} />
+                        <AvatarFallback>{account.handle ? account.handle[0].toUpperCase() : '?'}</AvatarFallback>
+                      </Avatar>
+                      {isSelected && (
+                        <div className="absolute bottom-0 right-0 bg-primary rounded-full p-1">
+                          <CheckCircle className="h-4 w-4 text-primary-foreground" />
                         </div>
-                      </div>
+                      )}
                     </div>
-                    {!account.connected && (
-                      <Badge variant="secondary">Disconnected</Badge>
+                    <p className="text-sm mt-2 text-center font-medium truncate w-full px-1">{account.handle}</p>
+                    {isDisabled && (
+                      <Badge variant="secondary" className="mt-1">Disconnected</Badge>
                     )}
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {selectedAccounts.length > 0 ? (
-                selectedAccounts.map((account) => (
-                  <Badge key={account.id} variant="secondary" className="flex items-center gap-1">
-                    <div className={`w-2 h-2 rounded ${platformColors[account.platform] || 'bg-gray-400'}`} />
-                    {account.platform}
-                  </Badge>
-                ))
-              ) : (
-                <Badge variant="outline" className="flex items-center gap-1">
-                  <Save className="w-3 h-3" />
-                  Will be saved as draft
-                </Badge>
-              )}
-            </div>
+            
           </>
         ) : (
           <div className="text-center py-8">
