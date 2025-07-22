@@ -109,13 +109,21 @@ const analyticsData = {
 // Error Overlay Component
 const ErrorOverlay = ({ error, onClose }: { error: any, onClose: () => void }) => {
   const navigate = useNavigate();
-  const { state } = useSidebar();
+  const { state, isMobile } = useSidebar();
   const isSubError = isSubscriptionError(error);
   const errorMessage = getErrorMessage(error);
-  const sidebarWidth = state === "collapsed" ? "var(--sidebar-width-icon, 60px)" : "var(--sidebar-width, 200px)";
+  
+  // Handle mobile vs desktop positioning - exclude top bar on both
+  const overlayClasses = isMobile 
+    ? "fixed top-16 bottom-0 left-0 right-0 z-40 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" 
+    : "fixed top-16 bottom-0 right-0 z-40 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4";
+  
+  const overlayStyle = isMobile 
+    ? {} 
+    : { left: state === "collapsed" ? "var(--sidebar-width-icon, 60px)" : "var(--sidebar-width, 200px)" };
 
   return (
-    <div className="fixed top-16 bottom-0 right-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" style={{ left: sidebarWidth }}>
+    <div className={overlayClasses} style={overlayStyle}>
       <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 max-w-md w-full p-6 relative">
         
         <div className="text-center space-y-4">

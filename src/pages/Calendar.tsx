@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { ChevronLeft, ChevronRight, Filter } from "lucide-react"
+import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useMonthlyCalendarPosts } from "@/hooks/api/useCalendarPosts"
@@ -18,6 +19,11 @@ const MONTHS = [
 ]
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+const HOURS = Array.from({ length: 24 }, (_, i) => {
+  const hour = i === 0 ? 12 : i > 12 ? i - 12 : i
+  const period = i < 12 ? 'am' : 'pm'
+  return { value: i, label: `${hour} ${period}`, display: `${hour} ${period}` }
+})
 
 export function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -41,13 +47,13 @@ export function Calendar() {
     isRefetching
   } = useMonthlyCalendarPosts(year, month, dateType)
 
-  const navigateMonth = (direction: 'prev' | 'next') => {
+  const navigateWeek = (direction: 'prev' | 'next') => {
     setCurrentDate(prev => {
       const newDate = new Date(prev)
       if (direction === 'prev') {
-        newDate.setMonth(month - 1)
+        newDate.setDate(newDate.getDate() - 7)
       } else {
-        newDate.setMonth(month + 1)
+        newDate.setDate(newDate.getDate() + 7)
       }
       return newDate
     })
@@ -91,6 +97,21 @@ export function Calendar() {
     }
   }
 
+  const getEventColor = (status: PostStatus) => {
+    switch (status) {
+      case PostStatus.DRAFT: 
+        return 'bg-gray-700 border border-gray-600'
+      case PostStatus.SCHEDULED: 
+        return 'bg-blue-700 border border-blue-600'
+      case PostStatus.PUBLISHED: 
+        return 'bg-green-700 border border-green-600'
+      case PostStatus.FAILED: 
+        return 'bg-red-700 border border-red-600'
+      default: 
+        return 'bg-gray-700 border border-gray-600'
+    }
+  }
+
   const handleRetry = () => {
     refetch()
   }
@@ -103,69 +124,45 @@ export function Calendar() {
     navigate('/make-post')
   }
 
+  const handlePostClick = (postId: string) => {
+    navigate(`/posts?post=${postId}`)
+  }
+
   const isNetworkError = error?.message.includes('Network') || error?.message.includes('connection')
   const hasNoPosts = !isLoading && !error && posts.length === 0
 
-  const renderCalendarDays = () => {
-    const days = []
+  // Get current week dates
+  const getWeekDates = () => {
+    const startOfWeek = new Date(currentDate)
+    const day = startOfWeek.getDay()
+    startOfWeek.setDate(startOfWeek.getDate() - day)
     
-    // Empty cells for days before the first day of the month
-    for (let i = 0; i < firstDayWeekday; i++) {
-      days.push(<div key={`empty-${i}`} className="min-h-[120px]"></div>)
+    const weekDates = []
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startOfWeek)
+      date.setDate(startOfWeek.getDate() + i)
+      weekDates.push(date)
     }
-    
-    // Days of the month
-    for (let day = 1; day <= daysInMonth; day++) {
-      const postsForDay = getPostsForDate(day)
-      const isToday = new Date().toDateString() === new Date(year, month, day).toDateString()
+    return weekDates
+  }
+
+  const weekDates = getWeekDates()
+  const today = new Date()
+
+  const getPostsForDateTime = (date: Date, hour: number) => {
+    return posts.filter(post => {
+      const postDate = dateType === "created" 
+        ? new Date(post.createdAt)
+        : new Date(post.scheduledFor || post.publishedAt || post.createdAt)
       
-      days.push(
-        <div
-          key={day}
-          className={`min-h-[120px] p-3 border-r border-b border-gray-200 dark:border-gray-700 ${
-            isToday ? 'bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-          } transition-colors`}
-        >
-          <div className={`text-sm font-semibold mb-2 ${
-            isToday ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'
-          }`}>
-            {day}
-          </div>
-          <div className="space-y-1 overflow-hidden">
-            {postsForDay.slice(0, 3).map(post => (
-              <div
-                key={post.id}
-                className={`text-xs p-2 rounded-md border ${getStatusColor(post.status)} cursor-pointer hover:shadow-sm transition-shadow`}
-                title={post.content}
-              >
-                <div className="font-medium truncate mb-1">
-                  {post.content.length > 30 ? `${post.content.substring(0, 30)}...` : post.content}
-                </div>
-                <div className="flex items-center gap-1">
-                  {post.accounts.slice(0, 3).map(account => (
-                    <div
-                      key={account.id}
-                      className={`w-2 h-2 rounded-full ${getPlatformColor(account.platform)}`}
-                      title={account.platform}
-                    />
-                  ))}
-                  {post.accounts.length > 3 && (
-                    <span className="text-xs text-gray-500">+{post.accounts.length - 3}</span>
-                  )}
-                </div>
-              </div>
-            ))}
-            {postsForDay.length > 3 && (
-              <div className="text-xs text-gray-500 text-center py-1">
-                +{postsForDay.length - 3} more
-              </div>
-            )}
-          </div>
-        </div>
-      )
-    }
-    
-    return days
+      return postDate.toDateString() === date.toDateString() && 
+             postDate.getHours() === hour
+    })
+  }
+
+  const isCurrentHour = (date: Date, hour: number) => {
+    return today.toDateString() === date.toDateString() && 
+           today.getHours() === hour
   }
 
   const renderCalendarContent = () => {
@@ -207,24 +204,128 @@ export function Calendar() {
       )
     }
 
-    // Show normal calendar grid
+    // Show time-slot calendar grid
     return (
-      <div className="h-full border-l border-t border-gray-200 dark:border-gray-700">
-        {/* Weekday headers */}
-        <div className="grid grid-cols-7">
-          {WEEKDAYS.map(day => (
-            <div
-              key={day}
-              className="p-4 text-center font-semibold text-sm bg-gray-50 dark:bg-gray-800 border-r border-b border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400"
-            >
-              {day}
+      <div className="h-full bg-gray-900 text-white">
+        {/* Week header */}
+        <div className="sticky top-0 bg-gray-900 border-b border-gray-700 z-10">
+          <div className="grid grid-cols-8 h-16">
+            <div className="flex items-center justify-center border-r border-gray-700">
+              <span className="text-sm text-gray-400">Time</span>
             </div>
-          ))}
+            {weekDates.map((date, index) => {
+              const isToday = today.toDateString() === date.toDateString()
+              return (
+                <div
+                  key={index}
+                  className={`flex flex-col items-center justify-center border-r border-gray-700 ${
+                    isToday ? 'bg-blue-600/20 border-blue-500' : ''
+                  }`}
+                >
+                  <div className="text-xs text-gray-400 uppercase tracking-wider">
+                    {WEEKDAYS[index]}
+                  </div>
+                  <div className={`text-lg font-medium ${
+                    isToday ? 'text-blue-400' : 'text-gray-200'
+                  }`}>
+                    {date.getDate().toString().padStart(2, '0')}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
         
-        {/* Calendar days */}
-        <div className="grid grid-cols-7 h-[calc(100%-60px)]">
-          {renderCalendarDays()}
+        {/* Time slots grid */}
+        <div className="overflow-y-auto max-h-[calc(100vh-200px)]">
+          {HOURS.map(hour => (
+            <div key={hour.value} className="grid grid-cols-8 min-h-[80px] border-b border-gray-800">
+              {/* Time label */}
+              <div className="flex items-start justify-end p-4 border-r border-gray-700 bg-gray-900/50">
+                <span className="text-sm text-gray-400 font-medium">{hour.display}</span>
+              </div>
+              
+              {/* Day columns */}
+              {weekDates.map((date, dayIndex) => {
+                const postsForHour = getPostsForDateTime(date, hour.value)
+                const isCurrentTime = isCurrentHour(date, hour.value)
+                
+                return (
+                  <div
+                    key={dayIndex}
+                    className={`relative p-2 border-r border-gray-700 hover:bg-gray-800/50 transition-colors ${
+                      isCurrentTime ? 'bg-blue-600/10 border-blue-500/50' : ''
+                    }`}
+                  >
+                    {postsForHour.map(post => (
+                      <div
+                        key={post.id}
+                        className={`group mb-2 p-3 rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg ${
+                          getEventColor(post.status)
+                        }`}
+                        onClick={() => handlePostClick(post.id)}
+                        title={post.content}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="flex items-center gap-1">
+                            {post.accounts.slice(0, 2).map(account => (
+                              <div
+                                key={account.id}
+                                className={`w-3 h-3 rounded-full ${getPlatformColor(account.platform)} ring-1 ring-white/20`}
+                                title={account.platform}
+                              />
+                            ))}
+                          </div>
+                          {post.accounts.length > 2 && (
+                            <span className="text-xs text-gray-400">+{post.accounts.length - 2}</span>
+                          )}
+                        </div>
+                        
+                        <div className="text-sm font-medium text-white leading-tight mb-1">
+                          {post.content.length > 30 ? `${post.content.substring(0, 30)}...` : post.content}
+                        </div>
+                        
+                        {/* Smart positioned hover tooltip */}
+                        <div className={`absolute bg-gray-800 text-white p-3 rounded-lg shadow-xl border border-gray-600 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 z-50 min-w-[250px] max-w-[300px] ${
+                          // Position based on day of week - right side for early days, left for later days
+                          dayIndex < 4 
+                            ? 'left-full ml-2 top-0' 
+                            : 'right-full mr-2 top-0'
+                        }`}>
+                          {/* Arrow indicator */}
+                          <div className={`absolute top-3 w-2 h-2 bg-gray-800 border-gray-600 rotate-45 ${
+                            dayIndex < 4 
+                              ? '-left-1 border-r border-b' 
+                              : '-right-1 border-l border-t'
+                          }`}></div>
+                          
+                          <div className="text-sm font-medium mb-2 leading-tight">{post.content}</div>
+                          <div className="text-xs text-gray-400 mb-2">
+                            {post.scheduledFor ? (
+                              <>Scheduled for {format(new Date(post.scheduledFor), 'MMM dd, h:mm a')}</>
+                            ) : post.publishedAt ? (
+                              <>Published {format(new Date(post.publishedAt), 'MMM dd, h:mm a')}</>
+                            ) : (
+                              <>Created {format(new Date(post.createdAt), 'MMM dd, h:mm a')}</>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            {post.accounts.map(account => (
+                              <div
+                                key={account.id}
+                                className={`w-2.5 h-2.5 rounded-full ${getPlatformColor(account.platform)} ring-1 ring-white/20`}
+                                title={account.platform}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              })}
+            </div>
+          ))}
         </div>
       </div>
     )
@@ -296,34 +397,40 @@ export function Calendar() {
 
       {/* Calendar Header - only show when not in error state */}
       {!error && (
-        <div className="flex items-center justify-between p-6 bg-white dark:bg-gray-900">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            {MONTHS[month]} {year}
+        <div className="flex items-center justify-between px-6 py-4 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
+          <h1 className="text-3xl font-semibold text-gray-900 dark:text-gray-100 tracking-tight">
+            {MONTHS[month]} <span className="text-gray-500 dark:text-gray-400 font-normal">{year}</span>
+            <span className="text-sm font-normal text-gray-500 dark:text-gray-400 ml-2">
+              Week View
+            </span>
           </h1>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
-              onClick={() => navigateMonth('prev')}
+              onClick={() => navigateWeek('prev')}
               disabled={isLoading}
+              className="h-9 w-9 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-5 w-5" />
             </Button>
             <Button
-              variant="outline"
+              variant="default"
               size="sm"
               onClick={() => setCurrentDate(new Date())}
               disabled={isLoading}
+              className="mx-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:shadow-md"
             >
               Today
             </Button>
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
-              onClick={() => navigateMonth('next')}
+              onClick={() => navigateWeek('next')}
               disabled={isLoading}
+              className="h-9 w-9 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-5 w-5" />
             </Button>
           </div>
         </div>

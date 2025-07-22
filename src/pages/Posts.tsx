@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PostDetailsModal } from '@/components/PostDetailsModal';
 import { PageHeader } from '@/components/PageHeader';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -304,10 +304,24 @@ function PostsContent({
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize] = useState(10);
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; postId: string | null }>({ open: false, postId: null });
-  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedPostId = searchParams.get('post');
   
   const { toast } = useToast();
   const navigate = useNavigate();
+  
+  // Handle modal open/close via URL params
+  const openModal = (postId: string) => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set('post', postId);
+    setSearchParams(newSearchParams);
+  };
+  
+  const closeModal = () => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.delete('post');
+    setSearchParams(newSearchParams);
+  };
   const { getDisplayName, getInitials, getAvatarUrl } = useUserProfile();
   
   // Build query params
@@ -585,7 +599,7 @@ function PostsContent({
             
             {/* Hover button for opening modal */}
             <button
-              onClick={() => setSelectedPostId(post.id)}
+              onClick={() => openModal(post.id)}
               className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/50 hover:bg-black/70 text-white rounded-full w-8 h-8 flex items-center justify-center"
             >
               <Eye className="h-4 w-4" />
@@ -696,7 +710,7 @@ function PostsContent({
       {selectedPostId && (
         <PostDetailsModal
           isOpen={!!selectedPostId}
-          onClose={() => setSelectedPostId(null)}
+          onClose={closeModal}
           postId={selectedPostId}
         />
       )}
