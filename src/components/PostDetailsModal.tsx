@@ -63,7 +63,7 @@ export function PostDetailsModal({ isOpen, onClose, postId }: PostDetailsModalPr
       case PublishingEventStatus.PENDING:
         return (
           <Badge variant="outline" className="bg-blue-100 text-blue-800">
-            <Clock className="h-3 w-3 mr-1" />
+            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
             Pending
           </Badge>
         )
@@ -76,9 +76,10 @@ export function PostDetailsModal({ isOpen, onClose, postId }: PostDetailsModalPr
         )
       case PublishingEventStatus.FAILED:
         return (
-          <Badge variant="destructive">
-            <XCircle className="h-3 w-3 mr-1" />
+          <Badge variant="destructive" className="flex items-center gap-1">
+            <XCircle className="h-3 w-3" />
             Failed
+            {event.errorMessage && <span className="text-xs">: {event.errorMessage}</span>}
           </Badge>
         )
       default:
@@ -231,17 +232,15 @@ export function PostDetailsModal({ isOpen, onClose, postId }: PostDetailsModalPr
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-medium">Publishing Events</h3>
-                    {availableAccounts.length > 0 && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowExtendForm(!showExtendForm)}
-                        className="gap-1"
-                      >
-                        <Plus className="h-4 w-4" />
-                        Extend
-                      </Button>
-                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowExtendForm(!showExtendForm)}
+                      className="gap-1"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Extend
+                    </Button>
                   </div>
 
                   <div className="space-y-3">
@@ -270,7 +269,11 @@ export function PostDetailsModal({ isOpen, onClose, postId }: PostDetailsModalPr
                                 disabled={retryEvent.isPending}
                                 className="h-8 w-8"
                               >
-                                <RotateCcw className="h-3 w-3" />
+                                {retryEvent.isPending ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <RotateCcw className="h-3 w-3" />
+                                )}
                               </Button>
                             )}
                           </div>
