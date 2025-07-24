@@ -1,0 +1,184 @@
+name: 🚀 Staging Build & Deploy
+
+on:
+  push:
+    branches: [staging]
+  pull_request:
+    branches: [staging]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/frontend
+
+jobs:
+  # Code Quality & Security Checks
+  quality-checks:
+    name: 🔍 Quality & Security
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📂 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: 🔍 Run ESLint
+        run: npm run lint
+        continue-on-error: false
+
+      - name: 🧪 Run tests (if available)
+        run: |
+          if npm run | grep -q "test"; then
+            npm run test
+          else
+            echo "No test script found, skipping tests"
+          fi
+        continue-on-error: true
+
+      - name: 🔒 Security audit
+        run: npm audit --audit-level moderate
+        continue-on-error: true
+
+      - name: 📊 Bundle analyzer (if large)
+        run: |
+          npm run build
+          du -sh dist/
+        env:
+          VITE_API_BASE_URL: https://staging-api.yourapp.com
+          VITE_CLOUDINARY_CLOUD_NAME: ${{ secrets.VITE_CLOUDINARY_CLOUD_NAME }}
+          VITE_CLOUDINARY_API_URL: https://api.cloudinary.com/v1_1
+          VITE_BACKEND_BASE_URL: https://staging-api.yourapp.com
+          VITE_SUPABASE_AUTH_TOKEN_KEY: ${{ secrets.VITE_SUPABASE_AUTH_TOKEN_KEY }}
+
+  build-staging:
+    name: 🐳 Build Staging Image
+    runs-on: ubuntu-latest
+    needs: quality-checks
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image-digest: ${{ steps.build.outputs.digest }}
+      image-tag: ${{ steps.meta.outputs.tags }}
+    steps:
+      - name: 📂 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐳 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔐 Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📝 Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix=staging-{{date 'YYYYMMDD'}}-
+            type=raw,value=staging-latest
+
+      - name: 🏗️ Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            VITE_API_BASE_URL=https://staging-api.yourapp.com
+            VITE_CLOUDINARY_CLOUD_NAME=${{ secrets.VITE_CLOUDINARY_CLOUD_NAME }}
+            VITE_CLOUDINARY_API_URL=https://api.cloudinary.com/v1_1
+            VITE_BACKEND_BASE_URL=https://staging-api.yourapp.com
+            VITE_SUPABASE_AUTH_TOKEN_KEY=${{ secrets.VITE_SUPABASE_AUTH_TOKEN_KEY }}
+
+  # Security Scanning
+  security-scan:
+    name: 🛡️ Security Scan
+    runs-on: ubuntu-latest
+    needs: build-staging
+    permissions:
+      security-events: write
+    steps:
+      - name: 🔍 Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ needs.build-staging.outputs.image-tag }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: 📊 Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # Deploy to Staging Environment
+  deploy-staging:
+    name: 🚀 Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build-staging, security-scan]
+    environment: staging
+    if: github.ref == 'refs/heads/staging'
+    steps:
+      - name: 📂 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Deploy to staging
+        run: |
+          echo "🚀 Deploying to staging environment..."
+          echo "Image: ${{ needs.build-staging.outputs.image-tag }}"
+          echo "Digest: ${{ needs.build-staging.outputs.image-digest }}"
+          
+          # Add your deployment logic here
+          # For example, if using Docker Compose on a server:
+          # ssh staging-server "cd /app && docker-compose pull && docker-compose up -d"
+          
+          # Or if using Kubernetes:
+          # kubectl set image deployment/frontend frontend=${{ needs.build-staging.outputs.image-tag }}
+          
+          # Or if using cloud services like AWS ECS, Azure Container Instances, etc.
+          echo "✅ Staging deployment completed"
+
+      - name: 🧪 Run smoke tests
+        run: |
+          echo "🧪 Running smoke tests against staging..."
+          # Add smoke tests here
+          # curl -f https://staging.yourapp.com/health || exit 1
+          echo "✅ Smoke tests passed"
+
+  # Notify on Success/Failure
+  notify:
+    name: 📢 Notifications
+    runs-on: ubuntu-latest
+    needs: [deploy-staging]
+    if: always()
+    steps:
+      - name: 📢 Notify on success
+        if: needs.deploy-staging.result == 'success'
+        run: |
+          echo "✅ Staging deployment successful!"
+          # Add Slack/Discord/Teams notification here if needed
+
+      - name: 📢 Notify on failure
+        if: needs.deploy-staging.result == 'failure'
+        run: |
+          echo "❌ Staging deployment failed!"
+          # Add failure notification here

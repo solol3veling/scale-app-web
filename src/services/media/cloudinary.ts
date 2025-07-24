@@ -1,4 +1,5 @@
 import { Cloudinary } from '@cloudinary/url-gen';
+import { ENV } from '@/constants/env';
 import {
   MediaService,
   MediaUploadProgress,
@@ -76,7 +77,7 @@ export class CloudinaryMediaService implements MediaService {
       });
 
       const cloudName = this.cloudinary.cloudinaryConfig.cloud.cloudName;
-      xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName}/upload`);
+      xhr.open('POST', `${ENV.CLOUDINARY_API_URL}/${cloudName}/upload`);
       xhr.send(formData);
     });
   }

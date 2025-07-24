@@ -1,9 +1,10 @@
 import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
 import { ApiResponse } from '@/types/api';
+import { ENV } from '@/constants/env';
 
 // API Configuration
 export const API_CONFIG = {
-    BASE_URL: 'http://localhost:8000',
+    BASE_URL: ENV.API_BASE_URL,
     TIMEOUT: 30000,
     RETRY_ATTEMPTS: 3,
     RETRY_DELAY: 1000,
@@ -27,20 +28,6 @@ const createApiClient = (): AxiosInstance => {
             const token = await getAuthToken();
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
-                if (import.meta.env.DEV) {
-                    console.log(`🔐 Auth token added to request (${token.substring(0, 10)}...)`);
-                }
-            } else if (import.meta.env.DEV) {
-                console.log(`⚠️ No auth token found for request`);
-            }
-
-            // Log requests in development
-            if (import.meta.env.DEV) {
-                console.log(`🔄 API Request: ${config.method?.toUpperCase()} ${config.url}`, {
-                    params: config.params,
-                    data: config.data,
-                    hasAuth: !!token,
-                });
             }
 
             return config;
@@ -54,14 +41,6 @@ const createApiClient = (): AxiosInstance => {
     // Response interceptor for error handling and logging
     client.interceptors.response.use(
         (response: AxiosResponse) => {
-            // Log successful responses in development
-            if (import.meta.env.DEV) {
-                console.log(`✅ API Response: ${response.config.method?.toUpperCase()} ${response.config.url}`, {
-                    status: response.status,
-                    data: response.data,
-                });
-            }
-
             return response;
         },
         async (error: AxiosError) => {
@@ -99,14 +78,6 @@ const createApiClient = (): AxiosInstance => {
                 console.error('🔥 Server error:', error.response.data);
             }
 
-            // Log error details in development
-            if (import.meta.env.DEV) {
-                console.error(`❌ API Error: ${originalRequest?.method?.toUpperCase()} ${originalRequest?.url}`, {
-                    status: error.response?.status,
-                    data: error.response?.data,
-                    message: error.message,
-                });
-            }
 
             return Promise.reject(error);
         }
@@ -150,7 +121,6 @@ export const makeApiCall = async <T>(
 
             // Wait before retrying with exponential backoff
             const delay = retryDelay * Math.pow(2, attempt);
-            console.warn(`🔄 Retrying API call in ${delay}ms (attempt ${attempt + 1}/${retries + 1})`);
             await new Promise(resolve => setTimeout(resolve, delay));
         }
     }
@@ -240,12 +210,11 @@ export const getAuthToken = async (): Promise<string | null> => {
         const { data: { session } } = await supabase.auth.getSession();
 
         if (session?.access_token) {
-            console.log('🔐 Using Supabase session token');
             return session.access_token;
         }
 
         // Fallback to localStorage
-        const authData = localStorage.getItem('sb-bhdbjtlzfoyzslhzkplu-auth-token');
+        const authData = localStorage.getItem(ENV.SUPABASE_AUTH_TOKEN_KEY);
         if (!authData) {
             return null;
         }
@@ -264,10 +233,9 @@ export const removeAuthToken = async (): Promise<void> => {
         // Use Supabase's signOut method instead of just clearing localStorage
         const { supabase } = await import('@/integrations/supabase/client');
         await supabase.auth.signOut();
-        console.log('🔐 Signed out via Supabase');
     } catch (error) {
         console.warn('Failed to sign out via Supabase, clearing localStorage manually:', error);
-        localStorage.removeItem('sb-bhdbjtlzfoyzslhzkplu-auth-token');
+        localStorage.removeItem(ENV.SUPABASE_AUTH_TOKEN_KEY);
         localStorage.removeItem('authToken');
     }
 };

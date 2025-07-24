@@ -1,0 +1,7 @@
+export const ENV = {
+  API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
+  BACKEND_BASE_URL: import.meta.env.VITE_BACKEND_BASE_URL,
+  CLOUDINARY_CLOUD_NAME: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME,
+  CLOUDINARY_API_URL: import.meta.env.VITE_CLOUDINARY_API_URL,
+  SUPABASE_AUTH_TOKEN_KEY: import.meta.env.VITE_SUPABASE_AUTH_TOKEN_KEY,
+} as const;

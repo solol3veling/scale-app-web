@@ -1,5 +1,5 @@
 
-- let url base read from env 
+- let url base read from env (done)
 - working dockerfile with nginx server running it
 - track on github
 
