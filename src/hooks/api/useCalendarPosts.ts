@@ -5,7 +5,7 @@ import { Post, CalendarPostsParams } from '@/types/api';
 interface UseCalendarPostsOptions {
   startDate: string;
   endDate: string;
-  dateType?: 'created' | 'scheduled';
+  dateType?: 'created' | 'scheduled' | 'published';
   enabled?: boolean;
 }
 
@@ -15,7 +15,7 @@ interface CalendarError extends Error {
 }
 
 export function useCalendarPosts(options: UseCalendarPostsOptions) {
-  const { startDate, endDate, dateType = 'created', enabled = true } = options;
+  const { startDate, endDate, dateType, enabled = true } = options;
 
   return useQuery({
     queryKey: ['calendar-posts', startDate, endDate, dateType],
@@ -85,7 +85,7 @@ export function useCalendarPosts(options: UseCalendarPostsOptions) {
 export function useMonthlyCalendarPosts(
   year: number,
   month: number,
-  dateType: 'created' | 'scheduled' = 'created'
+  dateType?: 'created' | 'scheduled' | 'published'
 ) {
   const startDate = new Date(year, month, 1).toISOString();
   const endDate = new Date(year, month + 1, 0).toISOString();

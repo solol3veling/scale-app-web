@@ -88,13 +88,13 @@ export function CalendarErrorState({ error, onRetry, onGoToDashboard }: Calendar
 }
 
 interface CalendarEmptyStateProps {
-  dateType: 'created' | 'scheduled';
+  statusFilter: 'all' | 'scheduled' | 'drafts' | 'posted';
   monthName: string;
   year: number;
   onCreatePost?: () => void;
 }
 
-export function CalendarEmptyState({ dateType, monthName, year, onCreatePost }: CalendarEmptyStateProps) {
+export function CalendarEmptyState({ statusFilter, monthName, year, onCreatePost }: CalendarEmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center h-full p-8 text-center">
       <div className="max-w-md space-y-6">
@@ -107,7 +107,11 @@ export function CalendarEmptyState({ dateType, monthName, year, onCreatePost }: 
             No Posts Found
           </h3>
           <p className="text-gray-600 dark:text-gray-400">
-            You don't have any posts {dateType === 'created' ? 'created' : 'scheduled'} in {monthName} {year}.
+            You don't have any {
+              statusFilter === 'scheduled' ? 'scheduled posts' : 
+              statusFilter === 'drafts' ? 'drafts' : 
+              statusFilter === 'posted' ? 'posted content' : 'posts'
+            } in {monthName} {year}.
           </p>
         </div>
 

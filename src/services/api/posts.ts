@@ -155,11 +155,17 @@ export const postsApi = {
    * Get posts for calendar view
    */
   getCalendarPosts: async (params: CalendarPostsParams): Promise<Post[]> => {
-    const queryString = buildQueryParams({
+    const queryParams: Record<string, string> = {
       startDate: params.startDate,
       endDate: params.endDate,
-      dateType: params.dateType || 'created',
-    });
+    };
+    
+    // Only include dateType if it's specified (omit for "All" filter)
+    if (params.dateType) {
+      queryParams.dateType = params.dateType;
+    }
+    
+    const queryString = buildQueryParams(queryParams);
     
     const response = await makeApiCall<ApiResponseCalendarPosts>(
       () => apiClient.get(buildApiUrl(`/posts/calendar?${queryString}`))

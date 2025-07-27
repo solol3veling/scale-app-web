@@ -136,6 +136,7 @@ export interface Post {
     createdAt: string;
     updatedAt: string;
     userId: string;
+    displayDate?: string; // New field for calendar display
 }
 
 export interface PublishingEventResponse {
@@ -338,7 +339,7 @@ export interface OAuthCallbackParams {
 export interface CalendarPostsParams {
     startDate: string; // ISO date string
     endDate: string;   // ISO date string
-    dateType?: 'created' | 'scheduled';
+    dateType?: 'created' | 'scheduled' | 'published';
 }
 
 export type ApiResponseCalendarPosts = ApiResponse<Post[]>;
