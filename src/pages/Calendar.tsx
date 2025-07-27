@@ -1,18 +1,25 @@
 import { useState } from "react"
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, CheckCircle, Edit3, AlertCircle } from "lucide-react"
 import { format } from "date-fns"
+import { DndProvider } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar as DatePickerCalendar } from "@/components/ui/calendar"
 import { useMonthlyCalendarPosts } from "@/hooks/api/useCalendarPosts"
 import { Post, PostStatus } from "@/types/api"
+import { api } from "@/services/api"
 import { 
   CalendarErrorState, 
   CalendarEmptyState, 
   CalendarLoadingState,
   CalendarNetworkError
 } from "@/components/CalendarFallbackStates"
+import { ScheduleConfirmationModal } from "@/components/ScheduleConfirmationModal"
+import { DroppableDayCell } from "@/components/DroppableDayCell"
 import { useNavigate } from "react-router-dom"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -27,7 +34,11 @@ export function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [statusFilter, setStatusFilter] = useState<StatusFilterType>("all")
   const [datePickerOpen, setDatePickerOpen] = useState(false)
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false)
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null)
+  const [targetDate, setTargetDate] = useState<Date | null>(null)
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
@@ -45,6 +56,25 @@ export function Calendar() {
     refetch,
     isRefetching
   } = useMonthlyCalendarPosts(year, month, undefined) // Get all posts
+
+  // Mutation for scheduling posts
+  const schedulePostMutation = useMutation({
+    mutationFn: async ({ postId, scheduledFor, accountIds }: { 
+      postId: string; 
+      scheduledFor: string; 
+      accountIds?: string[] 
+    }) => {
+      return api.posts.schedule(postId, scheduledFor, accountIds)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['calendar-posts'] })
+      toast.success('Post scheduled successfully!')
+    },
+    onError: (error) => {
+      console.error('Error scheduling post:', error)
+      toast.error('Failed to schedule post. Please try again.')
+    }
+  })
 
   // Filter posts based on status filter
   const filteredPosts = allPosts.filter(post => {
@@ -175,6 +205,52 @@ export function Calendar() {
 
   const postCounts = getPostCounts()
 
+  // Handle post drop on calendar day
+  const handlePostDropped = (post: Post, newTargetDate: Date) => {
+    // Check if we're dropping on the same date (no need for confirmation)
+    const currentPostDate = post.displayDate 
+      ? new Date(post.displayDate)
+      : post.scheduledFor 
+        ? new Date(post.scheduledFor)
+        : post.publishedAt
+          ? new Date(post.publishedAt)
+          : new Date(post.createdAt)
+    
+    const isSameDate = currentPostDate.toDateString() === newTargetDate.toDateString()
+    
+    if (isSameDate) {
+      // No need to show modal if dropping on the same date
+      return
+    }
+    
+    setSelectedPost(post)
+    setTargetDate(newTargetDate)
+    setConfirmModalOpen(true)
+  }
+
+  // Handle confirmation modal
+  const handleScheduleConfirm = async () => {
+    if (!selectedPost || !targetDate) return
+
+    try {
+      const scheduledFor = new Date(targetDate)
+      scheduledFor.setHours(12, 0, 0, 0) // Default to noon - user can adjust later
+
+      // Always use the schedule endpoint - it will handle creating copies for drafts
+      schedulePostMutation.mutate({
+        postId: selectedPost.id,
+        scheduledFor: scheduledFor.toISOString(),
+        accountIds: selectedPost.accounts.map(acc => acc.id)
+      })
+      
+      // Reset state
+      setSelectedPost(null)
+      setTargetDate(null)
+    } catch (error) {
+      console.error('Error in schedule confirm:', error)
+    }
+  }
+
   const handleRetry = () => {
     refetch()
   }
@@ -259,76 +335,15 @@ export function Calendar() {
             const isTodayCell = isToday(calendarDay.date)
             
             return (
-              <div
+              <DroppableDayCell
                 key={index}
-                className={`min-h-[120px] p-2 border-b border-r border-gray-200 dark:border-gray-700 ${
-                  !calendarDay.isCurrentMonth 
-                    ? 'bg-gray-50/50 dark:bg-gray-800/50 text-gray-400 dark:text-gray-600' 
-                    : 'bg-white dark:bg-gray-900'
-                } ${isTodayCell ? 'bg-blue-50/30 dark:bg-blue-900/20' : ''}`}
-              >
-                {/* Day number */}
-                <div className={`text-sm font-medium mb-2 ${
-                  isTodayCell 
-                    ? 'w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs' 
-                    : calendarDay.isCurrentMonth 
-                      ? 'text-gray-900 dark:text-gray-100' 
-                      : 'text-gray-400 dark:text-gray-600'
-                }`}>
-                  {calendarDay.day}
-                </div>
-                
-                {/* Posts for this day */}
-                <div className="space-y-1">
-                  {dayPosts.slice(0, 3).map((post) => (
-                    <div
-                      key={post.id}
-                      className="group cursor-pointer p-1.5 rounded text-xs bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                      onClick={() => handlePostClick(post.id)}
-                    >
-                      <div className="flex items-center gap-1 mb-1">
-                        {getStatusIcon(post.status)}
-                        <span className="text-[10px] font-medium text-gray-600 dark:text-gray-400">
-                          {getStatusText(post.status)}
-                        </span>
-                        <span className="text-[10px] text-gray-500 dark:text-gray-500 ml-auto">
-                          {post.displayDate 
-                            ? format(new Date(post.displayDate), 'HH:mm')
-                            : post.scheduledFor 
-                              ? format(new Date(post.scheduledFor), 'HH:mm')
-                              : format(new Date(post.createdAt), 'HH:mm')
-                          }
-                        </span>
-                      </div>
-                      
-                      <div className="text-xs text-gray-700 dark:text-gray-300 leading-tight mb-1">
-                        {post.content.length > 30 ? `${post.content.substring(0, 30)}...` : post.content}
-                      </div>
-                      
-                      {/* Platform indicators */}
-                      <div className="flex items-center gap-1">
-                        {post.accounts.slice(0, 4).map(account => (
-                          <div
-                            key={account.id}
-                            className={`w-2 h-2 rounded-full ${getPlatformColor(account.platform)}`}
-                            title={account.platform}
-                          />
-                        ))}
-                        {post.accounts.length > 4 && (
-                          <span className="text-[9px] text-gray-500 dark:text-gray-400">+{post.accounts.length - 4}</span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {/* Show more indicator */}
-                  {dayPosts.length > 3 && (
-                    <div className="text-[10px] text-gray-500 dark:text-gray-400 text-center py-1">
-                      +{dayPosts.length - 3} more
-                    </div>
-                  )}
-                </div>
-              </div>
+                calendarDay={calendarDay}
+                dayPosts={dayPosts}
+                isTodayCell={isTodayCell}
+                onPostClick={handlePostClick}
+                onPostDropped={handlePostDropped}
+                getPlatformColor={getPlatformColor}
+              />
             )
           })}
         </div>
@@ -337,9 +352,10 @@ export function Calendar() {
   }
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header with filter tabs */}
-      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+    <DndProvider backend={HTML5Backend}>
+      <div className="flex flex-col h-full">
+        {/* Header with filter tabs */}
+        <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
         {/* Filter tabs */}
         <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800">
           <div className="flex items-center gap-1">
@@ -490,6 +506,20 @@ export function Calendar() {
       <div className="flex-1 overflow-hidden">
         {renderCalendarContent()}
       </div>
+
+      {/* Schedule Confirmation Modal */}
+      <ScheduleConfirmationModal
+        isOpen={confirmModalOpen}
+        onClose={() => {
+          setConfirmModalOpen(false)
+          setSelectedPost(null)
+          setTargetDate(null)
+        }}
+        post={selectedPost}
+        targetDate={targetDate}
+        onConfirm={handleScheduleConfirm}
+      />
     </div>
+    </DndProvider>
   )
 }

@@ -114,9 +114,14 @@ export const postsApi = {
   /**
    * Schedule a post for publishing
    */
-  schedule: async (id: string, scheduledFor: string): Promise<Post> => {
+  schedule: async (id: string, scheduledFor: string, accountIds?: string[]): Promise<Post> => {
+    const payload: { scheduledFor: string; accountIds?: string[] } = { scheduledFor };
+    if (accountIds) {
+      payload.accountIds = accountIds;
+    }
+    
     const response = await makeApiCall<ApiResponsePost>(
-      () => apiClient.post(buildApiUrl(`/post/${id}/schedule`), { scheduledFor })
+      () => apiClient.put(buildApiUrl(`/post/${id}/schedule`), payload)
     );
     return response.data;
   },
