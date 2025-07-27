@@ -63,11 +63,42 @@ export const postsApi = {
   },
 
   /**
-   * Delete a post
+   * Delete a single post
    */
   delete: async (id: string): Promise<void> => {
     await makeApiCall(
       () => apiClient.delete(buildApiUrl(`/post/${id}`))
+    );
+  },
+
+  /**
+   * Delete multiple posts
+   */
+  deleteMultiple: async (postIds: string[]): Promise<void> => {
+    await makeApiCall(
+      () => apiClient.delete(buildApiUrl('/posts'), {
+        data: { postIds }
+      })
+    );
+  },
+
+  /**
+   * Delete publishing events for a post
+   */
+  deletePostEvents: async (postId: string, eventIds: string[]): Promise<void> => {
+    await makeApiCall(
+      () => apiClient.delete(buildApiUrl(`/post/${postId}/events`), {
+        data: { eventIds }
+      })
+    );
+  },
+
+  /**
+   * Delete a specific publishing event
+   */
+  deleteEvent: async (eventId: string): Promise<void> => {
+    await makeApiCall(
+      () => apiClient.delete(buildApiUrl(`/post/event/${eventId}`))
     );
   },
 

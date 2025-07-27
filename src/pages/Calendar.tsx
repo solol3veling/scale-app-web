@@ -18,6 +18,8 @@ import {
 import { ScheduleConfirmationModal } from "@/components/ScheduleConfirmationModal"
 import { PostDetailsModal } from "@/components/PostDetailsModal"
 import { DroppableDayCell } from "@/components/DroppableDayCell"
+import { DeleteConfirmationModal } from "@/components/DeleteConfirmationModal"
+import { PostEventsDeleteModal } from "@/components/PostEventsDeleteModal"
 import { useNavigate } from "react-router-dom"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
@@ -41,6 +43,12 @@ export function Calendar() {
   // Post details modal state
   const [postDetailsModalOpen, setPostDetailsModalOpen] = useState(false)
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
+  // Selection state for bulk operations
+  const [selectedPostIds, setSelectedPostIds] = useState<Set<string>>(new Set())
+  const [selectAllChecked, setSelectAllChecked] = useState(false)
+  // Delete modal states
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false)
+  const [showEventsModal, setShowEventsModal] = useState(false)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
@@ -103,6 +111,44 @@ export function Calendar() {
       setSelectedPost(null)
       setTargetDate(null)
       setConfirmModalOpen(false)
+    }
+  })
+
+  // Mutation for deleting posts
+  const deletePostsMutation = useMutation({
+    mutationFn: async (postIds: string[]) => {
+      if (postIds.length === 1) {
+        return api.posts.delete(postIds[0])
+      } else {
+        return api.posts.deleteMultiple(postIds)
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['calendar-posts'] })
+      toast.success('Posts deleted successfully!')
+      setSelectedPostIds(new Set())
+      setSelectAllChecked(false)
+      setShowDeleteConfirmModal(false)
+      setShowEventsModal(false)
+    },
+    onError: (error) => {
+      console.error('Error deleting posts:', error)
+      toast.error('Failed to delete posts. Please try again.')
+    }
+  })
+
+  // Mutation for deleting events
+  const deleteEventsMutation = useMutation({
+    mutationFn: async ({ postId, eventIds }: { postId: string; eventIds: string[] }) => {
+      return api.posts.deletePostEvents(postId, eventIds)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['calendar-posts'] })
+      toast.success('Events deleted successfully!')
+    },
+    onError: (error) => {
+      console.error('Error deleting events:', error)
+      toast.error('Failed to delete events. Please try again.')
     }
   })
 
@@ -415,6 +461,63 @@ export function Calendar() {
     }
   }
 
+  // Selection handlers
+  const handlePostLongPress = (postId: string) => {
+    const newSelected = new Set(selectedPostIds)
+    if (newSelected.has(postId)) {
+      newSelected.delete(postId)
+    } else {
+      newSelected.add(postId)
+    }
+    setSelectedPostIds(newSelected)
+    
+    // Update select all checkbox state
+    const allScheduledPosts = filteredPosts.filter(p => p.status === 'SCHEDULED')
+    const allScheduledSelected = allScheduledPosts.length > 0 && 
+      allScheduledPosts.every(p => newSelected.has(p.id))
+    setSelectAllChecked(allScheduledSelected)
+  }
+
+  const handleSelectAllScheduled = () => {
+    const scheduledPosts = filteredPosts.filter(p => p.status === 'SCHEDULED')
+    const newSelected = new Set(selectedPostIds)
+    
+    if (selectAllChecked) {
+      // Deselect all scheduled posts
+      scheduledPosts.forEach(post => newSelected.delete(post.id))
+    } else {
+      // Select all scheduled posts
+      scheduledPosts.forEach(post => newSelected.add(post.id))
+    }
+    
+    setSelectedPostIds(newSelected)
+    setSelectAllChecked(!selectAllChecked)
+  }
+
+  const handleDeleteSelected = () => {
+    if (selectedPostIds.size === 0) return
+    
+    const selectedPosts = filteredPosts.filter(p => selectedPostIds.has(p.id))
+    const hasEventsToDelete = selectedPosts.some(p => p.status === 'DRAFT' && p.events && p.events.length > 0)
+    
+    if (hasEventsToDelete) {
+      // Show events deletion modal
+      setShowEventsModal(true)
+    } else {
+      // Show simple confirmation modal
+      setShowDeleteConfirmModal(true)
+    }
+  }
+
+  const handleConfirmDelete = () => {
+    const postIds = Array.from(selectedPostIds)
+    deletePostsMutation.mutate(postIds)
+  }
+
+  const handleDeleteEvents = (postId: string, eventIds: string[]) => {
+    deleteEventsMutation.mutate({ postId, eventIds })
+  }
+
   const isNetworkError = error?.message.includes('Network') || error?.message.includes('connection')
   const hasNoPosts = !isLoading && !error && filteredPosts.length === 0
 
@@ -487,6 +590,8 @@ export function Calendar() {
                 isTodayCell={isTodayCell}
                 onPostClick={handlePostClick}
                 onPostDropped={handlePostDropped}
+                onPostLongPress={handlePostLongPress}
+                selectedPostIds={selectedPostIds}
                 getPlatformColor={getPlatformColor}
               />
             )
@@ -572,12 +677,42 @@ export function Calendar() {
               </Button>
             )}
             
-            <input type="checkbox" className="rounded" />
-            <span className="text-sm text-gray-600 dark:text-gray-400">Select All</span>
-            
-            <Button variant="ghost" size="sm" className="text-orange-600 hover:text-orange-700">
-              Delete
-            </Button>
+            {selectedPostIds.size > 0 ? (
+              <>
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {selectedPostIds.size} selected
+                </span>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleDeleteSelected}
+                  className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                >
+                  Delete
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => {
+                    setSelectedPostIds(new Set())
+                    setSelectAllChecked(false)
+                  }}
+                  className="text-gray-600 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                >
+                  Clear Selection
+                </Button>
+              </>
+            ) : (
+              <>
+                <input 
+                  type="checkbox" 
+                  className="rounded" 
+                  checked={selectAllChecked}
+                  onChange={handleSelectAllScheduled}
+                />
+                <span className="text-sm text-gray-600 dark:text-gray-400">Select All Scheduled</span>
+              </>
+            )}
             
             <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-700">
               Unschedule
@@ -673,6 +808,25 @@ export function Calendar() {
           postId={selectedPostId}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteConfirmModal}
+        onClose={() => setShowDeleteConfirmModal(false)}
+        onConfirm={handleConfirmDelete}
+        postCount={selectedPostIds.size}
+        isLoading={deletePostsMutation.isPending}
+      />
+
+      {/* Events Delete Modal */}
+      <PostEventsDeleteModal
+        isOpen={showEventsModal}
+        onClose={() => setShowEventsModal(false)}
+        onConfirm={handleConfirmDelete}
+        onDeleteEvents={handleDeleteEvents}
+        posts={filteredPosts.filter(p => selectedPostIds.has(p.id))}
+        isLoading={deletePostsMutation.isPending || deleteEventsMutation.isPending}
+      />
     </div>
     </DndProvider>
   )

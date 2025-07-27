@@ -14,6 +14,8 @@ interface DroppableDayCellProps {
   isTodayCell: boolean
   onPostClick: (postId: string) => void
   onPostDropped: (post: Post, targetDate: Date) => void
+  onPostLongPress: (postId: string) => void
+  selectedPostIds: Set<string>
   getPlatformColor: (platform: string) => string
 }
 
@@ -23,6 +25,8 @@ export function DroppableDayCell({
   isTodayCell,
   onPostClick,
   onPostDropped,
+  onPostLongPress,
+  selectedPostIds,
   getPlatformColor
 }: DroppableDayCellProps) {
   const [{ isOver, canDrop }, drop] = useDrop(() => ({
@@ -86,6 +90,8 @@ export function DroppableDayCell({
             key={post.id}
             post={post}
             onClick={() => onPostClick(post.id)}
+            onLongPress={onPostLongPress}
+            isSelected={selectedPostIds.has(post.id)}
             getPlatformColor={getPlatformColor}
           />
         ))}
