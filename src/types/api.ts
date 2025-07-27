@@ -137,6 +137,7 @@ export interface Post {
     updatedAt: string;
     userId: string;
     displayDate?: string; // New field for calendar display
+    events?: PublishingEventResponse[]; // Publishing events for draft posts
 }
 
 export interface PublishingEventResponse {
@@ -145,6 +146,7 @@ export interface PublishingEventResponse {
     socialAccount: SocialAccountResponse;
     platform: Platform;
     status: PublishingEventStatus;
+    scheduledFor: string; // When the event is scheduled to run
     errorMessage?: string;
     responseMetadata?: string;
     createdAt: string;

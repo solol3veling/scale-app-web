@@ -15,6 +15,7 @@ interface DroppableDayCellProps {
   onPostClick: (postId: string) => void
   onPostDropped: (post: Post, targetDate: Date) => void
   onPostLongPress: (postId: string) => void
+  onDayExpand: (date: Date, posts: Post[]) => void
   selectedPostIds: Set<string>
   getPlatformColor: (platform: string) => string
 }
@@ -26,6 +27,7 @@ export function DroppableDayCell({
   onPostClick,
   onPostDropped,
   onPostLongPress,
+  onDayExpand,
   selectedPostIds,
   getPlatformColor
 }: DroppableDayCellProps) {
@@ -96,11 +98,14 @@ export function DroppableDayCell({
           />
         ))}
         
-        {/* Show more indicator */}
+        {/* Show more indicator - clickable */}
         {dayPosts.length > 3 && (
-          <div className="text-[10px] text-gray-500 dark:text-gray-400 text-center py-1">
-            +{dayPosts.length - 3} more
-          </div>
+          <button
+            onClick={() => onDayExpand(calendarDay.date, dayPosts)}
+            className="w-full text-[10px] text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-center py-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+          >
+            +{dayPosts.length - 3} more posts
+          </button>
         )}
       </div>
 
