@@ -16,6 +16,7 @@ import {
   CalendarNetworkError
 } from "@/components/CalendarFallbackStates"
 import { ScheduleConfirmationModal } from "@/components/ScheduleConfirmationModal"
+import { PostDetailsModal } from "@/components/PostDetailsModal"
 import { DroppableDayCell } from "@/components/DroppableDayCell"
 import { useNavigate } from "react-router-dom"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
@@ -37,6 +38,9 @@ export function Calendar() {
   const [confirmModalOpen, setConfirmModalOpen] = useState(false)
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
   const [targetDate, setTargetDate] = useState<Date | null>(null)
+  // Post details modal state
+  const [postDetailsModalOpen, setPostDetailsModalOpen] = useState(false)
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
@@ -260,7 +264,15 @@ export function Calendar() {
   }
 
   const handlePostClick = (postId: string) => {
-    navigate(`/posts?post=${postId}`)
+    setSelectedPostId(postId)
+    setPostDetailsModalOpen(true)
+  }
+
+  const handleClosePostDetails = () => {
+    setPostDetailsModalOpen(false)
+    setSelectedPostId(null)
+    // Refresh calendar data when modal closes to ensure any changes are reflected
+    queryClient.invalidateQueries({ queryKey: ['calendar-posts'] })
   }
 
   const handleDateSelect = (date: Date | undefined) => {
@@ -519,6 +531,15 @@ export function Calendar() {
         targetDate={targetDate}
         onConfirm={handleScheduleConfirm}
       />
+
+      {/* Post Details Modal */}
+      {selectedPostId && (
+        <PostDetailsModal
+          isOpen={postDetailsModalOpen}
+          onClose={handleClosePostDetails}
+          postId={selectedPostId}
+        />
+      )}
     </div>
     </DndProvider>
   )
