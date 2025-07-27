@@ -73,10 +73,18 @@ export function Calendar() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['calendar-posts'] })
       toast.success('Post scheduled successfully!')
+      // Ensure state is clean after successful scheduling
+      setSelectedPost(null)
+      setTargetDate(null)
+      setConfirmModalOpen(false)
     },
     onError: (error) => {
       console.error('Error scheduling post:', error)
       toast.error('Failed to schedule post. Please try again.')
+      // Ensure state is clean after error
+      setSelectedPost(null)
+      setTargetDate(null)
+      setConfirmModalOpen(false)
     }
   })
 
@@ -221,13 +229,16 @@ export function Calendar() {
 
   // Handle post drop on calendar day
   const handlePostDropped = (post: Post, newTargetDate: Date) => {
+    // Create a fresh copy of the target date to avoid mutation issues
+    const freshTargetDate = new Date(newTargetDate.getTime())
+    
     // Debug: Log the target date to verify accuracy
     console.log('Dropped on date:', {
-      targetDate: newTargetDate,
-      dateString: newTargetDate.toDateString(),
-      month: newTargetDate.getMonth(),
-      year: newTargetDate.getFullYear(),
-      day: newTargetDate.getDate()
+      targetDate: freshTargetDate,
+      dateString: freshTargetDate.toDateString(),
+      month: freshTargetDate.getMonth(),
+      year: freshTargetDate.getFullYear(),
+      day: freshTargetDate.getDate()
     })
     
     // Check if we're dropping on the same date (no need for confirmation)
@@ -239,7 +250,7 @@ export function Calendar() {
           ? new Date(post.publishedAt)
           : new Date(post.createdAt)
     
-    const isSameDate = currentPostDate.toDateString() === newTargetDate.toDateString()
+    const isSameDate = currentPostDate.toDateString() === freshTargetDate.toDateString()
     
     if (isSameDate) {
       // No need to show modal if dropping on the same date
@@ -247,7 +258,7 @@ export function Calendar() {
     }
     
     setSelectedPost(post)
-    setTargetDate(newTargetDate)
+    setTargetDate(freshTargetDate)
     setConfirmModalOpen(true)
   }
 
@@ -256,7 +267,8 @@ export function Calendar() {
     if (!selectedPost || !targetDate) return
 
     try {
-      const scheduledFor = new Date(targetDate)
+      // Create a fresh copy of the target date to avoid mutation issues
+      const scheduledFor = new Date(targetDate.getTime())
       scheduledFor.setHours(12, 0, 0, 0) // Default to noon - user can adjust later
 
       // Debug: Log what we're sending to the API
@@ -270,6 +282,16 @@ export function Calendar() {
         currentYear: year
       })
 
+      // Store navigation info before clearing state
+      const targetMonth = targetDate.getMonth()
+      const targetYear = targetDate.getFullYear()
+      const shouldNavigate = targetMonth !== month || targetYear !== year
+
+      // Clear modal state immediately to prevent stale data
+      setSelectedPost(null)
+      setTargetDate(null)
+      setConfirmModalOpen(false)
+
       // Always use the schedule endpoint - it will handle creating copies for drafts
       schedulePostMutation.mutate({
         postId: selectedPost.id,
@@ -278,17 +300,21 @@ export function Calendar() {
       })
       
       // If the target date is in a different month, navigate to that month
-      const targetMonth = targetDate.getMonth()
-      const targetYear = targetDate.getFullYear()
-      if (targetMonth !== month || targetYear !== year) {
+      if (shouldNavigate) {
+        console.log('Navigating to different month:', {
+          fromMonth: month,
+          fromYear: year,
+          toMonth: targetMonth,
+          toYear: targetYear
+        })
         setCurrentDate(new Date(targetYear, targetMonth, 1))
       }
-      
-      // Reset state
-      setSelectedPost(null)
-      setTargetDate(null)
     } catch (error) {
       console.error('Error in schedule confirm:', error)
+      // Reset state on error too
+      setSelectedPost(null)
+      setTargetDate(null)
+      setConfirmModalOpen(false)
     }
   }
 

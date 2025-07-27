@@ -36,7 +36,9 @@ export function DroppableDayCell({
       // Don't allow dropping on past dates (except today)
       if (targetDate < today) return
       
-      onPostDropped(item.post, calendarDay.date)
+      // Create a fresh Date object to avoid mutation issues
+      const freshTargetDate = new Date(calendarDay.date.getTime())
+      onPostDropped(item.post, freshTargetDate)
     },
     canDrop: (item: { post: Post }) => {
       // Check if target date is not in the past (allow future dates in any month)

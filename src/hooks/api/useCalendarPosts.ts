@@ -81,18 +81,40 @@ export function useCalendarPosts(options: UseCalendarPostsOptions) {
   });
 }
 
-// Helper hook for getting posts for a specific month
+// Helper hook for getting posts for a specific month including adjacent month dates shown in calendar
 export function useMonthlyCalendarPosts(
   year: number,
   month: number,
   dateType?: 'created' | 'scheduled' | 'published'
 ) {
-  const startDate = new Date(year, month, 1).toISOString();
-  const endDate = new Date(year, month + 1, 0).toISOString();
+  // Calculate the first day of the month
+  const firstDayOfMonth = new Date(year, month, 1);
+  const firstDayWeekday = firstDayOfMonth.getDay();
+  
+  // Calculate start date: go back to include previous month dates shown in calendar
+  const startDate = new Date(year, month, 1 - firstDayWeekday);
+  
+  // Calculate end date: go forward to include next month dates shown in calendar
+  const lastDayOfMonth = new Date(year, month + 1, 0);
+  const daysInMonth = lastDayOfMonth.getDate();
+  const totalDaysUsed = firstDayWeekday + daysInMonth;
+  const remainingCells = 42 - totalDaysUsed; // 6 rows * 7 days
+  const endDate = new Date(year, month + 1, remainingCells);
+
+  // Debug: Log the date range we're fetching
+  console.log('Fetching calendar posts for range:', {
+    year,
+    month,
+    dateType,
+    startDate: startDate.toDateString(),
+    endDate: endDate.toDateString(),
+    startISO: startDate.toISOString(),
+    endISO: endDate.toISOString()
+  });
 
   return useCalendarPosts({
-    startDate,
-    endDate,
+    startDate: startDate.toISOString(),
+    endDate: endDate.toISOString(),
     dateType,
   });
 }
