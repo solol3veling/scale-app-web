@@ -28,9 +28,6 @@ export function DroppableDayCell({
   const [{ isOver, canDrop }, drop] = useDrop(() => ({
     accept: ItemTypes.POST,
     drop: (item: { post: Post }) => {
-      // Only allow dropping on current month dates and future dates
-      if (!calendarDay.isCurrentMonth) return
-      
       const today = new Date()
       today.setHours(0, 0, 0, 0)
       const targetDate = new Date(calendarDay.date)
@@ -42,10 +39,7 @@ export function DroppableDayCell({
       onPostDropped(item.post, calendarDay.date)
     },
     canDrop: (item: { post: Post }) => {
-      // Can only drop on current month dates
-      if (!calendarDay.isCurrentMonth) return false
-      
-      // Check if target date is not in the past
+      // Check if target date is not in the past (allow future dates in any month)
       const today = new Date()
       today.setHours(0, 0, 0, 0)
       const targetDate = new Date(calendarDay.date)
@@ -112,7 +106,11 @@ export function DroppableDayCell({
           <div className={`flex items-center justify-center h-full text-sm font-medium ${
             canDrop ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
           }`}>
-            {canDrop ? 'Drop to schedule' : 'Cannot drop here'}
+            {canDrop ? (
+              calendarDay.isCurrentMonth ? 'Drop to schedule' : 'Schedule & go to month'
+            ) : (
+              'Cannot schedule in past'
+            )}
           </div>
         </div>
       )}

@@ -101,8 +101,10 @@ export function Calendar() {
     })
   }
 
-  const getPostsForDate = (date: number) => {
-    const targetDate = new Date(year, month, date)
+  const getPostsForDate = (calendarDay: { day: number; date: Date; isCurrentMonth: boolean }) => {
+    // Use the actual date from the calendar day to avoid month boundary issues
+    const targetDate = calendarDay.date
+    
     return filteredPosts.filter(post => {
       // Use displayDate if available, otherwise fall back to appropriate date field
       const postDate = post.displayDate 
@@ -158,16 +160,24 @@ export function Calendar() {
   const generateCalendarDays = () => {
     const days = []
     
+    // Calculate previous month's year and month
+    const prevYear = month === 0 ? year - 1 : year
+    const prevMonth = month === 0 ? 11 : month - 1
+    
+    // Calculate next month's year and month  
+    const nextYear = month === 11 ? year + 1 : year
+    const nextMonth = month === 11 ? 0 : month + 1
+    
     // Add days from previous month
-    const prevMonth = new Date(year, month - 1, 0)
-    const prevMonthDays = prevMonth.getDate()
+    const prevMonthLastDay = new Date(prevYear, prevMonth + 1, 0).getDate()
     for (let i = firstDayWeekday - 1; i >= 0; i--) {
+      const day = prevMonthLastDay - i
       days.push({
-        day: prevMonthDays - i,
+        day,
         isCurrentMonth: false,
         isPrevMonth: true,
         isNextMonth: false,
-        date: new Date(year, month - 1, prevMonthDays - i)
+        date: new Date(prevYear, prevMonth, day)
       })
     }
     
@@ -190,7 +200,7 @@ export function Calendar() {
         isCurrentMonth: false,
         isPrevMonth: false,
         isNextMonth: true,
-        date: new Date(year, month + 1, day)
+        date: new Date(nextYear, nextMonth, day)
       })
     }
     
@@ -211,6 +221,15 @@ export function Calendar() {
 
   // Handle post drop on calendar day
   const handlePostDropped = (post: Post, newTargetDate: Date) => {
+    // Debug: Log the target date to verify accuracy
+    console.log('Dropped on date:', {
+      targetDate: newTargetDate,
+      dateString: newTargetDate.toDateString(),
+      month: newTargetDate.getMonth(),
+      year: newTargetDate.getFullYear(),
+      day: newTargetDate.getDate()
+    })
+    
     // Check if we're dropping on the same date (no need for confirmation)
     const currentPostDate = post.displayDate 
       ? new Date(post.displayDate)
@@ -240,12 +259,30 @@ export function Calendar() {
       const scheduledFor = new Date(targetDate)
       scheduledFor.setHours(12, 0, 0, 0) // Default to noon - user can adjust later
 
+      // Debug: Log what we're sending to the API
+      console.log('Scheduling post:', {
+        originalTargetDate: targetDate,
+        scheduledForDate: scheduledFor,
+        scheduledForISO: scheduledFor.toISOString(),
+        targetMonth: targetDate.getMonth(),
+        targetYear: targetDate.getFullYear(),
+        currentMonth: month,
+        currentYear: year
+      })
+
       // Always use the schedule endpoint - it will handle creating copies for drafts
       schedulePostMutation.mutate({
         postId: selectedPost.id,
         scheduledFor: scheduledFor.toISOString(),
         accountIds: selectedPost.accounts.map(acc => acc.id)
       })
+      
+      // If the target date is in a different month, navigate to that month
+      const targetMonth = targetDate.getMonth()
+      const targetYear = targetDate.getFullYear()
+      if (targetMonth !== month || targetYear !== year) {
+        setCurrentDate(new Date(targetYear, targetMonth, 1))
+      }
       
       // Reset state
       setSelectedPost(null)
@@ -343,7 +380,7 @@ export function Calendar() {
           
           {/* Calendar days */}
           {calendarDays.map((calendarDay, index) => {
-            const dayPosts = getPostsForDate(calendarDay.day)
+            const dayPosts = getPostsForDate(calendarDay)
             const isTodayCell = isToday(calendarDay.date)
             
             return (
