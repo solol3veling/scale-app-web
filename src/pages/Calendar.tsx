@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, CheckCircle, Edit3, AlertCircle } from "lucide-react"
 import { format } from "date-fns"
 import { DndProvider } from 'react-dnd'
@@ -44,13 +44,31 @@ export function Calendar() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const year = currentDate.getFullYear()
-  const month = currentDate.getMonth()
+  // Use useMemo to ensure these values update properly when currentDate changes
+  const { year, month, firstDayOfMonth, lastDayOfMonth, firstDayWeekday, daysInMonth } = useMemo(() => {
+    const yr = currentDate.getFullYear()
+    const mo = currentDate.getMonth()
+    const firstDay = new Date(yr, mo, 1)
+    const lastDay = new Date(yr, mo + 1, 0)
+    
+    return {
+      year: yr,
+      month: mo,
+      firstDayOfMonth: firstDay,
+      lastDayOfMonth: lastDay,
+      firstDayWeekday: firstDay.getDay(),
+      daysInMonth: lastDay.getDate()
+    }
+  }, [currentDate])
 
-  const firstDayOfMonth = new Date(year, month, 1)
-  const lastDayOfMonth = new Date(year, month + 1, 0)
-  const firstDayWeekday = firstDayOfMonth.getDay()
-  const daysInMonth = lastDayOfMonth.getDate()
+  // Clear any stale modal state when navigating months
+  useEffect(() => {
+    if (confirmModalOpen || selectedPost || targetDate) {
+      setConfirmModalOpen(false)
+      setSelectedPost(null)
+      setTargetDate(null)
+    }
+  }, [year, month]) // Reset when month/year changes
 
   // Use the React Query hook for data fetching - get all posts for the month
   const { 
@@ -99,12 +117,39 @@ export function Calendar() {
 
   const navigateMonth = (direction: 'prev' | 'next') => {
     setCurrentDate(prev => {
-      const newDate = new Date(prev)
+      const currentYear = prev.getFullYear()
+      const currentMonth = prev.getMonth()
+      
+      let newYear = currentYear
+      let newMonth = currentMonth
+      
       if (direction === 'prev') {
-        newDate.setMonth(newDate.getMonth() - 1)
+        if (currentMonth === 0) {
+          newYear = currentYear - 1
+          newMonth = 11
+        } else {
+          newMonth = currentMonth - 1
+        }
       } else {
-        newDate.setMonth(newDate.getMonth() + 1)
+        if (currentMonth === 11) {
+          newYear = currentYear + 1
+          newMonth = 0
+        } else {
+          newMonth = currentMonth + 1
+        }
       }
+      
+      // Always use day 1 to avoid month boundary issues
+      const newDate = new Date(newYear, newMonth, 1)
+      
+      // Debug: Log navigation
+      console.log('Navigating month:', {
+        direction,
+        from: { year: currentYear, month: currentMonth },
+        to: { year: newYear, month: newMonth },
+        newDate: newDate.toDateString()
+      })
+      
       return newDate
     })
   }
@@ -165,8 +210,11 @@ export function Calendar() {
   }
 
   // Generate calendar days including previous/next month days for full grid
-  const generateCalendarDays = () => {
+  const calendarDays = useMemo(() => {
     const days = []
+    
+    // Debug: Log current year/month being used for calendar generation
+    console.log('Generating calendar for:', { year, month, currentDate: currentDate.toDateString() })
     
     // Calculate previous month's year and month
     const prevYear = month === 0 ? year - 1 : year
@@ -176,46 +224,64 @@ export function Calendar() {
     const nextYear = month === 11 ? year + 1 : year
     const nextMonth = month === 11 ? 0 : month + 1
     
+    // Debug: Log calculated months
+    console.log('Month calculations:', {
+      prev: { year: prevYear, month: prevMonth },
+      current: { year, month },
+      next: { year: nextYear, month: nextMonth }
+    })
+    
     // Add days from previous month
     const prevMonthLastDay = new Date(prevYear, prevMonth + 1, 0).getDate()
     for (let i = firstDayWeekday - 1; i >= 0; i--) {
       const day = prevMonthLastDay - i
+      const date = new Date(prevYear, prevMonth, day)
       days.push({
         day,
         isCurrentMonth: false,
         isPrevMonth: true,
         isNextMonth: false,
-        date: new Date(prevYear, prevMonth, day)
+        date
       })
     }
     
     // Add days from current month
     for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day)
       days.push({
         day,
         isCurrentMonth: true,
         isPrevMonth: false,
         isNextMonth: false,
-        date: new Date(year, month, day)
+        date
       })
     }
     
     // Add days from next month to complete the grid
     const remainingCells = 42 - days.length // 6 rows * 7 days
     for (let day = 1; day <= remainingCells; day++) {
+      const date = new Date(nextYear, nextMonth, day)
       days.push({
         day,
         isCurrentMonth: false,
         isPrevMonth: false,
         isNextMonth: true,
-        date: new Date(nextYear, nextMonth, day)
+        date
       })
     }
     
+    // Debug: Log sample dates to verify correctness
+    const sampleDates = days.slice(0, 3).map(d => ({
+      day: d.day,
+      date: d.date.toDateString(),
+      month: d.date.getMonth(),
+      year: d.date.getFullYear(),
+      isCurrentMonth: d.isCurrentMonth
+    }))
+    console.log('Sample calendar dates:', sampleDates)
+    
     return days
-  }
-
-  const calendarDays = generateCalendarDays()
+  }, [year, month, firstDayWeekday, daysInMonth])
 
   // Count posts by status for filter tabs
   const getPostCounts = () => {
@@ -232,13 +298,17 @@ export function Calendar() {
     // Create a fresh copy of the target date to avoid mutation issues
     const freshTargetDate = new Date(newTargetDate.getTime())
     
-    // Debug: Log the target date to verify accuracy
+    // Debug: Log the target date to verify accuracy with calendar context
     console.log('Dropped on date:', {
       targetDate: freshTargetDate,
       dateString: freshTargetDate.toDateString(),
-      month: freshTargetDate.getMonth(),
-      year: freshTargetDate.getFullYear(),
-      day: freshTargetDate.getDate()
+      targetMonth: freshTargetDate.getMonth(),
+      targetYear: freshTargetDate.getFullYear(),
+      targetDay: freshTargetDate.getDate(),
+      currentCalendarMonth: month,
+      currentCalendarYear: year,
+      monthMatch: freshTargetDate.getMonth() === month,
+      yearMatch: freshTargetDate.getFullYear() === year
     })
     
     // Check if we're dropping on the same date (no need for confirmation)
@@ -396,7 +466,7 @@ export function Calendar() {
     return (
       <div className="h-full bg-white dark:bg-gray-900">
         {/* Calendar grid */}
-        <div className="grid grid-cols-7 h-full">
+        <div key={`${year}-${month}`} className="grid grid-cols-7 h-full">
           {/* Week header */}
           {WEEKDAYS.map((day) => (
             <div key={day} className="p-3 text-center text-sm font-medium text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
