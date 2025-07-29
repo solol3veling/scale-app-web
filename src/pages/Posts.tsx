@@ -1,8 +1,9 @@
-import { useState, useMemo } from 'react';
-import { Search, Plus, Filter, Calendar, Clock, CheckCircle, Circle, Edit, Trash2, Copy, Eye, FileText, Sparkles, ArrowUpDown, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useMemo, useRef, useCallback, useEffect, memo } from 'react';
+import { Search, Plus, Filter, Calendar, Clock, CheckCircle, Circle, Edit, Trash2, Copy, Eye, FileText, Sparkles, ArrowUpDown, X, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import { usePosts, useDeletePost, useDuplicatePost } from '@/hooks/api/usePosts';
-import { PostStatus } from '@/types/api';
+import { useMultiplePostEvents } from '@/hooks/api/usePostEvents';
+import { PostStatus, Post } from '@/types/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -12,26 +13,36 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PostDetailsModal } from '@/components/PostDetailsModal';
+import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
+import { PostEventsDeleteModal } from '@/components/PostEventsDeleteModal';
 import { PageHeader } from '@/components/PageHeader';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '@/services/api';
+import { toast } from 'sonner';
 
 // Helper functions for user profile data
 const useUserProfile = () => {
   const { user } = useAuth();
   
-  const getDisplayName = () => {
-    return user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
-  };
+  // Memoize values to prevent flickering during rerenders
+  const displayName = useMemo(() => {
+    if (!user) return 'User';
+    return user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
+  }, [user?.user_metadata?.full_name, user?.email]);
   
-  const getInitials = () => {
-    const name = getDisplayName();
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-  };
+  const initials = useMemo(() => {
+    return displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  }, [displayName]);
   
-  const getAvatarUrl = () => {
+  const avatarUrl = useMemo(() => {
     return user?.user_metadata?.avatar_url;
-  };
+  }, [user?.user_metadata?.avatar_url]);
+  
+  const getDisplayName = () => displayName;
+  const getInitials = () => initials;
+  const getAvatarUrl = () => avatarUrl;
   
   return { getDisplayName, getInitials, getAvatarUrl };
 };
@@ -130,7 +141,13 @@ function PostsHeader({
   statusFilter, 
   onStatusChange,
   sortBy,
-  onSortChange
+  onSortChange,
+  selectedPostIds,
+  selectAllChecked,
+  onSelectAllChange,
+  onDeleteSelected,
+  onClearSelection,
+  selectionMode
 }: {
   searchTerm: string;
   onSearchChange: (value: string) => void;
@@ -138,6 +155,12 @@ function PostsHeader({
   onStatusChange: (value: PostStatus | 'all') => void;
   sortBy: string;
   onSortChange: (value: string) => void;
+  selectedPostIds: Set<string>;
+  selectAllChecked: boolean;
+  onSelectAllChange: (posts: Post[]) => void;
+  onDeleteSelected: () => void;
+  onClearSelection: () => void;
+  selectionMode: boolean;
 }) {
   const navigate = useNavigate();
   
@@ -147,67 +170,115 @@ function PostsHeader({
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Posts</h1>
-          <p className="text-muted-foreground text-sm">Manage and track your social media posts</p>
+          <p className="text-muted-foreground text-sm">
+            {selectionMode 
+              ? `${selectedPostIds.size} post${selectedPostIds.size !== 1 ? 's' : ''} selected`
+              : "Manage and track your social media posts"
+            }
+          </p>
         </div>
-        <Button 
-          onClick={() => navigate('/make-post')} 
-          className="gap-2 gradient-primary hover-scale"
-          size="sm"
-        >
-          <Plus className="h-4 w-4" />
-          Create Post
-        </Button>
+        
+        <div className="flex items-center gap-2 min-w-0">
+          {selectedPostIds.size > 0 ? (
+            <>
+              <Button 
+                variant="outline" 
+                size="xs" 
+                onClick={onClearSelection}
+                className="text-gray-600 hover:text-gray-700 whitespace-nowrap h-7 px-2 text-xs"
+              >
+                Clear
+              </Button>
+              <Button 
+                variant="destructive" 
+                size="xs" 
+                onClick={onDeleteSelected}
+                className="gap-1 whitespace-nowrap h-7 px-2 text-xs"
+              >
+                <Trash2 className="h-3 w-3" />
+                Delete {selectedPostIds.size}
+              </Button>
+            </>
+          ) : (
+            <Button 
+              onClick={() => navigate('/make-post')} 
+              className="gap-2 gradient-primary hover-scale whitespace-nowrap"
+              size="sm"
+            >
+              <Plus className="h-4 w-4" />
+              Create Post
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Search and Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search posts..."
-            value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10 pr-10 bg-background/50 backdrop-blur-sm border-border/50"
-          />
-          {searchTerm && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-background/80"
-              onClick={() => onSearchChange('')}
-            >
-              <X className="h-3 w-3" />
-            </Button>
+          {selectedPostIds.size > 0 ? (
+            <div className="flex items-center gap-2 h-10 px-3 bg-background/50 backdrop-blur-sm border border-border/50 rounded-md">
+              <input 
+                type="checkbox" 
+                className="rounded" 
+                checked={selectAllChecked}
+                onChange={() => onSelectAllChange([])}
+              />
+              <span className="text-sm text-gray-600 dark:text-gray-400">Select All Posts</span>
+            </div>
+          ) : (
+            <>
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search posts..."
+                value={searchTerm}
+                onChange={(e) => onSearchChange(e.target.value)}
+                className="pl-10 pr-10 bg-background/50 backdrop-blur-sm border-border/50"
+              />
+              {searchTerm && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-background/80"
+                  onClick={() => onSearchChange('')}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
+            </>
           )}
         </div>
         
-        <Select value={statusFilter} onValueChange={onStatusChange}>
-          <SelectTrigger className="w-[180px] bg-background/50 backdrop-blur-sm border-border/50">
-            <Filter className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Posts</SelectItem>
-            <SelectItem value={PostStatus.PUBLISHED}>Published</SelectItem>
-            <SelectItem value={PostStatus.SCHEDULED}>Scheduled</SelectItem>
-            <SelectItem value={PostStatus.DRAFT}>Draft</SelectItem>
-            <SelectItem value={PostStatus.FAILED}>Failed</SelectItem>
-          </SelectContent>
-        </Select>
+        {selectedPostIds.size === 0 && (
+          <>
+            <Select value={statusFilter} onValueChange={onStatusChange}>
+              <SelectTrigger className="w-[180px] bg-background/50 backdrop-blur-sm border-border/50">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Posts</SelectItem>
+                <SelectItem value={PostStatus.PUBLISHED}>Published</SelectItem>
+                <SelectItem value={PostStatus.SCHEDULED}>Scheduled</SelectItem>
+                <SelectItem value={PostStatus.DRAFT}>Draft</SelectItem>
+                <SelectItem value={PostStatus.FAILED}>Failed</SelectItem>
+              </SelectContent>
+            </Select>
 
-        <Select value={sortBy} onValueChange={onSortChange}>
-          <SelectTrigger className="w-[180px] bg-background/50 backdrop-blur-sm border-border/50">
-            <ArrowUpDown className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="createdAt,desc">Newest First</SelectItem>
-            <SelectItem value="createdAt,asc">Oldest First</SelectItem>
-            <SelectItem value="updatedAt,desc">Recently Updated</SelectItem>
-            <SelectItem value="status,asc">Status</SelectItem>
-            <SelectItem value="scheduledFor,desc">Scheduled Date</SelectItem>
-          </SelectContent>
-        </Select>
+            <Select value={sortBy} onValueChange={onSortChange}>
+              <SelectTrigger className="w-[180px] bg-background/50 backdrop-blur-sm border-border/50">
+                <ArrowUpDown className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="createdAt,desc">Newest First</SelectItem>
+                <SelectItem value="createdAt,asc">Oldest First</SelectItem>
+                <SelectItem value="updatedAt,desc">Recently Updated</SelectItem>
+                <SelectItem value="status,asc">Status</SelectItem>
+                <SelectItem value="scheduledFor,desc">Scheduled Date</SelectItem>
+              </SelectContent>
+            </Select>
+          </>
+        )}
       </div>
     </div>
   );
@@ -294,12 +365,38 @@ function PostsContent({
   searchTerm, 
   statusFilter,
   sortBy,
-  onClearFilters 
+  onClearFilters,
+  selectedPostIds,
+  selectAllChecked,
+  onSelectAllChange,
+  onDeleteSelected: _, // We'll use our own handleBulkDelete
+  onClearSelection,
+  selectionMode,
+  onPostLongPress,
+  onPostSelect,
+  triggerDelete,
+  onDeleteTriggered,
+  triggerSelectAll,
+  onSelectAllTriggered,
+  userProfile
 }: {
   searchTerm: string;
   statusFilter: PostStatus | 'all';
   sortBy: string;
   onClearFilters?: () => void;
+  selectedPostIds: Set<string>;
+  selectAllChecked: boolean;
+  onSelectAllChange: (posts: Post[]) => void;
+  onDeleteSelected: () => void;
+  onClearSelection: () => void;
+  selectionMode: boolean;
+  onPostLongPress: (postId: string) => void;
+  onPostSelect: (postId: string) => void;
+  triggerDelete: boolean;
+  onDeleteTriggered: () => void;
+  triggerSelectAll: boolean;
+  onSelectAllTriggered: () => void;
+  userProfile: { getDisplayName: () => string; getInitials: () => string; getAvatarUrl: () => string | undefined; };
 }) {
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize] = useState(10);
@@ -307,22 +404,45 @@ function PostsContent({
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedPostId = searchParams.get('post');
   
+  // Selection-related state for delete modals
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [showEventsModal, setShowEventsModal] = useState(false);
+  const [postsToDelete, setPostsToDelete] = useState<Post[]>([]);
+  const [fetchEventsEnabled, setFetchEventsEnabled] = useState(false);
+  
+  const queryClient = useQueryClient();
+  
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Watch for delete trigger from parent
+  useEffect(() => {
+    if (triggerDelete) {
+      handleBulkDelete();
+      onDeleteTriggered();
+    }
+  }, [triggerDelete]);
+
+  // Watch for select all trigger from parent
+  useEffect(() => {
+    if (triggerSelectAll) {
+      handleSelectAll();
+      onSelectAllTriggered();
+    }
+  }, [triggerSelectAll]);
   
   // Handle modal open/close via URL params
-  const openModal = (postId: string) => {
+  const openModal = useCallback((postId: string) => {
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.set('post', postId);
     setSearchParams(newSearchParams);
-  };
+  }, [searchParams, setSearchParams]);
   
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.delete('post');
     setSearchParams(newSearchParams);
-  };
-  const { getDisplayName, getInitials, getAvatarUrl } = useUserProfile();
+  }, [searchParams, setSearchParams]);
   
   // Build query params
   const queryParams = useMemo(() => {
@@ -343,6 +463,61 @@ function PostsContent({
   const { data, isLoading, error, refetch } = usePosts(queryParams);
   const deletePost = useDeletePost();
   const duplicatePost = useDuplicatePost();
+  
+  // Fetch events for posts being deleted (similar to Calendar)
+  const postsWithAccountsIds = Array.isArray(postsToDelete) 
+    ? postsToDelete
+        .filter(post => post?.accounts && Array.isArray(post.accounts) && post.accounts.length > 0)
+        .map(post => post?.id)
+        .filter(id => id && typeof id === 'string')
+    : [];
+  
+  const { 
+    data: postEventsData = {}, 
+    isLoading: eventsLoading,
+    isError: eventsError 
+  } = useMultiplePostEvents(postsWithAccountsIds, fetchEventsEnabled);
+  
+  // Mutation for deleting posts
+  const deletePostsMutation = useMutation({
+    mutationFn: async (postIds: string[]) => {
+      if (postIds.length === 1) {
+        return api.posts.delete(postIds[0]);
+      } else {
+        return api.posts.deleteMultiple(postIds);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      toast.success('Posts deleted successfully!');
+      onClearSelection();
+      setShowDeleteConfirmModal(false);
+      setShowEventsModal(false);
+    },
+    onError: (error: any) => {
+      console.error('Error deleting posts:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error occurred';
+      toast.error(`Failed to delete posts: ${errorMessage}`);
+    }
+  });
+
+  // Mutation for deleting events
+  const deleteEventsMutation = useMutation({
+    mutationFn: async ({ postId, eventIds }: { postId: string; eventIds: string[] }) => {
+      return api.posts.deletePostEvents(postId, eventIds);
+    },
+    onSuccess: (_, { postId }) => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      queryClient.invalidateQueries({ queryKey: ['post-events', postId] });
+      queryClient.invalidateQueries({ queryKey: ['post-events'] });
+      toast.success('Events deleted successfully!');
+    },
+    onError: (error: any) => {
+      console.error('Error deleting events:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error occurred';
+      toast.error(`Failed to delete events: ${errorMessage}`);
+    }
+  });
   
   const posts = data?.data || [];
   const totalPages = data ? Math.ceil(data.total / data.limit) : 0;
@@ -382,6 +557,43 @@ function PostsContent({
     } catch (error) {
       console.error('Failed to duplicate post:', error);
     }
+  };
+  
+  // Handle bulk delete like in Calendar
+  const handleBulkDelete = () => {
+    if (selectedPostIds.size === 0) return;
+    
+    const selectedPosts = posts.filter(p => selectedPostIds.has(p.id));
+    
+    // Check if any posts have social accounts (which might have events)
+    const postsWithAccounts = selectedPosts.filter(p => 
+      p.accounts && p.accounts.length > 0
+    );
+    
+    if (postsWithAccounts.length > 0) {
+      // Set posts to delete and enable events fetching
+      setPostsToDelete(postsWithAccounts);
+      setFetchEventsEnabled(true);
+      // Show events deletion modal (it will handle the loading state)
+      setShowEventsModal(true);
+    } else {
+      // No social accounts, show simple confirmation modal
+      setShowDeleteConfirmModal(true);
+    }
+  };
+
+  const handleConfirmDelete = () => {
+    const postIds = Array.from(selectedPostIds);
+    deletePostsMutation.mutate(postIds);
+  };
+
+  const handleDeleteEvents = (postId: string, eventIds: string[]) => {
+    deleteEventsMutation.mutate({ postId, eventIds });
+  };
+
+  // Handle Select All functionality
+  const handleSelectAll = () => {
+    onSelectAllChange(posts);
   };
   
   const getStatusIcon = (status: PostStatus) => {
@@ -515,96 +727,262 @@ function PostsContent({
     );
   };
 
+  // PostCard Component with long press and selection functionality
+  const PostCard = memo(({ 
+    post, 
+    isSelected, 
+    onLongPress, 
+    onSelect, 
+    onOpenModal,
+    userProfile,
+    selectionMode
+  }: { 
+    post: Post;
+    isSelected: boolean;
+    onLongPress: (postId: string) => void;
+    onSelect: (postId: string) => void;
+    onOpenModal: (postId: string) => void;
+    userProfile: { getDisplayName: () => string; getInitials: () => string; getAvatarUrl: () => string | undefined; };
+    selectionMode: boolean;
+  }) => {
+    const { getDisplayName, getInitials, getAvatarUrl } = userProfile;
+    const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+    const touchStartTime = useRef<number>(0);
+    const mouseDownTime = useRef<number>(0);
+    const [isLongPressing, setIsLongPressing] = useState(false);
+    const longPressExecuted = useRef<boolean>(false);
+    
+    const clearLongPressTimer = () => {
+      if (longPressTimer.current) {
+        clearTimeout(longPressTimer.current);
+        longPressTimer.current = null;
+      }
+      setIsLongPressing(false);
+    };
+
+    const resetLongPressFlag = () => {
+      setTimeout(() => {
+        longPressExecuted.current = false;
+      }, 200);
+    };
+
+    const handleTouchStart = () => {
+      touchStartTime.current = Date.now();
+      setIsLongPressing(true);
+      longPressExecuted.current = false;
+      longPressTimer.current = setTimeout(() => {
+        longPressExecuted.current = true;
+        onLongPress(post.id);
+        setIsLongPressing(false);
+      }, 500);
+    };
+
+    const handleTouchEnd = (e: React.TouchEvent) => {
+      const pressDuration = Date.now() - touchStartTime.current;
+      clearLongPressTimer();
+      
+      // If long press was executed, prevent any further event handling
+      if (longPressExecuted.current) {
+        e.preventDefault();
+        e.stopPropagation();
+        resetLongPressFlag();
+        return;
+      }
+      
+      // Only handle click if it wasn't a long press
+      if (pressDuration < 500) {
+        if (selectionMode) {
+          onSelect(post.id);
+        } else {
+          onOpenModal(post.id);
+        }
+      }
+      
+      resetLongPressFlag();
+    };
+
+    const handleMouseDown = (e: React.MouseEvent) => {
+      mouseDownTime.current = Date.now();
+      setIsLongPressing(true);
+      longPressExecuted.current = false;
+      longPressTimer.current = setTimeout(() => {
+        longPressExecuted.current = true;
+        onLongPress(post.id);
+        setIsLongPressing(false);
+      }, 500);
+    };
+
+    const handleMouseUp = (e: React.MouseEvent) => {
+      const pressDuration = Date.now() - mouseDownTime.current;
+      clearLongPressTimer();
+      
+      // If long press was executed, prevent any further event handling
+      if (longPressExecuted.current) {
+        e.preventDefault();
+        e.stopPropagation();
+        resetLongPressFlag();
+        return;
+      }
+      
+      // Only handle click if it wasn't a long press
+      if (pressDuration < 500) {
+        if (selectionMode) {
+          onSelect(post.id);
+        } else {
+          onOpenModal(post.id);
+        }
+      }
+      
+      resetLongPressFlag();
+    };
+
+    const handleMouseLeave = () => {
+      clearLongPressTimer();
+    };
+
+    const handleClick = (e: React.MouseEvent) => {
+      // Prevent click event if long press was executed
+      if (longPressExecuted.current) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      
+      // In selection mode, clicking the card should select/deselect
+      if (selectionMode) {
+        onSelect(post.id);
+      } else {
+        // Not in selection mode, open modal
+        onOpenModal(post.id);
+      }
+    };
+
+    const handleSelectClick = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onSelect(post.id);
+    };
+
+    return (
+      <article 
+        className={`group bg-white dark:bg-gray-900 rounded-2xl border transition-all duration-200 hover:shadow-lg overflow-hidden w-full sm:w-80 max-h-96 flex-shrink-0 flex flex-col relative cursor-pointer ${
+          isSelected 
+            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-lg' 
+            : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+        } ${
+          isLongPressing ? 'scale-95' : ''
+        }`}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+        onClick={handleClick}
+      >
+        
+        {/* Top section with avatar and source */}
+        <div className="p-3 pb-2 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <Avatar className="w-8 h-8">
+              <AvatarImage src={getAvatarUrl()} />
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-bold">
+                {getInitials()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-900 dark:text-white truncate">{getDisplayName()}</span>
+                {getStatusBadge(post.status)}
+              </div>
+              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                <span className="truncate">
+                  {post.status === PostStatus.SCHEDULED && post.scheduledFor
+                    ? `Scheduled for ${format(new Date(post.scheduledFor), 'MMM dd, HH:mm')}`
+                    : format(new Date(post.createdAt), 'MMM dd, yyyy')}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main content */}
+        <div className="px-3 pb-2 flex-1 flex flex-col min-h-0">
+          <p className="text-sm font-normal text-muted-foreground mb-2">
+            {truncateWords(post.content, MAX_POST_DESCRIPTION_LENGTH)}
+          </p>
+          
+          {/* Media preview with carousel */}
+          {post.media && post.media.length > 0 && (
+            <div className="mb-2">
+              <MediaCarousel media={post.media} />
+            </div>
+          )}
+        </div>
+
+        {/* Bottom section with actions */}
+        <div className="px-3 pb-3 flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              >
+                <Eye className="h-3 w-3" />
+                <span className="text-xs">{post.analytics?.views || 0}</span>
+              </button>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              {post.accounts && post.accounts.length > 0 ? (
+                <div className="flex -space-x-1">
+                  {post.accounts.slice(0, 3).map((account, index) => (
+                    <div key={account.id} className="relative" style={{ zIndex: 10 - index }}>
+                      {getSocialPlatformIcon(account.platform)}
+                    </div>
+                  ))}
+                  {post.accounts.length > 3 && (
+                    <div className="w-4 h-4 rounded-full bg-gray-100 dark:bg-gray-700 border border-white dark:border-gray-900 flex items-center justify-center text-xs font-medium text-gray-600 dark:text-gray-300">
+                      +{post.accounts.length - 3}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <span className="text-xs text-gray-400 dark:text-gray-500">No platforms</span>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        {/* Hover button for opening modal */}
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onOpenModal(post.id);
+          }}
+          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/50 hover:bg-black/70 text-white rounded-full w-8 h-8 flex items-center justify-center z-10"
+        >
+          <Eye className="h-4 w-4" />
+        </button>
+        
+      </article>
+    );
+  });
+
   // Posts list
   return (
     <>
       <div className="flex flex-row flex-wrap gap-3 px-6 py-4 justify-start">
         {posts.map((post) => (
-          <article 
-            key={post.id} 
-            className="group bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-all duration-200 hover:shadow-lg overflow-hidden w-full sm:w-80 max-h-96 flex-shrink-0 flex flex-col relative"
-          >
-            {/* Top section with avatar and source */}
-            <div className="p-3 pb-2 flex-shrink-0">
-              <div className="flex items-center gap-3">
-                <Avatar className="w-8 h-8">
-                  <AvatarImage src={getAvatarUrl()} />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-bold">
-                    {getInitials()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-900 dark:text-white truncate">{getDisplayName()}</span>
-                    {getStatusBadge(post.status)}
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                    <span className="truncate">
-                      {post.status === PostStatus.SCHEDULED && post.scheduledFor
-                        ? `Scheduled for ${format(new Date(post.scheduledFor), 'MMM dd, HH:mm')}`
-                        : format(new Date(post.createdAt), 'MMM dd, yyyy')}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Main content */}
-            <div className="px-3 pb-2 flex-1 flex flex-col min-h-0">
-              <p className="text-sm font-normal text-muted-foreground mb-2">
-                {truncateWords(post.content, MAX_POST_DESCRIPTION_LENGTH)}
-              </p>
-              
-              {/* Media preview with carousel */}
-              {post.media && post.media.length > 0 && (
-                <div className="mb-2">
-                  <MediaCarousel media={post.media} />
-                </div>
-              )}
-            </div>
-
-            {/* Bottom section with actions */}
-            <div className="px-3 pb-3 flex-shrink-0">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <button 
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-                  >
-                    <Eye className="h-3 w-3" />
-                    <span className="text-xs">{post.analytics?.views || 0}</span>
-                  </button>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  {post.accounts && post.accounts.length > 0 ? (
-                    <div className="flex -space-x-1">
-                      {post.accounts.slice(0, 3).map((account, index) => (
-                        <div key={account.id} className="relative" style={{ zIndex: 10 - index }}>
-                          {getSocialPlatformIcon(account.platform)}
-                        </div>
-                      ))}
-                      {post.accounts.length > 3 && (
-                        <div className="w-4 h-4 rounded-full bg-gray-100 dark:bg-gray-700 border border-white dark:border-gray-900 flex items-center justify-center text-xs font-medium text-gray-600 dark:text-gray-300">
-                          +{post.accounts.length - 3}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <span className="text-xs text-gray-400 dark:text-gray-500">No platforms</span>
-                  )}
-                </div>
-              </div>
-            </div>
-            
-            {/* Hover button for opening modal */}
-            <button
-              onClick={() => openModal(post.id)}
-              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/50 hover:bg-black/70 text-white rounded-full w-8 h-8 flex items-center justify-center"
-            >
-              <Eye className="h-4 w-4" />
-            </button>
-          </article>
+          <PostCard
+            key={post.id}
+            post={post}
+            isSelected={selectedPostIds.has(post.id)}
+            onLongPress={onPostLongPress}
+            onSelect={onPostSelect}
+            onOpenModal={openModal}
+            userProfile={userProfile}
+            selectionMode={selectionMode}
+          />
         ))}
       </div>
       
@@ -706,6 +1084,31 @@ function PostsContent({
         </DialogContent>
       </Dialog>
       
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteConfirmModal}
+        onClose={() => setShowDeleteConfirmModal(false)}
+        onConfirm={handleConfirmDelete}
+        postCount={selectedPostIds.size}
+        isLoading={deletePostsMutation.isPending}
+      />
+
+      {/* Events Delete Modal */}
+      <PostEventsDeleteModal
+        isOpen={showEventsModal}
+        onClose={() => {
+          setShowEventsModal(false);
+          setPostsToDelete([]);
+          setFetchEventsEnabled(false);
+        }}
+        onConfirm={handleConfirmDelete}
+        onDeleteEvents={handleDeleteEvents}
+        posts={postsToDelete}
+        postEventsData={postEventsData}
+        eventsLoading={eventsLoading}
+        isLoading={deletePostsMutation.isPending || deleteEventsMutation.isPending}
+      />
+
       {/* Post Details Modal */}
       {selectedPostId && (
         <PostDetailsModal
@@ -724,10 +1127,78 @@ export default function Posts() {
   const [statusFilter, setStatusFilter] = useState<PostStatus | 'all'>('all');
   const [sortBy, setSortBy] = useState('createdAt,desc');
   
+  // Selection state
+  const [selectedPostIds, setSelectedPostIds] = useState<Set<string>>(new Set());
+  const [selectAllChecked, setSelectAllChecked] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [triggerDelete, setTriggerDelete] = useState(false);
+  const [triggerSelectAll, setTriggerSelectAll] = useState(false);
+  
+  // Get user profile data once at the top level
+  const userProfile = useUserProfile();
+  
   const handleClearFilters = () => {
     setSearchTerm('');
     setStatusFilter('all');
     setSortBy('createdAt,desc');
+  };
+
+  // Selection handlers
+  const handlePostLongPress = useCallback((postId: string) => {
+    // Long press always enters selection mode and selects the post
+    setSelectionMode(true);
+    const newSelected = new Set(selectedPostIds);
+    newSelected.add(postId); // Always add on long press
+    setSelectedPostIds(newSelected);
+  }, [selectedPostIds]);
+
+  const handlePostSelect = useCallback((postId: string) => {
+    const newSelected = new Set(selectedPostIds);
+    if (newSelected.has(postId)) {
+      newSelected.delete(postId);
+    } else {
+      newSelected.add(postId);
+      // Enter selection mode when first post is selected
+      setSelectionMode(true);
+    }
+    setSelectedPostIds(newSelected);
+    
+    // Exit selection mode if no posts are selected
+    if (newSelected.size === 0) {
+      setSelectionMode(false);
+      setSelectAllChecked(false);
+    }
+  }, [selectedPostIds]);
+
+  const handleSelectAllChange = (posts: Post[]) => {
+    if (posts.length === 0) {
+      // This is a trigger from the header, set the trigger state
+      setTriggerSelectAll(true);
+      return;
+    }
+    
+    const newSelected = new Set(selectedPostIds);
+    
+    if (selectAllChecked) {
+      // Deselect all posts on current page
+      posts.forEach(post => newSelected.delete(post.id));
+    } else {
+      // Select all posts on current page
+      posts.forEach(post => newSelected.add(post.id));
+    }
+    
+    setSelectedPostIds(newSelected);
+    setSelectAllChecked(!selectAllChecked);
+  };
+
+  const handleClearSelection = () => {
+    setSelectedPostIds(new Set());
+    setSelectAllChecked(false);
+    setSelectionMode(false);
+  };
+
+  const handleDeleteSelected = () => {
+    setTriggerDelete(true);
   };
   
   return (
@@ -741,6 +1212,12 @@ export default function Posts() {
           onStatusChange={(value) => setStatusFilter(value as PostStatus | 'all')}
           sortBy={sortBy}
           onSortChange={setSortBy}
+          selectedPostIds={selectedPostIds}
+          selectAllChecked={selectAllChecked}
+          onSelectAllChange={() => {}} // Will be handled in PostsContent
+          onDeleteSelected={handleDeleteSelected}
+          onClearSelection={handleClearSelection}
+          selectionMode={selectionMode}
         />
       </PageHeader>
       
@@ -752,6 +1229,19 @@ export default function Posts() {
           statusFilter={statusFilter}
           sortBy={sortBy}
           onClearFilters={handleClearFilters}
+          selectedPostIds={selectedPostIds}
+          selectAllChecked={selectAllChecked}
+          onSelectAllChange={handleSelectAllChange}
+          onDeleteSelected={handleDeleteSelected}
+          onClearSelection={handleClearSelection}
+          selectionMode={selectionMode}
+          onPostLongPress={handlePostLongPress}
+          onPostSelect={handlePostSelect}
+          triggerDelete={triggerDelete}
+          onDeleteTriggered={() => setTriggerDelete(false)}
+          triggerSelectAll={triggerSelectAll}
+          onSelectAllTriggered={() => setTriggerSelectAll(false)}
+          userProfile={userProfile}
         />
       </div>
     </div>
