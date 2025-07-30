@@ -292,6 +292,8 @@ function RecentPostsSection() {
         return <Badge variant="secondary" className="bg-green-100 text-green-800">Published</Badge>
       case 'SCHEDULED':
         return <Badge variant="outline" className="bg-blue-100 text-blue-800">Scheduled</Badge>
+      case 'PUBLISHING':
+        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Publishing</Badge>
       case 'DRAFT':
         return <Badge variant="outline">Draft</Badge>
       case 'FAILED':

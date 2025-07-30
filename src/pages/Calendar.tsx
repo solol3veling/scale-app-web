@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react"
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, CheckCircle, Edit3, AlertCircle } from "lucide-react"
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, CheckCircle, Edit3, AlertCircle, RefreshCw } from "lucide-react"
 import { format } from "date-fns"
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
@@ -263,6 +263,8 @@ export function Calendar() {
                 return <Edit3 className="h-3 w-3" />
             case PostStatus.SCHEDULED:
                 return <Clock className="h-3 w-3" />
+            case PostStatus.PUBLISHING:
+                return <Clock className="h-3 w-3 animate-spin" />
             case PostStatus.PUBLISHED:
                 return <CheckCircle className="h-3 w-3" />
             case PostStatus.FAILED:
@@ -276,6 +278,7 @@ export function Calendar() {
         switch (status) {
             case PostStatus.DRAFT: return "Draft"
             case PostStatus.SCHEDULED: return "Scheduled"
+            case PostStatus.PUBLISHING: return "Publishing"
             case PostStatus.PUBLISHED: return "Posted"
             case PostStatus.FAILED: return "Failed"
             default: return "Draft"
@@ -818,6 +821,17 @@ export function Calendar() {
                                     />
                                 </PopoverContent>
                             </Popover>
+
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => refetch()}
+                                disabled={isLoading || isRefetching}
+                                className="h-9 w-9 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors mr-2"
+                                title="Refresh calendar"
+                            >
+                                <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
+                            </Button>
 
                             <Button
                                 variant="default"

@@ -44,7 +44,7 @@ export function DayViewSlider({
         const timeB = b.displayDate || b.scheduledFor || b.publishedAt || b.createdAt
         return new Date(timeA).getTime() - new Date(timeB).getTime()
       case 'status':
-        const statusOrder = { 'DRAFT': 0, 'SCHEDULED': 1, 'PUBLISHED': 2, 'FAILED': 3 }
+        const statusOrder = { 'DRAFT': 0, 'SCHEDULED': 1, 'PUBLISHING': 2, 'PUBLISHED': 3, 'FAILED': 4 }
         return statusOrder[a.status] - statusOrder[b.status]
       case 'platform':
         const platformA = a.accounts[0]?.platform || ''
@@ -58,9 +58,10 @@ export function DayViewSlider({
   const getStatusCounts = () => {
     const draft = posts.filter(p => p.status === PostStatus.DRAFT).length
     const scheduled = posts.filter(p => p.status === PostStatus.SCHEDULED).length
+    const publishing = posts.filter(p => p.status === PostStatus.PUBLISHING).length
     const published = posts.filter(p => p.status === PostStatus.PUBLISHED).length
     const failed = posts.filter(p => p.status === PostStatus.FAILED).length
-    return { draft, scheduled, published, failed }
+    return { draft, scheduled, publishing, published, failed }
   }
 
   const statusCounts = getStatusCounts()

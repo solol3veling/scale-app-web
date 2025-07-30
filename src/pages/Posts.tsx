@@ -259,6 +259,7 @@ function PostsHeader({
                 <SelectItem value="all">All Posts</SelectItem>
                 <SelectItem value={PostStatus.PUBLISHED}>Published</SelectItem>
                 <SelectItem value={PostStatus.SCHEDULED}>Scheduled</SelectItem>
+                <SelectItem value={PostStatus.PUBLISHING}>Publishing</SelectItem>
                 <SelectItem value={PostStatus.DRAFT}>Draft</SelectItem>
                 <SelectItem value={PostStatus.FAILED}>Failed</SelectItem>
               </SelectContent>
@@ -602,6 +603,8 @@ function PostsContent({
         return <CheckCircle className="h-4 w-4 text-green-500" />;
       case PostStatus.SCHEDULED:
         return <Clock className="h-4 w-4 text-blue-500" />;
+      case PostStatus.PUBLISHING:
+        return <Clock className="h-4 w-4 text-yellow-500 animate-spin" />;
       case PostStatus.DRAFT:
         return <Circle className="h-4 w-4 text-gray-500" />;
       case PostStatus.FAILED:
@@ -615,6 +618,7 @@ function PostsContent({
     const variants = {
       [PostStatus.PUBLISHED]: 'bg-green-100 text-green-800',
       [PostStatus.SCHEDULED]: 'bg-blue-100 text-blue-800',
+      [PostStatus.PUBLISHING]: 'bg-yellow-100 text-yellow-800',
       [PostStatus.DRAFT]: 'bg-gray-100 text-gray-800',
       [PostStatus.FAILED]: 'bg-red-100 text-red-800',
     };

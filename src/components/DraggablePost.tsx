@@ -17,7 +17,7 @@ const ItemTypes = {
 }
 
 export function DraggablePost({ post, onClick, onLongPress, isSelected, getPlatformColor }: DraggablePostProps) {
-  const canDrag = post.status !== PostStatus.PUBLISHED && post.status !== PostStatus.FAILED
+  const canDrag = post.status !== PostStatus.PUBLISHED && post.status !== PostStatus.FAILED && post.status !== PostStatus.PUBLISHING
   const [isLongPressing, setIsLongPressing] = useState(false)
   const longPressTimer = useRef<NodeJS.Timeout | null>(null)
   const touchStartTime = useRef<number>(0)
@@ -94,6 +94,8 @@ export function DraggablePost({ post, onClick, onLongPress, isSelected, getPlatf
         return <Edit3 className="h-3 w-3" />
       case PostStatus.SCHEDULED: 
         return <Clock className="h-3 w-3" />
+      case PostStatus.PUBLISHING: 
+        return <Clock className="h-3 w-3 animate-spin" />
       case PostStatus.PUBLISHED: 
         return <CheckCircle className="h-3 w-3" />
       case PostStatus.FAILED: 
@@ -107,6 +109,7 @@ export function DraggablePost({ post, onClick, onLongPress, isSelected, getPlatf
     switch (status) {
       case PostStatus.DRAFT: return "Draft"
       case PostStatus.SCHEDULED: return "Scheduled"
+      case PostStatus.PUBLISHING: return "Publishing"
       case PostStatus.PUBLISHED: return "Posted"
       case PostStatus.FAILED: return "Failed"
       default: return "Draft"

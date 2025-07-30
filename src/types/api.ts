@@ -12,6 +12,7 @@ export enum Platform {
 export enum PostStatus {
     DRAFT = 'DRAFT',
     SCHEDULED = 'SCHEDULED',
+    PUBLISHING = 'PUBLISHING',
     PUBLISHED = 'PUBLISHED',
     FAILED = 'FAILED'
 }

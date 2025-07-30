@@ -26,6 +26,7 @@ export function ScheduleConfirmationModal({
 
   const isDraft = post.status === PostStatus.DRAFT
   const isScheduled = post.status === PostStatus.SCHEDULED
+  const isPublishing = post.status === PostStatus.PUBLISHING
   const isPublished = post.status === PostStatus.PUBLISHED
 
   const handleConfirm = async () => {
@@ -108,6 +109,7 @@ export function ScheduleConfirmationModal({
               <span className={`text-xs px-2 py-1 rounded ${
                 post.status === PostStatus.DRAFT ? 'bg-gray-100 text-gray-700' :
                 post.status === PostStatus.SCHEDULED ? 'bg-blue-100 text-blue-700' :
+                post.status === PostStatus.PUBLISHING ? 'bg-yellow-100 text-yellow-700' :
                 post.status === PostStatus.PUBLISHED ? 'bg-green-100 text-green-700' :
                 'bg-red-100 text-red-700'
               }`}>
