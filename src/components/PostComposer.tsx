@@ -24,7 +24,10 @@ import {
   AtSign,
   Loader2,
   Eye,
-  EyeOff
+  EyeOff,
+  Share2,
+  CheckCircle,
+  Users
 } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
@@ -34,6 +37,8 @@ import { MediaUpload } from "@/components/MediaUpload"
 import { useCreatePost } from "@/hooks/api/usePosts"
 import { useToast } from "@/hooks/use-toast"
 import { useNavigate } from "react-router-dom"
+import { useSocialAccounts } from "@/hooks/api/useSocialAccounts"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 interface PostComposerProps {
   postContent: string
@@ -156,6 +161,7 @@ export function PostComposer({
       description: "Simply type mentions like @username and they'll be highlighted automatically!",
     });
   };
+
 
   // Update parent component when media changes
   useEffect(() => {
