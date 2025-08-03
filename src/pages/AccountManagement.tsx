@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSearchParams } from "react-router-dom"
 import { AccountsFilter } from "@/components/AccountsFilter"
@@ -47,10 +47,21 @@ export default function AccountManagement() {
             <h1 className="text-2xl font-bold tracking-tight">Accounts</h1>
             <p className="text-muted-foreground text-sm">Manage your connected social media accounts</p>
           </div>
-          <Button className="gradient-primary hover-scale" onClick={() => setSearchParams({ action: 'add' })}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Account
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline"
+              size="sm"
+              onClick={refetch}
+              className="gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </Button>
+            <Button className="gradient-primary hover-scale" onClick={() => setSearchParams({ action: 'add' })}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Account
+            </Button>
+          </div>
           <AddAccountDialog onAccountAdded={handleAccountAdded} open={action === 'add'} onOpenChange={(open) => !open && closeDialog()} platform={platform} />
         </div>
       </PageHeader>

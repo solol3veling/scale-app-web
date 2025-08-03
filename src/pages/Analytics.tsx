@@ -15,7 +15,8 @@ import {
   Download,
   Filter,
   CreditCard,
-  X
+  X,
+  RefreshCw
 } from "lucide-react"
 import { PageHeader } from "@/components/PageHeader"
 import { useAnalytics } from "@/hooks/useAnalytics"
@@ -199,6 +200,16 @@ export default function Analytics() {
             <p className="text-muted-foreground text-sm">Track your social media performance and engagement</p>
           </div>
           <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              className="hover-lift" 
+              size="sm" 
+              onClick={refetch} 
+              disabled={isLoading}
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
             <Button variant="outline" className="hover-lift" size="sm" disabled={isLoading}>
               <Filter className="h-4 w-4 mr-2" />
               Filter

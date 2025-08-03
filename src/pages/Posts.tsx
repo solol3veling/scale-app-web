@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useCallback, useEffect, memo } from 'react';
-import { Search, Plus, Filter, Calendar, Clock, CheckCircle, Circle, Edit, Trash2, Copy, Eye, FileText, Sparkles, ArrowUpDown, X, ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { Search, Plus, Filter, Calendar, Clock, CheckCircle, Circle, Edit, Trash2, Copy, Eye, FileText, Sparkles, ArrowUpDown, X, ChevronLeft, ChevronRight, Check, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 import { usePosts, useDeletePost, useDuplicatePost } from '@/hooks/api/usePosts';
 import { useMultiplePostEvents } from '@/hooks/api/usePostEvents';
@@ -147,7 +147,8 @@ function PostsHeader({
   onSelectAllChange,
   onDeleteSelected,
   onClearSelection,
-  selectionMode
+  selectionMode,
+  onRefresh
 }: {
   searchTerm: string;
   onSearchChange: (value: string) => void;
@@ -161,6 +162,7 @@ function PostsHeader({
   onDeleteSelected: () => void;
   onClearSelection: () => void;
   selectionMode: boolean;
+  onRefresh: () => void;
 }) {
   const navigate = useNavigate();
   
@@ -200,14 +202,25 @@ function PostsHeader({
               </Button>
             </>
           ) : (
-            <Button 
-              onClick={() => navigate('/make-post')} 
-              className="gap-2 gradient-primary hover-scale whitespace-nowrap"
-              size="sm"
-            >
-              <Plus className="h-4 w-4" />
-              Create Post
-            </Button>
+            <>
+              <Button 
+                variant="outline"
+                size="sm"
+                onClick={onRefresh}
+                className="gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Refresh
+              </Button>
+              <Button 
+                onClick={() => navigate('/make-post')} 
+                className="gap-2 gradient-primary hover-scale whitespace-nowrap"
+                size="sm"
+              >
+                <Plus className="h-4 w-4" />
+                Create Post
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -379,7 +392,8 @@ function PostsContent({
   onDeleteTriggered,
   triggerSelectAll,
   onSelectAllTriggered,
-  userProfile
+  userProfile,
+  refetchRef
 }: {
   searchTerm: string;
   statusFilter: PostStatus | 'all';
@@ -398,6 +412,7 @@ function PostsContent({
   triggerSelectAll: boolean;
   onSelectAllTriggered: () => void;
   userProfile: { getDisplayName: () => string; getInitials: () => string; getAvatarUrl: () => string | undefined; };
+  refetchRef: React.MutableRefObject<(() => void) | null>;
 }) {
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize] = useState(10);
@@ -464,6 +479,11 @@ function PostsContent({
   const { data, isLoading, error, refetch } = usePosts(queryParams);
   const deletePost = useDeletePost();
   const duplicatePost = useDuplicatePost();
+  
+  // Set refetch function for parent component
+  useEffect(() => {
+    refetchRef.current = refetch;
+  }, [refetch, refetchRef]);
   
   // Fetch events for posts being deleted (similar to Calendar)
   const postsWithAccountsIds = Array.isArray(postsToDelete) 
@@ -1138,6 +1158,9 @@ export default function Posts() {
   const [triggerDelete, setTriggerDelete] = useState(false);
   const [triggerSelectAll, setTriggerSelectAll] = useState(false);
   
+  // Refresh functionality
+  const refetchRef = useRef<(() => void) | null>(null);
+  
   // Get user profile data once at the top level
   const userProfile = useUserProfile();
   
@@ -1222,6 +1245,15 @@ export default function Posts() {
           onDeleteSelected={handleDeleteSelected}
           onClearSelection={handleClearSelection}
           selectionMode={selectionMode}
+          onRefresh={() => {
+            try {
+              if (refetchRef.current) {
+                refetchRef.current();
+              }
+            } catch (error) {
+              console.error('Error refreshing posts:', error);
+            }
+          }}
         />
       </PageHeader>
       
@@ -1246,6 +1278,7 @@ export default function Posts() {
           triggerSelectAll={triggerSelectAll}
           onSelectAllTriggered={() => setTriggerSelectAll(false)}
           userProfile={userProfile}
+          refetchRef={refetchRef}
         />
       </div>
     </div>
