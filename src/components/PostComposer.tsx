@@ -233,9 +233,9 @@ export function PostComposer({
       <Card className="shadow-medium border bg-muted/30 backdrop-blur-sm">
         <CardContent className="p-6">
           {/* Main Content Area */}
-          <div className="space-y-4">
+          <div className="space-y-0">
             {/* Text Input */}
-            <div className="relative">
+            <div className="relative pb-4">
               <Textarea
                 placeholder="What's on your mind?"
                 value={postContent}
@@ -244,25 +244,88 @@ export function PostComposer({
               />
               
               {/* Character Count */}
-              <div className="absolute bottom-2 right-2 text-xs text-muted-foreground/60">
+              <div className="absolute bottom-6 right-2 text-xs text-muted-foreground/60">
                 {postContent.length}/2000
               </div>
             </div>
 
-            {/* Media Upload - Integrated directly */}
-            <div className="space-y-3">
-              <MediaUpload
-                mediaItems={mediaItems}
-                onFileUpload={handleFileUpload}
-                onRemoveItem={handleRemoveMedia}
-                isUploading={isAnyUploading}
-              />
-            </div>
+            {/* Media Preview - Show only when media exists */}
+            {mediaItems.length > 0 && (
+              <div className="pb-4">
+                <div className="flex flex-wrap gap-3">
+                  {mediaItems.map((item) => (
+                    <div key={item.id} className="relative group">
+                      <div className="relative overflow-hidden rounded-md border border-border bg-muted cursor-pointer w-16 h-16">
+                        {item.type === 'image' ? (
+                          <img
+                            src={item.url}
+                            alt={`Upload ${item.id}`}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-muted flex items-center justify-center">
+                            <Video className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                        )}
+                        
+                        {/* Upload Progress Overlay */}
+                        {item.uploadState.isUploading && (
+                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                            <Loader2 className="h-3 w-3 animate-spin text-white" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Remove Button - Outside the media container */}
+                      <Button
+                        variant="secondary"
+                        size="icon"
+                        className="absolute -top-1 -right-1 h-5 w-5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 hover:bg-red-600 text-white border-2 border-white shadow-lg z-20"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveMedia(item.id);
+                        }}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
-            {/* Bottom Action Bar */}
-            <div className="flex items-center justify-between pt-4 border-t border-border/50">
+            {/* Bottom Action Bar - Seamless with content */}
+            <div className="flex items-center justify-between">
               {/* Left Side - Post Options */}
               <div className="flex items-center space-x-1">
+                {/* Media Upload Button - Integrated with other options */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 relative"
+                  disabled={isAnyUploading}
+                >
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*,video/*"
+                    onChange={(e) => {
+                      const files = e.target.files;
+                      if (files) {
+                        handleFileUpload(Array.from(files));
+                      }
+                      e.target.value = '';
+                    }}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                    disabled={isAnyUploading}
+                  />
+                  {isAnyUploading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <ImageIcon className="h-4 w-4" />
+                  )}
+                </Button>
+                
                 <Button
                   variant="ghost"
                   size="sm"
