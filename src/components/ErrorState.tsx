@@ -23,7 +23,6 @@ const ErrorIcon = ({ className }: { className?: string }) => (
       cy="50" 
       r="45" 
       fill="currentColor" 
-      className="text-red-50"
       stroke="currentColor"
       strokeWidth="2"
       className="text-red-200"

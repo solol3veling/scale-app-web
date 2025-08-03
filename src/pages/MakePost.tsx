@@ -1,18 +1,12 @@
 import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { 
-  Send, 
-  Clock,
-  Save,
-  Loader2
+  Share2,
+  Expand
 } from "lucide-react"
-import { format } from "date-fns"
-import { useCreatePost } from "@/hooks/api/usePosts"
-import { CreatePostData, MediaItem } from "@/types/api"
-import { useToast } from "@/hooks/use-toast"
-import { useNavigate } from "react-router-dom"
+import { MediaItem } from "@/types/api"
 import { AccountSelector } from "@/components/AccountSelector"
 import { PostComposer } from "@/components/PostComposer"
 import { PostPreviewWrapper } from "@/components/PostPreviewWrapper"
@@ -27,10 +21,6 @@ export default function MakePost() {
   const [scheduledDate, setScheduledDate] = useState<Date>()
   const [scheduledTime, setScheduledTime] = useState("")
   const [isMediaUploading, setIsMediaUploading] = useState(false)
-  
-  const createPost = useCreatePost()
-  const { toast } = useToast()
-  const navigate = useNavigate()
 
   const handleAccountToggle = (accountId: string) => {
     setSelectedAccountIds(prev => 
@@ -42,115 +32,6 @@ export default function MakePost() {
 
   const handleSelectionChange = (accountIds: string[]) => {
     setSelectedAccountIds(accountIds)
-  }
-
-  const buildScheduledDateTime = (): string | undefined => {
-    if (!isScheduled || !scheduledDate || !scheduledTime) return undefined
-    
-    const [hours, minutes] = scheduledTime.split(':')
-    const dateTime = new Date(scheduledDate)
-    dateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0)
-    
-    return dateTime.toISOString()
-  }
-
-  const handlePublishNow = async () => {
-    if (!postContent.trim()) {
-      toast({
-        title: "Content required",
-        description: "Please enter some content for your post.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    if (isMediaUploading) {
-      toast({
-        title: "Media uploading",
-        description: "Please wait for media uploads to complete before publishing.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    const postData: CreatePostData = {
-      content: postContent,
-      media: uploadedMedia,
-      accountIds: selectedAccountIds,
-    }
-
-    try {
-      await createPost.mutateAsync(postData)
-      if (selectedAccountIds.length > 0) {
-        toast({
-          title: "Post published!",
-          description: `Your post has been published to ${selectedAccountIds.length} account${selectedAccountIds.length > 1 ? 's' : ''}.`,
-        })
-      } else {
-        toast({
-          title: "Draft saved!",
-          description: "Your post has been saved as a draft. You can publish it later by selecting accounts.",
-        })
-      }
-      navigate('/posts')
-    } catch (error) {
-      console.error('Failed to publish post:', error)
-    }
-  }
-
-  const handleSchedulePost = async () => {
-    if (!postContent.trim()) {
-      toast({
-        title: "Content required",
-        description: "Please enter some content for your post.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    if (isMediaUploading) {
-      toast({
-        title: "Media uploading",
-        description: "Please wait for media uploads to complete before scheduling.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    const scheduledFor = buildScheduledDateTime()
-    if (!scheduledFor) {
-      toast({
-        title: "Schedule date required",
-        description: "Please select a date and time for scheduling.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    const postData: CreatePostData = {
-      content: postContent,
-      media: uploadedMedia,
-      scheduledFor,
-      accountIds: selectedAccountIds,
-    }
-
-    try {
-      await createPost.mutateAsync(postData)
-      if (selectedAccountIds.length > 0) {
-        toast({
-          title: "Post scheduled!",
-          description: `Your post has been scheduled for ${format(new Date(scheduledFor), 'PPP p')} on ${selectedAccountIds.length} account${selectedAccountIds.length > 1 ? 's' : ''}.`,
-        })
-      } else {
-        toast({
-          title: "Draft scheduled!",
-          description: `Your post draft has been scheduled for ${format(new Date(scheduledFor), 'PPP p')}. Select accounts to publish it.`,
-        })
-      }
-      navigate('/posts')
-    } catch (error) {
-      console.error('Failed to schedule post:', error)
-    }
   }
 
 
@@ -166,16 +47,58 @@ export default function MakePost() {
         </div>
       </PageHeader>
 
-      {/* Main content area */}
+      {/* Main content area - Simplified Layout */}
       <div className="grid gap-6 lg:grid-cols-2 p-6">
         {/* Post Creation Form */}
         <div className="space-y-6">
-          <AccountSelector 
-            selectedAccountIds={selectedAccountIds}
-            onAccountToggle={handleAccountToggle}
-            onSelectionChange={handleSelectionChange}
-          />
+          {/* Account Selector with Inline Basic View + Expand Option */}
+          <Card className="shadow-medium">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <Share2 className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="font-medium">Select Accounts</p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedAccountIds.length > 0 
+                        ? `${selectedAccountIds.length} account${selectedAccountIds.length > 1 ? 's' : ''} selected`
+                        : "Choose accounts to post to"
+                      }
+                    </p>
+                  </div>
+                </div>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                      <Expand className="h-4 w-4 mr-2" />
+                      View All
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Select Accounts</DialogTitle>
+                    </DialogHeader>
+                    <div className="p-4">
+                      <AccountSelector 
+                        selectedAccountIds={selectedAccountIds}
+                        onAccountToggle={handleAccountToggle}
+                        onSelectionChange={handleSelectionChange}
+                      />
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              
+              {/* Inline Basic Account Selection */}
+              <AccountSelector 
+                selectedAccountIds={selectedAccountIds}
+                onAccountToggle={handleAccountToggle}
+                onSelectionChange={handleSelectionChange}
+              />
+            </CardContent>
+          </Card>
 
+          {/* Enhanced PostComposer */}
           <PostComposer 
             postContent={postContent}
             setPostContent={setPostContent}
@@ -188,59 +111,8 @@ export default function MakePost() {
             scheduledTime={scheduledTime}
             setScheduledTime={setScheduledTime}
             onUploadStateChange={setIsMediaUploading}
+            selectedAccountIds={selectedAccountIds}
           />
-
-          {/* Post Actions */}
-          <Card className="shadow-medium">
-            <CardContent className="pt-6">
-              {selectedAccountIds.length === 0 && (
-                <div className="mb-4 p-3 bg-muted/30 rounded-lg border border-muted">
-                  <p className="text-sm text-muted-foreground">
-                    <span className="font-medium">💡 Tip:</span> No accounts selected. Your post will be saved as a draft and can be published later.
-                  </p>
-                </div>
-              )}
-              <div className="flex gap-3">
-                {isScheduled ? (
-                  <Button 
-                    className="flex-1 gradient-primary hover-scale"
-                    onClick={handleSchedulePost}
-                    disabled={createPost.isPending || isMediaUploading}
-                  >
-                    {createPost.isPending ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : isMediaUploading ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Clock className="h-4 w-4 mr-2" />
-                    )}
-                    {isMediaUploading ? "Uploading Media..." : selectedAccountIds.length > 0 ? "Schedule Post" : "Schedule Draft"}
-                  </Button>
-                ) : (
-                  <Button 
-                    className="flex-1 gradient-primary hover-scale"
-                    onClick={handlePublishNow}
-                    disabled={createPost.isPending || isMediaUploading}
-                  >
-                    {createPost.isPending ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : isMediaUploading ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : selectedAccountIds.length > 0 ? (
-                      <Send className="h-4 w-4 mr-2" />
-                    ) : (
-                      <Save className="h-4 w-4 mr-2" />
-                    )}
-                    {isMediaUploading ? "Uploading Media..." : selectedAccountIds.length > 0 ? "Publish Now" : "Save as Draft"}
-                  </Button>
-                )}
-                <Button variant="outline" className="hover-lift">
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Draft
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Preview Panel */}
