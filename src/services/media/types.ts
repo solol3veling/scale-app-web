@@ -12,6 +12,7 @@ export interface MediaUploadResult {
 
 export interface MediaUploadOptions {
   folder?: string;
+  userId?: string;
   onProgress?: (progress: MediaUploadProgress) => void;
 }
 

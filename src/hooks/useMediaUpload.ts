@@ -14,7 +14,7 @@ export interface MediaUploadItem extends MediaItem {
   uploadState: MediaUploadState;
 }
 
-export const useMediaUpload = () => {
+export const useMediaUpload = (userId?: string) => {
   const [mediaItems, setMediaItems] = useState<MediaUploadItem[]>([]);
 
   const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -56,7 +56,7 @@ export const useMediaUpload = () => {
                 : prevItem
             )
           );
-        });
+        }, userId);
 
         // Final update with the uploaded URL
         setMediaItems(prev => 
@@ -95,7 +95,7 @@ export const useMediaUpload = () => {
         );
       }
     });
-  }, []);
+  }, [userId]);
 
   const removeMediaItem = useCallback((id: string) => {
     setMediaItems(prev => {

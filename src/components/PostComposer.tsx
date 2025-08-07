@@ -33,6 +33,7 @@ import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { MediaItem, CreatePostData } from "@/types/api"
 import { useMediaUpload } from "@/hooks/useMediaUpload"
+import { useAuth } from "@/hooks/useAuth"
 import { MediaUpload } from "@/components/MediaUpload"
 import { useCreatePost } from "@/hooks/api/usePosts"
 import { useToast } from "@/hooks/use-toast"
@@ -71,13 +72,14 @@ export function PostComposer({
   selectedAccountIds = [],
   onPublish,
 }: PostComposerProps) {
+  const { user } = useAuth();
   const { 
     mediaItems, 
     uploadFiles, 
     removeMediaItem, 
     getUploadedMedia, 
     isAnyUploading 
-  } = useMediaUpload();
+  } = useMediaUpload(user?.id);
 
   const [openModal, setOpenModal] = useState<string | null>(null);
   const [textareaRef, setTextareaRef] = useState<HTMLTextAreaElement | null>(null);
