@@ -1,9 +1,10 @@
 import { useState, useMemo, useRef, useCallback, useEffect, memo } from 'react';
-import { Search, Plus, Filter, Calendar, Clock, CheckCircle, Circle, Edit, Trash2, Copy, Eye, FileText, Sparkles, ArrowUpDown, X, ChevronLeft, ChevronRight, Check, RefreshCw } from 'lucide-react';
+import { Search, Plus, Filter, Calendar, Clock, CheckCircle, Circle, Edit, Trash2, Copy, Eye, FileText, Video, Sparkles, ArrowUpDown, X, ChevronLeft, ChevronRight, Check, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 import { usePosts, useDeletePost, useDuplicatePost } from '@/hooks/api/usePosts';
 import { useMultiplePostEvents } from '@/hooks/api/usePostEvents';
 import { PostStatus, Post } from '@/types/api';
+import { getVideoThumbnailUrl, isVideoType } from '@/utils/mediaUtils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -81,6 +82,19 @@ function MediaCarousel({ media }: { media: any[] }) {
             alt="Post media" 
             className="w-full h-full object-cover"
           />
+        ) : media[currentIndex]?.type === 'video' ? (
+          // For videos: derive thumbnail URL from video URL
+          <div className="relative w-full h-full">
+            <img 
+              src={getVideoThumbnailUrl(media[currentIndex].url)} 
+              alt="Video thumbnail" 
+              className="w-full h-full object-cover"
+            />
+            {/* Video icon indicator in top-left */}
+            <div className="absolute top-2 left-2 bg-black/70 rounded p-1">
+              <Video className="h-3 w-3 text-white" />
+            </div>
+          </div>
         ) : (
           <div className="text-center">
             <FileText className="h-6 w-6 mx-auto mb-2 text-gray-400" />

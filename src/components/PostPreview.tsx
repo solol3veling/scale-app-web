@@ -9,6 +9,7 @@ import {
 } from "lucide-react"
 import { format } from "date-fns"
 import { MediaItem, Platform } from "@/types/api"
+import { getVideoThumbnailUrl, isVideoType } from "@/utils/mediaUtils"
 
 const platformColors = {
   [Platform.INSTAGRAM]: "bg-gradient-to-r from-purple-500 to-pink-500",
@@ -97,8 +98,17 @@ export function PostPreview({
                         className="w-full h-24 object-cover rounded"
                       />
                     ) : (
-                      <div className="w-full h-24 bg-gray-100 rounded flex items-center justify-center">
-                        <Video className="h-6 w-6 text-gray-400" />
+                      // For videos: derive thumbnail URL from video URL
+                      <div className="relative w-full h-24 rounded overflow-hidden">
+                        <img
+                          src={getVideoThumbnailUrl(media.url)}
+                          alt={`Video thumbnail ${index + 1}`}
+                          className="w-full h-24 object-cover"
+                        />
+                        {/* Video icon indicator in top-left */}
+                        <div className="absolute top-1 left-1 bg-black/70 rounded p-1">
+                          <Video className="h-3 w-3 text-white" />
+                        </div>
                       </div>
                     )}
                     {uploadedMedia.length > 4 && index === 3 && (

@@ -82,6 +82,7 @@ export interface LegacyPlansResponse {
 export interface MediaItem {
     url: string;
     type: string;
+    thumbnailUrl?: string; // For video thumbnails
 }
 
 export interface Engagement {

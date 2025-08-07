@@ -52,13 +52,17 @@ export const useMediaUpload = (userId?: string) => {
                     // Update URL once upload is complete
                     url: progress.url || prevItem.url,
                     type: progress.type || prevItem.type,
+                    // Update thumbnail URL if available in progress
+                    thumbnailUrl: progress.thumbnailUrl || prevItem.thumbnailUrl,
                   }
                 : prevItem
             )
           );
         }, userId);
 
+
         // Final update with the uploaded URL
+        console.log('Final upload result for', file.name, ':', result);
         setMediaItems(prev => 
           prev.map(prevItem => 
             prevItem.id === item.id 
@@ -66,6 +70,7 @@ export const useMediaUpload = (userId?: string) => {
                   ...prevItem,
                   url: result.url,
                   type: result.type,
+                  thumbnailUrl: result.thumbnailUrl,
                   uploadState: {
                     isUploading: false,
                     progress: 100,
@@ -73,6 +78,7 @@ export const useMediaUpload = (userId?: string) => {
                   uploadedFile: {
                     url: result.url,
                     type: result.type,
+                    thumbnailUrl: result.thumbnailUrl,
                   },
                 }
               : prevItem

@@ -6,6 +6,7 @@ import {
   MediaUploadOptions,
   MediaOptimizationOptions,
 } from './types';
+import { generateVideoThumbnailBlob } from '@/utils/videoThumbnail';
 
 export class S3MediaService implements MediaService {
   private s3Client: S3Client;
@@ -77,10 +78,11 @@ export class S3MediaService implements MediaService {
       // Ensure bucket exists
       await this.ensureBucketExists();
 
-      options?.onProgress?.({ progress: 30 });
+      options?.onProgress?.({ progress: 20 });
 
       const fileBuffer = await file.arrayBuffer();
       
+      // Upload main file
       const command = new PutObjectCommand({
         Bucket: this.bucket,
         Key: key,
@@ -88,7 +90,7 @@ export class S3MediaService implements MediaService {
         ContentType: file.type,
       });
 
-      options?.onProgress?.({ progress: 70 });
+      options?.onProgress?.({ progress: 40 });
 
       await this.s3Client.send(command);
 
@@ -99,11 +101,38 @@ export class S3MediaService implements MediaService {
         type: mediaType,
       };
 
-      options?.onProgress?.({
-        progress: 100,
-        url: result.url,
-        type: result.type,
-      });
+      // If it's a video, also upload thumbnail
+      if (mediaType === 'video') {
+        try {
+          options?.onProgress?.({ progress: 60 });
+
+          // Generate thumbnail
+          const thumbnailBlob = await generateVideoThumbnailBlob(file, 300, 300, 0.5);
+          
+          // Create thumbnail key (same name but with .jpg extension)
+          const thumbnailKey = key.replace(/\.[^/.]+$/, '.jpg');
+          
+          const thumbnailBuffer = await thumbnailBlob.arrayBuffer();
+          
+          const thumbnailCommand = new PutObjectCommand({
+            Bucket: this.bucket,
+            Key: thumbnailKey,
+            Body: thumbnailBuffer,
+            ContentType: 'image/jpeg',
+          });
+
+          options?.onProgress?.({ progress: 80 });
+
+          await this.s3Client.send(thumbnailCommand);
+
+          options?.onProgress?.({ progress: 90 });
+        } catch (thumbnailError) {
+          console.warn('Failed to upload video thumbnail:', thumbnailError);
+          // Don't fail the entire upload if thumbnail fails
+        }
+      }
+
+      options?.onProgress?.({ progress: 100 });
 
       return result;
     } catch (error) {

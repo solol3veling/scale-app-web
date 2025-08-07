@@ -40,6 +40,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useNavigate } from "react-router-dom"
 import { useSocialAccounts } from "@/hooks/api/useSocialAccounts"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { getVideoThumbnailUrl } from "@/utils/mediaUtils"
 
 interface PostComposerProps {
   postContent: string
@@ -386,9 +387,24 @@ export function PostComposer({
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full bg-muted flex items-center justify-center">
-                            <Video className="h-4 w-4 text-muted-foreground" />
-                          </div>
+                          // For videos: show derived thumbnail if upload completed, else generic video icon  
+                          item.uploadState.progress === 100 && !item.uploadState.error ? (
+                            <div className="relative w-full h-full">
+                              <img
+                                src={getVideoThumbnailUrl(item.url)}
+                                alt={`Video thumbnail ${item.id}`}
+                                className="w-full h-full object-cover"
+                              />
+                              {/* Video icon indicator in top-left */}
+                              <div className="absolute top-1 left-1 bg-black/70 rounded p-0.5">
+                                <Video className="h-2.5 w-2.5 text-white" />
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="w-full h-full bg-muted flex items-center justify-center">
+                              <Video className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                          )
                         )}
                         
                         {/* Upload Progress Overlay */}

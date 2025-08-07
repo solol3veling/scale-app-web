@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ReactPlayer from 'react-player';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
@@ -11,6 +12,8 @@ import {
   Loader2 
 } from "lucide-react";
 import { MediaUploadItem } from '@/hooks/useMediaUpload';
+import { VideoThumbnail } from '@/components/VideoThumbnail';
+import { getVideoThumbnailUrl, isVideoType } from '@/utils/mediaUtils';
 
 interface MediaUploadProps {
   mediaItems: MediaUploadItem[];
@@ -62,9 +65,27 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
                     className="w-16 h-16 object-cover"
                   />
                 ) : (
-                  <div className="w-16 h-16 bg-muted flex items-center justify-center">
-                    <Video className="h-6 w-6 text-muted-foreground" />
-                  </div>
+                  // For videos: use derived thumbnail URL if upload completed, else show VideoThumbnail
+                  item.uploadState.progress === 100 && !item.uploadState.error ? (
+                    <div className="relative w-16 h-16 overflow-hidden">
+                      <img
+                        src={getVideoThumbnailUrl(item.url)}
+                        alt={`Video thumbnail ${item.id}`}
+                        className="w-16 h-16 object-cover"
+                      />
+                      {/* Video icon indicator in top-left */}
+                      <div className="absolute top-1 left-1 bg-black/70 rounded p-0.5">
+                        <Video className="h-2.5 w-2.5 text-white" />
+                      </div>
+                    </div>
+                  ) : (
+                    <VideoThumbnail
+                      url={item.url}
+                      width={64}
+                      height={64}
+                      onClick={() => handleMediaClick(item)}
+                    />
+                  )
                 )}
                 
                 {/* Upload Progress Overlay */}
@@ -168,11 +189,29 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
                 className="max-w-full max-h-[70vh] object-contain"
               />
             ) : previewItem && previewItem.type === 'video' ? (
-              <video
-                src={previewItem.url}
-                controls
-                className="max-w-full max-h-[70vh]"
-              />
+              <div className="w-full max-w-4xl">
+                <ReactPlayer
+                  url={previewItem.url}
+                  controls
+                  playing={true}
+                  width="100%"
+                  height="auto"
+                  style={{
+                    maxHeight: '70vh',
+                  }}
+                  config={{
+                    file: {
+                      attributes: {
+                        style: {
+                          width: '100%',
+                          height: 'auto',
+                          maxHeight: '70vh',
+                        }
+                      }
+                    }
+                  }}
+                />
+              </div>
             ) : null}
           </div>
         </DialogContent>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import ReactPlayer from 'react-player';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -26,8 +27,9 @@ import {
 } from "lucide-react"
 import { usePostDetailsData, useRetryEvent, useExtendPost } from "@/hooks/api/usePostDetails"
 import { useSocialAccounts } from "@/hooks/api/useSocialAccounts"
-import { PublishingEventStatus, Platform } from "@/types/api"
+import { PublishingEventStatus, Platform, MediaItem } from "@/types/api"
 import { format } from "date-fns"
+import { getVideoThumbnailUrl, isVideoType } from "@/utils/mediaUtils"
 
 interface PostDetailsModalProps {
   isOpen: boolean
@@ -211,7 +213,18 @@ export function PostDetailsModal({ isOpen, onClose, postId }: PostDetailsModalPr
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <Video className="h-8 w-8 text-gray-400" />
+                            // For videos: derive thumbnail URL from video URL
+                            <div className="relative w-full h-full">
+                              <img
+                                src={getVideoThumbnailUrl(mediaItem.url)}
+                                alt={`Video thumbnail ${index + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                              {/* Video icon indicator in top-left */}
+                              <div className="absolute top-1 left-1 bg-black/70 rounded p-1">
+                                <Video className="h-3 w-3 text-white" />
+                              </div>
+                            </div>
                           )}
                           <div className="absolute inset-0 bg-black bg-opacity-25 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
                             <Eye className="h-4 w-4 text-white" />
@@ -397,11 +410,19 @@ export function PostDetailsModal({ isOpen, onClose, postId }: PostDetailsModalPr
               className="max-w-full max-h-full object-contain"
             />
           ) : (
-            <video
-              src={selectedMediaForView.url}
-              controls
-              className="max-w-full max-h-full object-contain"
-            />
+            <div className="max-w-full max-h-full">
+              <ReactPlayer
+                url={selectedMediaForView.url}
+                controls
+                playing={true}
+                width="100%"
+                height="100%"
+                style={{
+                  maxWidth: '90vw',
+                  maxHeight: '90vh',
+                }}
+              />
+            </div>
           )}
         </div>
       </div>
