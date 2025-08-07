@@ -21,7 +21,9 @@ import {
   Calendar,
   Clock,
   Plus,
-  Loader2
+  Loader2,
+  Images,
+  Play
 } from "lucide-react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { useOverview, useRecentActivity, useOverviewData } from "@/hooks/api/useOverview"
@@ -73,6 +75,32 @@ const getErrorMessage = (error: any, fallback: string) => {
   if (error?.response?.statusText) return error.response.statusText;
   return fallback;
 };
+
+// Media Count Component (same as Posts page)
+function MediaCount({ media }: { media: any[] }) {
+  if (!media || media.length === 0) return null;
+  
+  // Count images and videos
+  const imageCount = media.filter(item => item.type === 'image').length;
+  const videoCount = media.filter(item => item.type === 'video').length;
+  
+  return (
+    <div className="flex items-center gap-3">
+      {imageCount > 0 && (
+        <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+          <Images className="h-4 w-4" />
+          <span className="text-sm font-semibold">{imageCount}</span>
+        </div>
+      )}
+      {videoCount > 0 && (
+        <div className="flex items-center gap-1.5 text-purple-600 dark:text-purple-400">
+          <Play className="h-4 w-4 fill-current" />
+          <span className="text-sm font-semibold">{videoCount}</span>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // Calculate growth rate percentage (placeholder logic)
 const calculateGrowthPercentage = (current: number, growth: number): string => {
@@ -284,23 +312,23 @@ function RecentPostsSection() {
     return `${Math.floor(diffInHours / 24)} days ago`
   }
 
-  // Helper function to get status badge styling
+  // Helper function to get status badge styling (same as Posts page)
   const getStatusBadge = (status: string) => {
     const statusUpper = status.toUpperCase()
-    switch (statusUpper) {
-      case 'PUBLISHED':
-        return <Badge variant="secondary" className="bg-green-100 text-green-800">Published</Badge>
-      case 'SCHEDULED':
-        return <Badge variant="outline" className="bg-blue-100 text-blue-800">Scheduled</Badge>
-      case 'PUBLISHING':
-        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Publishing</Badge>
-      case 'DRAFT':
-        return <Badge variant="outline">Draft</Badge>
-      case 'FAILED':
-        return <Badge variant="destructive">Failed</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
-    }
+    const variants = {
+      'PUBLISHED': 'bg-green-500/10 text-green-700 border-green-200 dark:bg-green-500/20 dark:text-green-300 dark:border-green-800',
+      'SCHEDULED': 'bg-blue-500/10 text-blue-700 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-800',
+      'PUBLISHING': 'bg-yellow-500/10 text-yellow-700 border-yellow-200 dark:bg-yellow-500/20 dark:text-yellow-300 dark:border-yellow-800',
+      'DRAFT': 'bg-gray-500/10 text-gray-700 border-gray-200 dark:bg-gray-500/20 dark:text-gray-300 dark:border-gray-800',
+      'FAILED': 'bg-red-500/10 text-red-700 border-red-200 dark:bg-red-500/20 dark:text-red-300 dark:border-red-800',
+    };
+    
+    const variant = variants[statusUpper as keyof typeof variants] || variants['DRAFT'];
+    return (
+      <Badge className={`${variant} text-xs font-medium px-2 py-0.5 rounded-full border`}>
+        {status.toLowerCase()}
+      </Badge>
+    );
   }
 
   // Helper function for social platform icons
@@ -457,85 +485,55 @@ function RecentPostsSection() {
           {recentPosts.map((post: any) => (
             <article 
               key={post.id} 
-              className="group bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-all duration-200 hover:shadow-lg overflow-hidden w-full max-h-96 flex flex-col relative"
+              className="group bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-all duration-200 hover:shadow-lg overflow-hidden w-full flex-shrink-0 flex flex-col relative cursor-pointer"
+              onClick={() => openModal(post.id)}
             >
-              {/* Top section with avatar and source */}
-              <div className="p-3 pb-2 flex-shrink-0">
-                <div className="flex items-center gap-3">
-                  <Avatar className="w-8 h-8">
-                    <AvatarImage src={getAvatarUrl()} />
-                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-bold">
-                      {getInitials()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-900 dark:text-white truncate">{getDisplayName()}</span>
-                      {getStatusBadge(post.status)}
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                      <span className="truncate">
-                        {post.status === "SCHEDULED" && post.scheduledFor
-                          ? `Scheduled for ${format(new Date(post.scheduledFor), 'MMM dd, HH:mm')}`
-                          : format(new Date(post.createdAt), 'MMM dd, yyyy')}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+              {/* Top username - subtle */}
+              <div className="px-5 pt-4 pb-2">
+                <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">
+                  @{getDisplayName().toLowerCase().replace(/\s+/g, '')}
+                </span>
               </div>
 
-              {/* Main content */}
-              <div className="px-3 pb-2 flex-1 flex flex-col min-h-0">
-                <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-2 overflow-hidden">
-                  {post.content.length > 80 ? post.content.substring(0, 80) + '...' : post.content}
-                </h3>
-                
-                {/* Media indicator */}
-                {post.media && post.media.length > 0 && (
-                  <div className="mb-2 text-xs text-gray-500 dark:text-gray-400">
-                    ...media attached
-                  </div>
-                )}
+              {/* Main content - now takes center stage */}
+              <div className="px-5 pb-3 flex-1 flex flex-col min-h-0">
+                <p className="text-base font-semibold text-gray-900 dark:text-white leading-relaxed">
+                  {post.content.length > 100 ? post.content.substring(0, 100) + '...' : post.content}
+                </p>
               </div>
 
-              {/* Bottom section with actions */}
-              <div className="px-3 pb-3 flex-shrink-0">
+              {/* Bottom info bar - cleaner without divider */}
+              <div className="px-5 pb-4 flex-shrink-0">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <button 
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-                    >
-                      <Eye className="h-3 w-3" />
-                      <span className="text-xs">{post.analytics?.views || 0}</span>
-                    </button>
+                  <div className="flex items-center gap-4">
+                    {/* Date */}
+                    <span className="text-gray-500 dark:text-gray-400 text-xs font-medium">
+                      {post.status === "SCHEDULED" && post.scheduledFor
+                        ? format(new Date(post.scheduledFor), 'MMM dd, HH:mm')
+                        : format(new Date(post.createdAt), 'MMM dd, yyyy')}
+                    </span>
+                    
+                    {/* Media count indicators */}
+                    {post.media && post.media.length > 0 && (
+                      <MediaCount media={post.media} />
+                    )}
                   </div>
                   
-                  <div className="flex items-center gap-2">
-                    {post.accounts && post.accounts.length > 0 ? (
-                      <div className="flex -space-x-1">
-                        {post.accounts.slice(0, 3).map((account: any, index: number) => (
-                          <div key={account.id} className="relative" style={{ zIndex: 10 - index }}>
-                            {getSocialPlatformIcon(account.platform)}
-                          </div>
-                        ))}
-                        {post.accounts.length > 3 && (
-                          <div className="w-4 h-4 rounded-full bg-gray-100 dark:bg-gray-700 border border-white dark:border-gray-900 flex items-center justify-center text-xs font-medium text-gray-600 dark:text-gray-300">
-                            +{post.accounts.length - 3}
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-xs text-gray-400 dark:text-gray-500">No platforms</span>
-                    )}
+                  <div className="flex items-center">
+                    {/* Status badge */}
+                    {getStatusBadge(post.status)}
                   </div>
                 </div>
               </div>
               
               {/* Hover button for opening modal */}
               <button
-                onClick={() => openModal(post.id)}
-                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/50 hover:bg-black/70 text-white rounded-full w-8 h-8 flex items-center justify-center"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openModal(post.id);
+                }}
+                className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/60 hover:bg-black/80 text-white rounded-full w-8 h-8 flex items-center justify-center z-10 shadow-lg"
               >
                 <Eye className="h-4 w-4" />
               </button>
