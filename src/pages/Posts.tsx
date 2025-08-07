@@ -463,6 +463,8 @@ function PostsContent({
       onClearSelection();
       setShowDeleteConfirmModal(false);
       setShowEventsModal(false);
+      setPostsToDelete([]);
+      setFetchEventsEnabled(false);
     },
     onError: (error: any) => {
       console.error('Error deleting posts:', error);
@@ -554,6 +556,9 @@ function PostsContent({
 
   const handleConfirmDelete = () => {
     const postIds = Array.from(selectedPostIds);
+    // Close the modal and clear selection immediately when user confirms
+    setShowDeleteConfirmModal(false);
+    onClearSelection(); // Clear selection state immediately
     deletePostsMutation.mutate(postIds);
   };
 
