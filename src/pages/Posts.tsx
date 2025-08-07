@@ -1,10 +1,9 @@
 import { useState, useMemo, useRef, useCallback, useEffect, memo } from 'react';
-import { Search, Plus, Filter, Calendar, Clock, CheckCircle, Circle, Edit, Trash2, Copy, Eye, FileText, Video, Sparkles, ArrowUpDown, X, ChevronLeft, ChevronRight, Check, RefreshCw } from 'lucide-react';
+import { Search, Plus, Filter, Calendar, Clock, CheckCircle, Circle, Edit, Trash2, Copy, Eye, FileText, Video, Sparkles, ArrowUpDown, X, Check, RefreshCw, Images, Play, Camera, Film } from 'lucide-react';
 import { format } from 'date-fns';
 import { usePosts, useDeletePost, useDuplicatePost } from '@/hooks/api/usePosts';
 import { useMultiplePostEvents } from '@/hooks/api/usePostEvents';
 import { PostStatus, Post } from '@/types/api';
-import { getVideoThumbnailUrl, isVideoType } from '@/utils/mediaUtils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -58,90 +57,26 @@ const truncateWords = (text: string, maxWords: number) => {
   return words.slice(0, maxWords).join(' ') + '...';
 };
 
-// Media Carousel Component
-function MediaCarousel({ media }: { media: any[] }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  
+// Media Count Component
+function MediaCount({ media }: { media: any[] }) {
   if (!media || media.length === 0) return null;
   
-  const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % media.length);
-  };
-  
-  const prevSlide = () => {
-    setCurrentIndex((prev) => (prev - 1 + media.length) % media.length);
-  };
+  // Count images and videos
+  const imageCount = media.filter(item => item.type === 'image').length;
+  const videoCount = media.filter(item => item.type === 'video').length;
   
   return (
-    <div className="relative w-full h-32 bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden">
-      {/* Media Display */}
-      <div className="w-full h-full flex items-center justify-center">
-        {media[currentIndex]?.type === 'image' ? (
-          <img 
-            src={media[currentIndex].url} 
-            alt="Post media" 
-            className="w-full h-full object-cover"
-          />
-        ) : media[currentIndex]?.type === 'video' ? (
-          // For videos: derive thumbnail URL from video URL
-          <div className="relative w-full h-full">
-            <img 
-              src={getVideoThumbnailUrl(media[currentIndex].url)} 
-              alt="Video thumbnail" 
-              className="w-full h-full object-cover"
-            />
-            {/* Video icon indicator in top-left */}
-            <div className="absolute top-2 left-2 bg-black/70 rounded p-1">
-              <Video className="h-3 w-3 text-white" />
-            </div>
-          </div>
-        ) : (
-          <div className="text-center">
-            <FileText className="h-6 w-6 mx-auto mb-2 text-gray-400" />
-            <p className="text-xs text-gray-500">{media[currentIndex]?.filename || 'Media file'}</p>
-          </div>
-        )}
-      </div>
-      
-      {/* Navigation buttons */}
-      {media.length > 1 && (
-        <>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              prevSlide();
-            }}
-            className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              nextSlide();
-            }}
-            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
-        </>
+    <div className="flex items-center gap-3">
+      {imageCount > 0 && (
+        <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+          <Images className="h-4 w-4" />
+          <span className="text-sm font-semibold">{imageCount}</span>
+        </div>
       )}
-      
-      {/* Slide indicators */}
-      {media.length > 1 && (
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-          {media.map((_, index) => (
-            <button
-              key={index}
-              onClick={(e) => {
-                e.stopPropagation();
-                setCurrentIndex(index);
-              }}
-              className={`w-2 h-2 rounded-full transition-colors ${
-                index === currentIndex ? 'bg-white' : 'bg-white/50'
-              }`}
-            />
-          ))}
+      {videoCount > 0 && (
+        <div className="flex items-center gap-1.5 text-purple-600 dark:text-purple-400">
+          <Play className="h-4 w-4 fill-current" />
+          <span className="text-sm font-semibold">{videoCount}</span>
         </div>
       )}
     </div>
@@ -650,15 +585,15 @@ function PostsContent({
   
   const getStatusBadge = (status: PostStatus) => {
     const variants = {
-      [PostStatus.PUBLISHED]: 'bg-green-100 text-green-800',
-      [PostStatus.SCHEDULED]: 'bg-blue-100 text-blue-800',
-      [PostStatus.PUBLISHING]: 'bg-yellow-100 text-yellow-800',
-      [PostStatus.DRAFT]: 'bg-gray-100 text-gray-800',
-      [PostStatus.FAILED]: 'bg-red-100 text-red-800',
+      [PostStatus.PUBLISHED]: 'bg-green-500/10 text-green-700 border-green-200 dark:bg-green-500/20 dark:text-green-300 dark:border-green-800',
+      [PostStatus.SCHEDULED]: 'bg-blue-500/10 text-blue-700 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-800',
+      [PostStatus.PUBLISHING]: 'bg-yellow-500/10 text-yellow-700 border-yellow-200 dark:bg-yellow-500/20 dark:text-yellow-300 dark:border-yellow-800',
+      [PostStatus.DRAFT]: 'bg-gray-500/10 text-gray-700 border-gray-200 dark:bg-gray-500/20 dark:text-gray-300 dark:border-gray-800',
+      [PostStatus.FAILED]: 'bg-red-500/10 text-red-700 border-red-200 dark:bg-red-500/20 dark:text-red-300 dark:border-red-800',
     };
     
     return (
-      <Badge className={`${variants[status]} border-0`}>
+      <Badge className={`${variants[status]} text-xs font-medium px-2 py-0.5 rounded-full border`}>
         {status.toLowerCase()}
       </Badge>
     );
@@ -902,7 +837,7 @@ function PostsContent({
 
     return (
       <article 
-        className={`group bg-white dark:bg-gray-900 rounded-2xl border transition-all duration-200 hover:shadow-lg overflow-hidden w-full sm:w-80 max-h-96 flex-shrink-0 flex flex-col relative cursor-pointer ${
+        className={`group bg-white dark:bg-gray-900 rounded-2xl border transition-all duration-200 hover:shadow-lg overflow-hidden w-full sm:w-80 flex-shrink-0 flex flex-col relative cursor-pointer ${
           isSelected 
             ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-lg' 
             : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
@@ -917,75 +852,40 @@ function PostsContent({
         onClick={handleClick}
       >
         
-        {/* Top section with avatar and source */}
-        <div className="p-3 pb-2 flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <Avatar className="w-8 h-8">
-              <AvatarImage src={getAvatarUrl()} />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-bold">
-                {getInitials()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-900 dark:text-white truncate">{getDisplayName()}</span>
-                {getStatusBadge(post.status)}
-              </div>
-              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                <span className="truncate">
-                  {post.status === PostStatus.SCHEDULED && post.scheduledFor
-                    ? `Scheduled for ${format(new Date(post.scheduledFor), 'MMM dd, HH:mm')}`
-                    : format(new Date(post.createdAt), 'MMM dd, yyyy')}
-                </span>
-              </div>
-            </div>
-          </div>
+        {/* Top username - subtle */}
+        <div className="px-5 pt-4 pb-2">
+          <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">
+            @{getDisplayName().toLowerCase().replace(/\s+/g, '')}
+          </span>
         </div>
 
-        {/* Main content */}
-        <div className="px-3 pb-2 flex-1 flex flex-col min-h-0">
-          <p className="text-sm font-normal text-muted-foreground mb-2">
+        {/* Main content - now takes center stage */}
+        <div className="px-5 pb-3 flex-1 flex flex-col min-h-0">
+          <p className="text-base font-semibold text-gray-900 dark:text-white leading-relaxed">
             {truncateWords(post.content, MAX_POST_DESCRIPTION_LENGTH)}
           </p>
-          
-          {/* Media preview with carousel */}
-          {post.media && post.media.length > 0 && (
-            <div className="mb-2">
-              <MediaCarousel media={post.media} />
-            </div>
-          )}
         </div>
 
-        {/* Bottom section with actions */}
-        <div className="px-3 pb-3 flex-shrink-0">
+        {/* Bottom info bar - cleaner without divider */}
+        <div className="px-5 pb-4 flex-shrink-0">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={(e) => e.stopPropagation()}
-                className="flex items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-              >
-                <Eye className="h-3 w-3" />
-                <span className="text-xs">{post.analytics?.views || 0}</span>
-              </button>
+            <div className="flex items-center gap-4">
+              {/* Date */}
+              <span className="text-gray-500 dark:text-gray-400 text-xs font-medium">
+                {post.status === PostStatus.SCHEDULED && post.scheduledFor
+                  ? format(new Date(post.scheduledFor), 'MMM dd, HH:mm')
+                  : format(new Date(post.createdAt), 'MMM dd, yyyy')}
+              </span>
+              
+              {/* Media count indicators */}
+              {post.media && post.media.length > 0 && (
+                <MediaCount media={post.media} />
+              )}
             </div>
             
-            <div className="flex items-center gap-2">
-              {post.accounts && post.accounts.length > 0 ? (
-                <div className="flex -space-x-1">
-                  {post.accounts.slice(0, 3).map((account, index) => (
-                    <div key={account.id} className="relative" style={{ zIndex: 10 - index }}>
-                      {getSocialPlatformIcon(account.platform)}
-                    </div>
-                  ))}
-                  {post.accounts.length > 3 && (
-                    <div className="w-4 h-4 rounded-full bg-gray-100 dark:bg-gray-700 border border-white dark:border-gray-900 flex items-center justify-center text-xs font-medium text-gray-600 dark:text-gray-300">
-                      +{post.accounts.length - 3}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <span className="text-xs text-gray-400 dark:text-gray-500">No platforms</span>
-              )}
+            <div className="flex items-center">
+              {/* Status badge */}
+              {getStatusBadge(post.status)}
             </div>
           </div>
         </div>
@@ -997,7 +897,7 @@ function PostsContent({
             e.stopPropagation();
             onOpenModal(post.id);
           }}
-          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/50 hover:bg-black/70 text-white rounded-full w-8 h-8 flex items-center justify-center z-10"
+          className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/60 hover:bg-black/80 text-white rounded-full w-8 h-8 flex items-center justify-center z-10 shadow-lg"
         >
           <Eye className="h-4 w-4" />
         </button>
@@ -1009,7 +909,7 @@ function PostsContent({
   // Posts list
   return (
     <>
-      <div className="flex flex-row flex-wrap gap-3 px-6 py-4 justify-start">
+      <div className="flex flex-row flex-wrap gap-4 px-6 py-6 justify-start">
         {posts.map((post) => (
           <PostCard
             key={post.id}
