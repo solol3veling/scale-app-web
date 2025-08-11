@@ -97,18 +97,20 @@ export interface SocialAccount {
     platform: Platform;
     handle: string;
     displayName: string;
-    followers: string;
+    followers: string | null;
     status: SocialAccountStatus;
-    color: string;
+    color: string | null;
     tags: string[];
-    lastPost?: string;
+    lastPost?: string | null;
     profileImage?: string;
+    userId: string;
+    isConnected: boolean;
+    // Deprecated fields - keeping for backward compatibility but marking as optional
     accessToken?: string;
     refreshToken?: string;
     consumerKey?: string;
     consumerSecret?: string;
-    userId: string;
-    connected: boolean;
+    connected?: boolean;
 }
 
 export interface SocialAccountResponse {
@@ -116,11 +118,11 @@ export interface SocialAccountResponse {
     platform: Platform;
     handle: string;
     displayName: string;
-    followers: string;
+    followers: string | null;
     status: SocialAccountStatus;
-    color: string;
+    color: string | null;
     tags: string[];
-    lastPost?: string;
+    lastPost?: string | null;
     profileImage?: string;
     isConnected: boolean;
     userId: string;
@@ -156,7 +158,7 @@ export interface PublishingEventResponse {
 }
 
 export interface PlatformBreakdown {
-    platform: string;
+    platform: Platform;
     reach: number;
     engagement: number;
     posts: number;
@@ -167,6 +169,280 @@ export interface TimeSeriesData {
     reach: number;
     engagement: number;
     posts: number;
+    likes?: number;
+    shares?: number;
+    comments?: number;
+    views?: number;
+    impressions?: number;
+    totalEngagement?: number;
+}
+
+// Enhanced analytics response structure
+export interface EnhancedAnalyticsData {
+    dateRange: string;
+    overallMetrics: {
+        totalPosts: number;
+        totalLikes: number;
+        totalShares: number;
+        totalComments: number;
+        totalViews: number;
+        totalImpressions: number;
+        totalEngagement: number;
+        engagementRate: number;
+        averageEngagementPerPost: number;
+    };
+    platformBreakdown: {
+        platform: Platform;
+        posts: number;
+        likes: number;
+        shares: number;
+        comments: number;
+        views: number;
+        impressions: number;
+        totalEngagement: number;
+        engagementRate: number;
+    }[];
+    timeSeriesData: TimeSeriesData[];
+    topPostsByEngagement: PostAnalytics[];
+    topPostsByReach: PostAnalytics[];
+    recentPosts: PostAnalytics[];
+}
+
+// Platform-specific analytics
+export interface PlatformAnalyticsData {
+    platform: Platform;
+    dateRange: string;
+    overallMetrics: {
+        totalPosts: number;
+        totalLikes: number;
+        totalShares: number;
+        totalComments: number;
+        totalViews: number;
+        totalImpressions: number;
+        totalEngagement: number;
+        engagementRate: number;
+        averageEngagementPerPost: number;
+    };
+    timeSeriesData: TimeSeriesData[];
+    topPosts: PostAnalytics[];
+    recentPosts: PostAnalytics[];
+}
+
+// Post analytics from API
+export interface PostAnalytics {
+    postId: string;
+    content: string;
+    platform: string;
+    publishedAt: string;
+    engagement: {
+        likes: number;
+        shares: number;
+        comments: number;
+        views: number;
+        impressions: number;
+        totalEngagement: number;
+        lastFetched: string;
+    };
+}
+
+// Engagement Analytics Types
+export interface EngagementOverallMetrics {
+    totalPostsWithEngagement: number;
+    totalLikes: number;
+    totalShares: number;
+    totalComments: number;
+    totalImpressions: number;
+    totalEngagement: number;
+    avgEngagementRate: number;
+    avgLikesPerPost: number;
+    avgSharesPerPost: number;
+    avgCommentsPerPost: number;
+    bestPerformingPlatform: string;
+    mostEngagedContentType: string;
+}
+
+export interface HashtagPerformance {
+    hashtag: string;
+    useCount: number;
+    avgEngagement: number;
+    engagementScore: number;
+}
+
+export interface ContentInsights {
+    mediaPerformance: {
+        imagePostsAvgEngagement: number;
+        videoPostsAvgEngagement: number;
+        mixedMediaAvgEngagement: number;
+        textOnlyAvgEngagement: number;
+        bestPerformingMediaType: string;
+        mediaVsTextEngagementRatio: number;
+    };
+    hashtagPerformance: {
+        avgEngagementWithHashtags: number;
+        avgEngagementWithoutHashtags: number;
+        optimalHashtagCount: number;
+        topPerformingHashtags: HashtagPerformance[];
+        hashtagEngagementMultiplier: number;
+    };
+    lengthPerformance: {
+        lengthRangeEngagement: Record<string, number>;
+        optimalContentLength: number;
+        shortVsLongEngagementRatio: number;
+    };
+    timingPerformance: {
+        hourEngagement: Record<string, number>;
+        dayEngagement: Record<string, number>;
+        bestPostingHour: string;
+        bestPostingDay: string;
+        timingEngagementVariance: number;
+    };
+}
+
+export interface TopPerformingPost {
+    postId: string;
+    contentPreview: string;
+    platformCount: number;
+    publishedAt: string;
+    totalLikes: number;
+    totalShares: number;
+    totalComments: number;
+    totalImpressions: number;
+    totalEngagement: number;
+    engagementRate: number;
+    platformBreakdown: {
+        platform: Platform;
+        likes: number;
+        shares: number;
+        comments: number;
+        impressions: number;
+        engagementRate: number;
+    }[];
+    hashtagCount: number;
+    hasMedia: boolean;
+    mediaTypes: string;
+}
+
+export interface EngagementTrends {
+    engagementGrowthRate: number;
+    trendDirection: string;
+    insights: string[];
+    consistencyScore: number;
+    recommendedPostingStrategy: string;
+}
+
+export interface EngagementAnalyticsData {
+    period: string;
+    overallMetrics: EngagementOverallMetrics;
+    platformBreakdown: {
+        platform: Platform;
+        posts: number;
+        likes: number;
+        shares: number;
+        comments: number;
+        views: number;
+        impressions: number;
+        totalEngagement: number;
+        engagementRate: number;
+    }[];
+    timeSeriesData: TimeSeriesData[];
+    contentInsights: ContentInsights;
+    topPerformingPosts: TopPerformingPost[];
+    trends: EngagementTrends;
+}
+
+// Content Analytics Types
+export interface ContentOverallMetrics {
+    totalPosts: number;
+    publishedPosts: number;
+    draftPosts: number;
+    scheduledPosts: number;
+    publishingSuccessRate: number;
+    avgContentLength: number;
+    totalPlatformPosts: number;
+    avgPostsPerDay: number;
+    totalHashtags: number;
+    totalMentions: number;
+}
+
+export interface ContentPlatformBreakdown {
+    platform: Platform;
+    totalPosts: number;
+    successfulPosts: number;
+    failedPosts: number;
+    successRate: number;
+    avgContentLength: number;
+    postsWithMedia: number;
+    totalHashtags: number;
+    mostUsedHashtag: string;
+}
+
+export interface ContentComposition {
+    postsWithImages: number;
+    postsWithVideos: number;
+    postsWithBoth: number;
+    textOnlyPosts: number;
+    mediaUsageRate: number;
+    mediaTypeDistribution: Record<string, number>;
+    avgHashtagsPerPost: number;
+    avgMentionsPerPost: number;
+    topHashtags: string[];
+    topMentions: string[];
+}
+
+export interface PublishingBehavior {
+    multiPlatformPosts: number;
+    multiPlatformRate: number;
+    immediatePublishPosts: number;
+    scheduledPublishPosts: number;
+    schedulingRate: number;
+    postingTimeDistribution: Record<string, number>;
+    postingDayDistribution: Record<string, number>;
+    avgSchedulingLeadTimeHours: number;
+    consistencyScore: number;
+}
+
+export interface TopContent {
+    postId: string;
+    contentPreview: string;
+    platformCount: number;
+    createdAt: string;
+    hashtagCount: number;
+    mentionCount: number;
+    hasMedia: boolean;
+    mediaTypes: string;
+    engagementData: {
+        totalLikes: number;
+        totalShares: number;
+        totalComments: number;
+        totalImpressions: number;
+        totalEngagement: number;
+        avgEngagementRate: number;
+        hasEngagementData: boolean;
+    };
+}
+
+export interface ContentAnalyticsData {
+    period: string;
+    overallMetrics: ContentOverallMetrics;
+    platformBreakdown: ContentPlatformBreakdown[];
+    publishingActivity: TimeSeriesData[];
+    contentComposition: ContentComposition;
+    publishingBehavior: PublishingBehavior;
+    topContent: TopContent[];
+}
+
+// Refresh Response Types
+export interface RefreshEngagementResponse {
+    id: string;
+    postId: string;
+    socialAccountId: string;
+    platform: Platform;
+    status: string;
+    externalPostId: string;
+    errorMessage: string;
+    responseMetadata: string;
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface AnalyticsData {
@@ -311,6 +587,12 @@ export type ApiResponsePost = ApiResponse<Post>;
 export type ApiResponseListPublishingEventResponse = ApiResponse<PublishingEventResponse[]>;
 export type ApiResponsePublishingEventResponse = ApiResponse<PublishingEventResponse>;
 export type ApiResponseAnalyticsData = ApiResponse<AnalyticsData>;
+export type ApiResponseEnhancedAnalyticsData = ApiResponse<EnhancedAnalyticsData>;
+export type ApiResponsePlatformAnalyticsData = ApiResponse<PlatformAnalyticsData>;
+export type ApiResponseEngagementAnalyticsData = ApiResponse<EngagementAnalyticsData>;
+export type ApiResponseContentAnalyticsData = ApiResponse<ContentAnalyticsData>;
+export type ApiResponseRefreshEngagement = ApiResponse<RefreshEngagementResponse>;
+export type ApiResponseRefreshGeneric = ApiResponse<Record<string, any>>;
 export type ApiResponseOverviewStats = ApiResponse<OverviewStats>;
 export type ApiResponseObject = ApiResponse<any>;
 export type ApiResponseVoid = ApiResponse<void>;

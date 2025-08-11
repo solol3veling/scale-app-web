@@ -350,7 +350,7 @@ export const useActiveSocialAccounts = () => {
   const { data: accounts, ...rest } = useSocialAccounts();
   
   const activeAccounts = accounts?.filter(account => 
-    account.status === 'ACTIVE' && account.connected
+    account.status === 'ACTIVE' && account.isConnected
   );
 
   return {

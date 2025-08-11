@@ -87,7 +87,7 @@ export function AccountModal({ account, isOpen, onClose, mode, onSave }: Account
   }
 
   const getStatusDisplay = () => {
-    if (!account.connected) {
+    if (!account.isConnected) {
       return <Badge variant="destructive" className="gap-1"><AlertCircle className="h-3 w-3" />Disconnected</Badge>
     }
     

@@ -136,7 +136,7 @@ export function PostDetailsModal({ isOpen, onClose, postId }: PostDetailsModalPr
   // Get available accounts for extending (not already used)
   const usedAccountIds = postData?.accounts.map(acc => acc.id) || []
   const availableAccounts = socialAccounts?.filter(
-    acc => !usedAccountIds.includes(acc.id) && acc.connected
+    acc => !usedAccountIds.includes(acc.id) && acc.isConnected
   ) || []
 
   if (!postData && !isLoading) {

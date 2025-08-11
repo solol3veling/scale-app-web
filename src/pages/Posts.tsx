@@ -178,8 +178,8 @@ function PostsHeader({
       </div>
 
       {/* Search and Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="flex-1 relative">
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex-1 relative min-w-[150px]">
           {selectedPostIds.size > 0 ? (
             <div className="flex items-center gap-2 h-10 px-3 bg-background/50 backdrop-blur-sm border border-border/50 rounded-md">
               <input 
@@ -216,9 +216,9 @@ function PostsHeader({
         {selectedPostIds.size === 0 && (
           <>
             <Select value={statusFilter} onValueChange={onStatusChange}>
-              <SelectTrigger className="w-[180px] bg-background/50 backdrop-blur-sm border-border/50">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filter by status" />
+              <SelectTrigger className="w-auto sm:w-[180px] bg-background/50 backdrop-blur-sm border-border/50 px-3 sm:px-4 h-10">
+                <Filter className="h-4 w-4 mr-0 sm:mr-2" />
+                <SelectValue placeholder="Filter" className="hidden sm:inline" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Posts</SelectItem>
@@ -231,9 +231,9 @@ function PostsHeader({
             </Select>
 
             <Select value={sortBy} onValueChange={onSortChange}>
-              <SelectTrigger className="w-[180px] bg-background/50 backdrop-blur-sm border-border/50">
-                <ArrowUpDown className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Sort by" />
+              <SelectTrigger className="w-auto sm:w-[180px] bg-background/50 backdrop-blur-sm border-border/50 px-3 sm:px-4 h-10">
+                <ArrowUpDown className="h-4 w-4 mr-0 sm:mr-2" />
+                <SelectValue placeholder="Sort" className="hidden sm:inline" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="createdAt,desc">Newest First</SelectItem>

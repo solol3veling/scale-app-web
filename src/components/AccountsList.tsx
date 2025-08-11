@@ -160,8 +160,8 @@ export function AccountsList({ searchTerm, selectedPlatform, action, accountId, 
     }
   }, [searchTerm, selectedPlatform]);
 
-  const getStatusBadge = (status: string, connected: boolean) => {
-    if (!connected) {
+  const getStatusBadge = (status: string, isConnected: boolean) => {
+    if (!isConnected) {
       return <Badge variant="destructive" className="gap-1"><AlertCircle className="h-3 w-3" />Disconnected</Badge>
     }
     
@@ -280,7 +280,7 @@ export function AccountsList({ searchTerm, selectedPlatform, action, accountId, 
                 </div>
               </div>
               <div className="flex-shrink-0">
-                {getStatusBadge(account.status, account.connected)}
+                {getStatusBadge(account.status, account.isConnected)}
               </div>
             </div>
           </CardHeader>

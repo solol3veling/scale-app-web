@@ -33,7 +33,7 @@ export function AccountSelector({
 
   const handleSelectAll = () => {
     const activeAccountIds = socialAccounts
-      ?.filter(account => account.connected && account.status === 'ACTIVE')
+      ?.filter(account => account.isConnected && account.status === 'ACTIVE')
       .map(account => account.id) || []
     onSelectionChange(activeAccountIds)
   }
@@ -47,7 +47,7 @@ export function AccountSelector({
     <div className={`grid ${inModal ? 'grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8' : 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7'} gap-3`}>
       {socialAccounts?.map((account) => {
         const isSelected = selectedAccountIds.includes(account.id)
-        const isDisabled = !account.connected || account.status !== 'ACTIVE'
+        const isDisabled = !account.isConnected || account.status !== 'ACTIVE'
 
         return (
           <div
@@ -139,7 +139,7 @@ export function AccountSelector({
                   <>
                     <div className="flex justify-between items-center">
                       <p className="text-sm text-muted-foreground">
-                        {selectedAccountIds.length} of {socialAccounts.filter(acc => acc.connected).length} accounts selected
+                        {selectedAccountIds.length} of {socialAccounts.filter(acc => acc.isConnected).length} accounts selected
                       </p>
                       <div className="flex gap-2">
                         <Button 
@@ -181,7 +181,7 @@ export function AccountSelector({
           <>
             <div className="flex justify-between items-center mb-4">
               <p className="text-sm text-muted-foreground">
-                {selectedAccountIds.length} of {socialAccounts.filter(acc => acc.connected).length} accounts selected
+                {selectedAccountIds.length} of {socialAccounts.filter(acc => acc.isConnected).length} accounts selected
               </p>
               <div className="flex gap-2">
                 <Button 

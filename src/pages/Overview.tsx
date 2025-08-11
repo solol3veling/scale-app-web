@@ -663,10 +663,10 @@ function ConnectedAccountsSection() {
 
   // Helper function to get status badge
   const getStatusBadge = (account: any) => {
-    if (account.status === 'ACTIVE' && account.connected) {
+    if (account.status === 'ACTIVE' && account.isConnected) {
       return <Badge variant="secondary" className="bg-green-100 text-green-800">Active</Badge>
     }
-    if (account.status === 'ERROR' || !account.connected) {
+    if (account.status === 'ERROR' || !account.isConnected) {
       return <Badge variant="destructive">Disconnected</Badge>
     }
     if (account.status === 'PENDING') {
