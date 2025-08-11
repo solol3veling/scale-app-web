@@ -150,14 +150,7 @@ export function PostComposer({
     onUploadStateChange?.(isAnyUploading);
   }, [isAnyUploading, onUploadStateChange]);
 
-  // Auto-adjust textarea height when expanded state changes
-  useEffect(() => {
-    if (textareaRef) {
-      const initialHeight = isExpanded ? 200 : 120;
-      textareaRef.style.minHeight = `${initialHeight}px`;
-      textareaRef.style.maxHeight = isExpanded ? '600px' : '300px';
-    }
-  }, [isExpanded, textareaRef]);
+  
 
   
 
@@ -176,6 +169,14 @@ export function PostComposer({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showEmojiPicker]);
+
+  // Auto-adjust textarea height based on content
+  useEffect(() => {
+    if (textareaRef) {
+      textareaRef.style.height = 'auto';
+      textareaRef.style.height = `${textareaRef.scrollHeight}px`;
+    }
+  }, [postContent, textareaRef]);
 
   const handleFileUpload = (files: File[]) => {
     uploadFiles(files);
@@ -330,7 +331,7 @@ export function PostComposer({
       {/* Main Post Content Card - floating when expanded */}
       <Card className={cn(
         "shadow-medium border bg-muted/30 backdrop-blur-sm transition-all duration-300 relative group",
-        isExpanded && "fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-[95vw] max-w-5xl max-h-[95vh] bg-white dark:bg-gray-900"
+        isExpanded && "fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-[95vw] max-w-5xl bg-white dark:bg-gray-900"
       )}>
         {/* Floating Expand Button - only show on hover when not expanded */}
         {!isExpanded && (
@@ -360,7 +361,7 @@ export function PostComposer({
           </CardHeader>
         )}
         <CardContent className={cn(
-          isExpanded ? "pt-0 px-8 pb-8 overflow-y-auto max-h-[calc(95vh-120px)]" : "pt-6 px-6 pb-6"
+          isExpanded ? "pt-0 px-8 pb-8" : "pt-6 px-6 pb-6"
         )}>
           {/* Main Content Area */}
           <div className="space-y-0">
@@ -373,7 +374,7 @@ export function PostComposer({
                 placeholder="What's on your mind?"
                 className={cn(
                   "w-full resize-none border-0 bg-transparent placeholder:text-muted-foreground/60 focus-visible:ring-0 focus-visible:ring-offset-0 p-0 focus:outline-none",
-                  isExpanded ? "min-h-[200px] text-lg leading-relaxed" : "min-h-[120px] text-base leading-[1.5]"
+                  isExpanded ? "min-h-[200px] max-h-[70vh] text-lg leading-relaxed" : "min-h-[120px] max-h-[300px] text-base leading-[1.5]"
                 )}
                 style={{
                   fontFamily: 'inherit',
@@ -393,13 +394,13 @@ export function PostComposer({
             {mediaItems.length > 0 && (
               <div className="pb-4">
                 <div className={cn(
-                  isExpanded ? "grid grid-cols-3 gap-4" : "flex flex-wrap gap-3"
+                  "flex flex-wrap gap-3"
                 )}>
                   {mediaItems.map((item) => (
                     <div key={item.id} className="relative group">
                       <div className={cn(
                         "relative overflow-hidden rounded-md border border-border bg-muted cursor-pointer",
-                        isExpanded ? "aspect-square" : "w-16 h-16"
+                        "w-16 h-16"
                       )}>
                         {item.type === 'image' ? (
                           <img
@@ -423,7 +424,7 @@ export function PostComposer({
                               )}>
                                 <Video className={cn(
                                   "text-white",
-                                  isExpanded ? "h-4 w-4" : "h-2.5 w-2.5"
+                                  "h-2.5 w-2.5"
                                 )} />
                               </div>
                             </div>
@@ -461,7 +462,7 @@ export function PostComposer({
                           handleRemoveMedia(item.id);
                         }}
                       >
-                        <X className={cn(isExpanded ? "h-4 w-4" : "h-3 w-3")} />
+                        <X className={cn("h-3 w-3")} />
                       </Button>
                     </div>
                   ))}
