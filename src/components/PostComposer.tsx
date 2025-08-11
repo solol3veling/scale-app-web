@@ -346,22 +346,20 @@ export function PostComposer({
           </Button>
         )}
 
-        {/* Header - only show when expanded */}
+        {/* Collapse Button - only show when expanded */}
         {isExpanded && (
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <CardTitle className="text-xl font-medium">Create Post</CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsExpanded(false)}
-              className="h-8 px-3"
-            >
-              Collapse
-            </Button>
-          </CardHeader>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsExpanded(false)}
+            className="absolute top-2 right-2 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md z-10"
+            title="Collapse composer"
+          >
+            <X className="h-3.5 w-3.5" />
+          </Button>
         )}
         <CardContent className={cn(
-          isExpanded ? "pt-0 px-8 pb-8" : "pt-6 px-6 pb-6"
+          isExpanded ? "pt-8 px-8 pb-8" : "pt-6 px-6 pb-6"
         )}>
           {/* Main Content Area */}
           <div className="space-y-0">
