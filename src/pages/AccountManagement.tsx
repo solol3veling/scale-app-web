@@ -17,7 +17,7 @@ export default function AccountManagement() {
   const accountId = searchParams.get("accountId");
   const platform = searchParams.get("platform");
 
-  const { refetch } = useAccounts()
+  const { refetch, isFetching } = useAccounts()
   const queryClient = useQueryClient()
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedPlatform, setSelectedPlatform] = useState("all")
@@ -52,10 +52,11 @@ export default function AccountManagement() {
               variant="outline"
               size="sm"
               onClick={refetch}
-              className="gap-2"
+              disabled={isFetching}
+              className="h-9 w-9 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              title="Refresh accounts"
             >
-              <RefreshCw className="h-4 w-4" />
-              Refresh
+              <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
             </Button>
             <Button className="gradient-primary hover-scale" onClick={() => setSearchParams({ action: 'add' })}>
               <Plus className="h-4 w-4 mr-2" />

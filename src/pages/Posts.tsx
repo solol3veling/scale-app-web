@@ -97,7 +97,8 @@ function PostsHeader({
   onDeleteSelected,
   onClearSelection,
   selectionMode,
-  onRefresh
+  onRefresh,
+  isRefreshing
 }: {
   searchTerm: string;
   onSearchChange: (value: string) => void;
@@ -112,6 +113,7 @@ function PostsHeader({
   onClearSelection: () => void;
   selectionMode: boolean;
   onRefresh: () => void;
+  isRefreshing?: boolean;
 }) {
   const navigate = useNavigate();
   
@@ -156,10 +158,11 @@ function PostsHeader({
                 variant="outline"
                 size="sm"
                 onClick={onRefresh}
-                className="gap-2"
+                disabled={isRefreshing}
+                className="h-9 w-9 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                title="Refresh posts"
               >
-                <RefreshCw className="h-4 w-4" />
-                Refresh
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               </Button>
               <Button 
                 onClick={() => navigate('/make-post')} 
@@ -1079,6 +1082,7 @@ export default function Posts() {
   
   // Refresh functionality
   const refetchRef = useRef<(() => void) | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   // Get user profile data once at the top level
   const userProfile = useUserProfile();
@@ -1164,15 +1168,19 @@ export default function Posts() {
           onDeleteSelected={handleDeleteSelected}
           onClearSelection={handleClearSelection}
           selectionMode={selectionMode}
-          onRefresh={() => {
+          onRefresh={async () => {
             try {
+              setIsRefreshing(true);
               if (refetchRef.current) {
-                refetchRef.current();
+                await refetchRef.current();
               }
             } catch (error) {
               console.error('Error refreshing posts:', error);
+            } finally {
+              setIsRefreshing(false);
             }
           }}
+          isRefreshing={isRefreshing}
         />
       </PageHeader>
       

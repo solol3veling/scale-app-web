@@ -202,13 +202,13 @@ export default function Analytics() {
           <div className="flex gap-2">
             <Button 
               variant="outline" 
-              className="hover-lift" 
+              className="h-9 w-9 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors" 
               size="sm" 
               onClick={refetch} 
               disabled={isLoading}
+              title="Refresh analytics"
             >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
+              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             </Button>
             <Button variant="outline" className="hover-lift" size="sm" disabled={isLoading}>
               <Filter className="h-4 w-4 mr-2" />
