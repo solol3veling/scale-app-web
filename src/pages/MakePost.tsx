@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { MediaItem } from "@/types/api"
 import { PostComposer } from "@/components/PostComposer"
-import { PostPreviewWrapper } from "@/components/PostPreviewWrapper"
+import { PostPreviewTabs } from "@/components/PostPreviewTabs";
 import { PageHeader } from "@/components/PageHeader"
 import { AccountSelector } from "@/components/AccountSelector"
 
@@ -70,12 +70,9 @@ export default function MakePost() {
 
         {/* Preview Panel */}
         <div className="space-y-6">
-          <PostPreviewWrapper 
+          <PostPreviewTabs 
             postContent={postContent}
             uploadedMedia={uploadedMedia}
-            selectedAccountIds={selectedAccountIds}
-            isScheduled={isScheduled}
-            scheduledDate={scheduledDate}
           />
         </div>
       </div>

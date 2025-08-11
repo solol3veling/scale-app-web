@@ -95,7 +95,7 @@ export function PostPreview({
                       <img
                         src={media.url}
                         alt={`Media ${index + 1}`}
-                        className="w-full h-24 object-cover rounded"
+                        className="w-full h-12 object-cover rounded"
                       />
                     ) : (
                       // For videos: derive thumbnail URL from video URL
@@ -103,7 +103,7 @@ export function PostPreview({
                         <img
                           src={getVideoThumbnailUrl(media.url)}
                           alt={`Video thumbnail ${index + 1}`}
-                          className="w-full h-24 object-cover"
+                          className="w-full h-12 object-cover"
                         />
                         {/* Video icon indicator in top-left */}
                         <div className="absolute top-1 left-1 bg-black/70 rounded p-1">
