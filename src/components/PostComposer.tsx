@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -9,6 +8,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import EmojiPicker from 'emoji-picker-react'
+import HighlightWithinTextarea from 'react-highlight-within-textarea'
 import { 
   Image as ImageIcon, 
   Video, 
@@ -55,7 +55,7 @@ interface PostComposerProps {
   setScheduledTime: (time: string) => void
   onUploadStateChange?: (isUploading: boolean) => void
   selectedAccountIds?: string[]
-  onPublish?: (data: any) => void
+  onPublish?: (data: CreatePostData) => void
 }
 
 export function PostComposer({
@@ -84,22 +84,16 @@ export function PostComposer({
 
   const [openModal, setOpenModal] = useState<string | null>(null);
   const [textareaRef, setTextareaRef] = useState<HTMLTextAreaElement | null>(null);
-  const [cursorPosition, setCursorPosition] = useState(0);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   
   const createPost = useCreatePost()
   const { toast } = useToast()
   const navigate = useNavigate()
 
-  // Handle cursor position tracking
-  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setPostContent(e.target.value);
-    setCursorPosition(e.target.selectionStart);
-  };
-
-  const handleTextareaSelect = (e: React.SyntheticEvent<HTMLTextAreaElement>) => {
-    const target = e.target as HTMLTextAreaElement;
-    setCursorPosition(target.selectionStart);
+  // Handle textarea change with HighlightWithinTextarea
+  const handleTextareaChange = (value: string) => {
+    setPostContent(value);
   };
 
   // Insert text at cursor position
@@ -112,58 +106,37 @@ export function PostComposer({
     
     setPostContent(newText);
     
-    // Set cursor position after inserted text
+    // Focus and set cursor position
     setTimeout(() => {
       const newPosition = start + textToInsert.length;
       textareaRef.setSelectionRange(newPosition, newPosition);
       textareaRef.focus();
-      setCursorPosition(newPosition);
     }, 0);
   };
 
   // Emoji handler with new plugin
-  const handleEmojiClick = (emojiData: any) => {
+  const handleEmojiClick = (emojiData: { emoji: string }) => {
     insertTextAtCursor(emojiData.emoji);
     setShowEmojiPicker(false);
   };
 
-  // Simple content processing to highlight patterns
-  const processContentForDisplay = (content: string) => {
-    // Simple regex patterns for visual highlighting
-    const urlPattern = /(https?:\/\/[^\s]+)/g;
-    const hashtagPattern = /(^|\s)(#\w+)/g;
-    const mentionPattern = /(^|\s)(@\w+)/g;
+  // Highlight patterns for the library
+  const highlightPatterns = [
+    {
+      highlight: /(https?:\/\/(?:[-\w.])+(?:[:\d]+)?(?:\/(?:[\w._~:/?#[\]@!$&'()*+,;=%])*)?)/gi,
+      className: 'url-highlight'
+    },
+    {
+      highlight: /#[\w]+/g,
+      className: 'hashtag-highlight'
+    },
+    {
+      highlight: /@[\w]+/g,
+      className: 'mention-highlight'
+    }
+  ];
 
-    return content
-      .replace(urlPattern, '<span class="text-blue-600 underline font-medium">$1</span>')
-      .replace(hashtagPattern, '$1<span class="text-green-600 font-medium">$2</span>')
-      .replace(mentionPattern, '$1<span class="text-purple-600 font-medium">$2</span>');
-  };
-
-  // Simple helper functions (no inputs needed)
-  const handleLinkClick = () => {
-    // Just show a tooltip or do nothing - highlighting is automatic
-    toast({
-      title: "Link Highlighting",
-      description: "Simply type URLs like https://example.com and they'll be highlighted automatically!",
-    });
-  };
-
-  const handleHashtagClick = () => {
-    // Just show a tooltip or do nothing - highlighting is automatic
-    toast({
-      title: "Hashtag Highlighting", 
-      description: "Simply type hashtags like #trending and they'll be highlighted automatically!",
-    });
-  };
-
-  const handleMentionClick = () => {
-    // Just show a tooltip or do nothing - highlighting is automatic
-    toast({
-      title: "Mention Highlighting",
-      description: "Simply type mentions like @username and they'll be highlighted automatically!",
-    });
-  };
+  
 
 
   // Update parent component when media changes
@@ -176,6 +149,17 @@ export function PostComposer({
   useEffect(() => {
     onUploadStateChange?.(isAnyUploading);
   }, [isAnyUploading, onUploadStateChange]);
+
+  // Auto-adjust textarea height when expanded state changes
+  useEffect(() => {
+    if (textareaRef) {
+      const initialHeight = isExpanded ? 200 : 120;
+      textareaRef.style.minHeight = `${initialHeight}px`;
+      textareaRef.style.maxHeight = isExpanded ? '600px' : '300px';
+    }
+  }, [isExpanded, textareaRef]);
+
+  
 
   // Close emoji picker when clicking outside
   useEffect(() => {
@@ -332,54 +316,91 @@ export function PostComposer({
     </Dialog>
   );
 
+
   return (
-    <div className="space-y-0">
-      {/* Main Post Content Card with Integrated Layout */}
-      <Card className="shadow-medium border bg-muted/30 backdrop-blur-sm">
-        <CardContent className="p-6">
+    <>
+      {/* Backdrop when expanded */}
+      {isExpanded && (
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+          onClick={() => setIsExpanded(false)}
+        />
+      )}
+
+      {/* Main Post Content Card - floating when expanded */}
+      <Card className={cn(
+        "shadow-medium border bg-muted/30 backdrop-blur-sm transition-all duration-300 relative group",
+        isExpanded && "fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-[95vw] max-w-5xl max-h-[95vh] bg-white dark:bg-gray-900"
+      )}>
+        {/* Floating Expand Button - only show on hover when not expanded */}
+        {!isExpanded && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsExpanded(true)}
+            className="absolute top-2 right-2 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md z-10"
+            title="Expand composer"
+          >
+            <Expand className="h-3.5 w-3.5" />
+          </Button>
+        )}
+
+        {/* Header - only show when expanded */}
+        {isExpanded && (
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+            <CardTitle className="text-xl font-medium">Create Post</CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsExpanded(false)}
+              className="h-8 px-3"
+            >
+              Collapse
+            </Button>
+          </CardHeader>
+        )}
+        <CardContent className={cn(
+          isExpanded ? "pt-0 px-8 pb-8 overflow-y-auto max-h-[calc(95vh-120px)]" : "pt-6 px-6 pb-6"
+        )}>
           {/* Main Content Area */}
           <div className="space-y-0">
-            {/* Text Input with Visual Highlighting */}
+            {/* Text Input with Library Highlighting */}
             <div className="relative pb-4">
-              <Textarea
+              <textarea
                 ref={setTextareaRef}
-                placeholder="What's on your mind?"
                 value={postContent}
-                onChange={handleTextareaChange}
-                onSelect={handleTextareaSelect}
-                className="min-h-[120px] resize-none border-0 bg-transparent text-base placeholder:text-muted-foreground/60 focus-visible:ring-0 focus-visible:ring-offset-0 p-0"
+                onChange={(e) => handleTextareaChange(e.target.value)}
+                placeholder="What's on your mind?"
+                className={cn(
+                  "w-full resize-none border-0 bg-transparent placeholder:text-muted-foreground/60 focus-visible:ring-0 focus-visible:ring-offset-0 p-0 focus:outline-none",
+                  isExpanded ? "min-h-[200px] text-lg leading-relaxed" : "min-h-[120px] text-base leading-[1.5]"
+                )}
+                style={{
+                  fontFamily: 'inherit',
+                  wordWrap: 'break-word',
+                  overflowWrap: 'break-word',
+                  wordBreak: 'break-word'
+                }}
               />
               
               {/* Character Count */}
-              <div className="absolute bottom-6 right-2 text-xs text-muted-foreground/60">
+              <div className="absolute bottom-6 right-2 text-xs text-muted-foreground/60 z-10">
                 {postContent.length}/2000
               </div>
-              
-              {/* Visual Highlighting Overlay */}
-              {postContent && (
-                <div 
-                  className="absolute inset-0 pointer-events-none text-base p-0 leading-[1.5] whitespace-pre-wrap break-words"
-                  style={{ 
-                    color: 'transparent',
-                    zIndex: 1,
-                    fontFamily: 'inherit',
-                    fontSize: 'inherit',
-                    lineHeight: 'inherit'
-                  }}
-                  dangerouslySetInnerHTML={{ 
-                    __html: processContentForDisplay(postContent) 
-                  }}
-                />
-              )}
             </div>
 
             {/* Media Preview - Show only when media exists */}
             {mediaItems.length > 0 && (
               <div className="pb-4">
-                <div className="flex flex-wrap gap-3">
+                <div className={cn(
+                  isExpanded ? "grid grid-cols-3 gap-4" : "flex flex-wrap gap-3"
+                )}>
                   {mediaItems.map((item) => (
                     <div key={item.id} className="relative group">
-                      <div className="relative overflow-hidden rounded-md border border-border bg-muted cursor-pointer w-16 h-16">
+                      <div className={cn(
+                        "relative overflow-hidden rounded-md border border-border bg-muted cursor-pointer",
+                        isExpanded ? "aspect-square" : "w-16 h-16"
+                      )}>
                         {item.type === 'image' ? (
                           <img
                             src={item.url}
@@ -395,14 +416,23 @@ export function PostComposer({
                                 alt={`Video thumbnail ${item.id}`}
                                 className="w-full h-full object-cover"
                               />
-                              {/* Video icon indicator in top-left */}
-                              <div className="absolute top-1 left-1 bg-black/70 rounded p-0.5">
-                                <Video className="h-2.5 w-2.5 text-white" />
+                              {/* Video icon indicator */}
+                              <div className={cn(
+                                "absolute bg-black/70 rounded",
+                                isExpanded ? "top-2 left-2 p-1" : "top-1 left-1 p-0.5"
+                              )}>
+                                <Video className={cn(
+                                  "text-white",
+                                  isExpanded ? "h-4 w-4" : "h-2.5 w-2.5"
+                                )} />
                               </div>
                             </div>
                           ) : (
                             <div className="w-full h-full bg-muted flex items-center justify-center">
-                              <Video className="h-4 w-4 text-muted-foreground" />
+                              <Video className={cn(
+                                "text-muted-foreground",
+                                isExpanded ? "h-6 w-6" : "h-4 w-4"
+                              )} />
                             </div>
                           )
                         )}
@@ -410,7 +440,10 @@ export function PostComposer({
                         {/* Upload Progress Overlay */}
                         {item.uploadState.isUploading && (
                           <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                            <Loader2 className="h-3 w-3 animate-spin text-white" />
+                            <Loader2 className={cn(
+                              "animate-spin text-white",
+                              isExpanded ? "h-6 w-6" : "h-3 w-3"
+                            )} />
                           </div>
                         )}
                       </div>
@@ -419,13 +452,16 @@ export function PostComposer({
                       <Button
                         variant="secondary"
                         size="icon"
-                        className="absolute -top-1 -right-1 h-5 w-5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 hover:bg-red-600 text-white border-2 border-white shadow-lg z-20"
+                        className={cn(
+                          "absolute rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 hover:bg-red-600 text-white border-2 border-white shadow-lg z-20",
+                          isExpanded ? "-top-2 -right-2 h-6 w-6" : "-top-1 -right-1 h-5 w-5"
+                        )}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleRemoveMedia(item.id);
                         }}
                       >
-                        <X className="h-3 w-3" />
+                        <X className={cn(isExpanded ? "h-4 w-4" : "h-3 w-3")} />
                       </Button>
                     </div>
                   ))}
@@ -496,35 +532,7 @@ export function PostComposer({
                   )}
                 </div>
                 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-2 text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                  onClick={handleLinkClick}
-                  title="URLs are automatically highlighted (type https://example.com)"
-                >
-                  <Link className="h-4 w-4" />
-                </Button>
                 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-2 text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                  onClick={handleHashtagClick}
-                  title="Hashtags are automatically highlighted (type #trending)"
-                >
-                  <Hash className="h-4 w-4" />
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-2 text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                  onClick={handleMentionClick}
-                  title="Mentions are automatically highlighted (type @username)"
-                >
-                  <AtSign className="h-4 w-4" />
-                </Button>
 
                 <Button
                   variant="ghost"
@@ -572,6 +580,6 @@ export function PostComposer({
 
       {/* Modals */}
       <SchedulingModal />
-    </div>
+    </>
   )
 }

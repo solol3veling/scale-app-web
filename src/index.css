@@ -249,3 +249,109 @@
     transform: translateY(0);
   }
 }
+
+/* React Highlight Within Textarea styles */
+.hwt-input {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  resize: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  font-family: inherit !important;
+  background-color: transparent !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.hwt-backdrop {
+  background-color: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.hwt-highlights {
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  background-color: transparent !important;
+}
+
+.hwt-content {
+  border: none !important;
+  background-color: transparent !important;
+}
+
+/* Custom highlight styles for URLs, mentions, and hashtags */
+.hwt-highlights mark {
+  padding: 2px 3px !important;
+  border-radius: 3px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+}
+
+/* URL highlighting */
+.hwt-highlights mark.url-highlight {
+  background-color: rgba(37, 99, 235, 0.1) !important;
+  color: rgb(37, 99, 235) !important;
+  text-decoration: underline !important;
+  cursor: pointer !important;
+}
+
+.hwt-highlights mark.url-highlight:hover {
+  background-color: rgba(37, 99, 235, 0.2) !important;
+  color: rgb(29, 78, 216) !important;
+}
+
+/* Hashtag highlighting */
+.hwt-highlights mark.hashtag-highlight {
+  background-color: rgba(34, 197, 94, 0.1) !important;
+  color: rgb(34, 197, 94) !important;
+}
+
+.hwt-highlights mark.hashtag-highlight:hover {
+  background-color: rgba(34, 197, 94, 0.2) !important;
+  color: rgb(21, 128, 61) !important;
+}
+
+/* Mention highlighting */
+.hwt-highlights mark.mention-highlight {
+  background-color: rgba(147, 51, 234, 0.1) !important;
+  color: rgb(147, 51, 234) !important;
+}
+
+.hwt-highlights mark.mention-highlight:hover {
+  background-color: rgba(147, 51, 234, 0.2) !important;
+  color: rgb(126, 34, 206) !important;
+}
+
+/* Dark mode support */
+.dark .hwt-highlights mark.url-highlight {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  color: rgb(96, 165, 250) !important;
+}
+
+.dark .hwt-highlights mark.url-highlight:hover {
+  background-color: rgba(59, 130, 246, 0.25) !important;
+  color: rgb(147, 197, 253) !important;
+}
+
+.dark .hwt-highlights mark.hashtag-highlight {
+  background-color: rgba(34, 197, 94, 0.15) !important;
+  color: rgb(74, 222, 128) !important;
+}
+
+.dark .hwt-highlights mark.hashtag-highlight:hover {
+  background-color: rgba(34, 197, 94, 0.25) !important;
+  color: rgb(134, 239, 172) !important;
+}
+
+.dark .hwt-highlights mark.mention-highlight {
+  background-color: rgba(168, 85, 247, 0.15) !important;
+  color: rgb(196, 181, 253) !important;
+}
+
+.dark .hwt-highlights mark.mention-highlight:hover {
+  background-color: rgba(168, 85, 247, 0.25) !important;
+  color: rgb(221, 214, 254) !important;
+}
