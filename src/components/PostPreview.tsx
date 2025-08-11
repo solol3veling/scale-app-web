@@ -35,7 +35,7 @@ interface PostPreviewProps {
     platform: Platform
     displayName: string
     handle: string
-    connected: boolean
+    isConnected: boolean
   }>
   isScheduled: boolean
   scheduledDate?: Date
