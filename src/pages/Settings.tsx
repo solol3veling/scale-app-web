@@ -23,7 +23,7 @@ import {
 } from "lucide-react"
 import { PageHeader } from "@/components/PageHeader"
 import { useAuth } from "@/hooks/useAuth"
-import { useUserBilling, useBillingPlans, useUpgradePlan, useCancelSubscription, useResubscribe, useUpdatePaymentMethod, useSubscriptionManagement } from "@/hooks/useUserBilling"
+import { useCurrentUserPlan, useUserBilling, useBillingPlans, useUpgradePlan, useCancelSubscription, useResubscribe, useUpdatePaymentMethod, useSubscriptionManagement } from "@/hooks/useUserBilling"
 import { useToast } from "@/hooks/use-toast"
 import { PlanType, SubscriptionStatus, PlanStatus, Plan } from "@/types/api"
 import {
@@ -95,7 +95,7 @@ const getStatusBadge = (status: PlanStatus | SubscriptionStatus) => {
 
 export default function Settings() {
   const { user, session, signOut } = useAuth()
-  const { data: billing, isLoading: billingLoading, error: billingError } = useUserBilling()
+  const { data: billing, isLoading: billingLoading, error: billingError } = useCurrentUserPlan()
   const { data: plansData, isLoading: plansLoading, error: plansError } = useBillingPlans()
   const upgradePlan = useUpgradePlan()
   const cancelSubscription = useCancelSubscription()
@@ -165,7 +165,7 @@ export default function Settings() {
   }
 
   const getCurrentPlan = () => billing?.planType || PlanType.FREE
-  const getCurrentStatus = () => billing?.status || billing?.subscriptionStatus || PlanStatus.ACTIVE
+  const getCurrentStatus = () => billing?.status || SubscriptionStatus.ACTIVE
   
   const getCurrentPlanData = () => plans.find(p => p.type === getCurrentPlan())
   const getPlanByType = (type: PlanType) => plans.find(p => p.type === type)
@@ -375,15 +375,18 @@ export default function Settings() {
                         {billing?.updatedAt ? new Date(billing.updatedAt).toLocaleDateString() : 'Unknown'}
                       </p>
                     </div>
+                    
+                    {billing?.subscriptionEndDate && (
+                      <div className="p-3 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                        <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">Subscription Ends</Label>
+                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100 mt-1">
+                          {new Date(billing.subscriptionEndDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                    )}
                   </div>
                   
-                  {(billing?.paystackCustomerId || billing?.paystackCustomerCode) && (
-                    <div className="p-3 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
-                      <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">Payment</Label>
-                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100 mt-1">Paystack</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">Secure payment processing</p>
-                    </div>
-                  )}
+                  {/* Payment information is now handled securely and not exposed to client */}
                 </CardContent>
               </Card>
 

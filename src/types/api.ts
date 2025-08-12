@@ -467,15 +467,14 @@ export interface OverviewStats {
     growthRate: number;
 }
 
-// OpenAPI UserPlan (new schema)
+// OpenAPI UserPlan (new secure schema - omits all sensitive data)
 export interface UserPlan {
+    id: string;
     userId: string;
-    email?: string | null;
+    email: string;
     planType: PlanType;
     status: SubscriptionStatus;
-    paystackCustomerId?: string | null;
-    subscriptionId?: string | null;
-    reference?: string | null;
+    subscriptionEndDate?: string | null;
     createdAt: string;
     updatedAt: string;
 }
