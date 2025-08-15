@@ -136,7 +136,6 @@ export interface Post {
     publishedAt?: string;
     status: PostStatus;
     accounts: SocialAccount[];
-    engagement?: Engagement;
     createdAt: string;
     updatedAt: string;
     userId: string;
@@ -445,14 +444,312 @@ export interface RefreshEngagementResponse {
     updatedAt: string;
 }
 
+// Enhanced Analytics Data with comprehensive metrics
 export interface AnalyticsData {
     dateRange: string;
+    totalPosts: number;
+    totalPublishedPosts: number;
+    totalScheduledPosts: number;
+    totalDraftPosts: number;
     totalReach: number;
     totalEngagement: number;
     engagementRate: number;
-    platformBreakdown: PlatformBreakdown[];
+    publishingStats: {
+        totalPublishingEvents: number;
+        successfulPublishes: number;
+        failedPublishes: number;
+        successRate: number;
+        mostFailedPlatform: string;
+        mostSuccessfulPlatform: string;
+    };
+    platformRankings: {
+        platform: string;
+        totalPosts: number;
+        rank: number;
+        percentage: number;
+        reach: number;
+        engagement: number;
+        successfulPublishes: number;
+        failedPublishes: number;
+        successRate: number;
+    }[];
     timeSeriesData: TimeSeriesData[];
     topPosts: Post[];
+    mostActiveplatform: string;
+    performance: {
+        bestPerformingPost: Post;
+        averageEngagementPerPost: number;
+        averageEngagementRate: number;
+    };
+    postingTimeAnalysis: {
+        topPostingTimes: {
+            timeLabel: string;
+            postCount: number;
+            averageEngagement: number;
+        }[];
+        hourlyBreakdown: {
+            hour: number;
+            postCount: number;
+            percentage: number;
+        }[];
+        dailyBreakdown: {
+            dayOfWeek: string;
+            postCount: number;
+            percentage: number;
+        }[];
+        peakPostingHour: string;
+        peakPostingDay: string;
+    };
+    schedulingAnalysis: {
+        totalScheduledPosts: number;
+        currentlyScheduled: number;
+        publishedFromScheduled: number;
+        schedulingRate: number;
+        scheduledToPublishedRate: number;
+        monthlyTrends: {
+            month: string;
+            scheduledCount: number;
+            publishedCount: number;
+            conversionRate: number;
+        }[];
+    };
+    engagementAnalysis: {
+        totalLikes: number;
+        totalComments: number;
+        totalShares: number;
+        totalViews: number;
+        totalSaves: number;
+        averageLikesPerPost: number;
+        averageCommentsPerPost: number;
+        averageSharesPerPost: number;
+        mostLikedPost: Post;
+        mostCommentedPost: Post;
+        mostSharedPost: Post;
+        trends: {
+            period: string;
+            totalEngagement: number;
+            engagementRate: number;
+            posts: number;
+        }[];
+    };
+}
+
+// New comprehensive analytics overview
+export interface AnalyticsOverview {
+    dateRange: string;
+    lastUpdated: string;
+    totalPosts: number;
+    totalEngagements: number;
+    totalReach: number;
+    totalImpressions: number;
+    engagementRate: number;
+    clickThroughRate: number;
+    audienceGrowth: {
+        current: number;
+        previous: number;
+        growthRate: number;
+        trend: string;
+    };
+    engagementGrowth: {
+        current: number;
+        previous: number;
+        growthRate: number;
+        trend: string;
+    };
+    topPerformingPlatform: {
+        name: string;
+        type: string;
+        engagements: number;
+        engagementRate: number;
+    };
+    topPerformingAccount: {
+        name: string;
+        type: string;
+        engagements: number;
+        engagementRate: number;
+    };
+    topPerformingPost: {
+        id: string;
+        content: string;
+        mediaType: string;
+        totalEngagements: number;
+        engagementRate: number;
+        postedAt: string;
+    };
+    keyInsights: string[];
+}
+
+// Posts analytics with advanced filtering
+export interface PostsAnalyticsData {
+    posts: AnalyticsPost[];
+    totalElements: number;
+    totalPages: number;
+    currentPage: number;
+    summaryStats: {
+        totalPosts: number;
+        totalEngagements: number;
+        averageEngagementRate: number;
+        topMediaType: string;
+        topPlatform: string;
+    };
+    availableFilters: {
+        [key: string]: string[];
+    };
+}
+
+export interface AnalyticsPost {
+    postId: string;
+    content: string;
+    mediaType: string;
+    platforms: string[];
+    accounts: string[];
+    postedAt: string;
+    totalLikes: number;
+    totalComments: number;
+    totalShares: number;
+    totalReach: number;
+    totalImpressions: number;
+    totalClicks: number;
+    totalViews: number;
+    totalSaves: number;
+    engagementRate: number;
+    clickThroughRate: number;
+    hashtags: string[];
+    characterCount: number;
+    bestPerformingPlatform: string;
+    performanceScore: number;
+    dayOfWeek: string;
+    hourOfDay: number;
+    scheduled: boolean;
+}
+
+// Content insights analytics
+export interface ContentInsights {
+    dateRange: string;
+    mediaTypePerformance: {
+        mediaType: string;
+        postCount: number;
+        averageEngagementRate: number;
+        totalEngagements: number;
+        shareOfContent: number;
+    }[];
+    topHashtags: {
+        hashtag: string;
+        usageCount: number;
+        averageEngagementRate: number;
+        totalEngagements: number;
+    }[];
+    hashtagEngagementMap: Record<string, number>;
+    bestPostingTimes: {
+        dayOfWeek: string;
+        timeOfDay: {
+            hour: number;
+            minute: number;
+            second: number;
+            nano: number;
+        };
+        averageEngagementRate: number;
+        postCount: number;
+    }[];
+    dayOfWeekPerformance: Record<string, number>;
+    hourOfDayPerformance: Record<string, number>;
+    characterCountAnalysis: {
+        lengthRanges: Record<string, number>;
+        optimalLength: number;
+        optimalEngagementRate: number;
+    };
+    hashtagCountVsEngagement: {
+        correlationCoefficient: number;
+        interpretation: string;
+        recommendation: string;
+    };
+    postFrequencyVsEngagement: {
+        correlationCoefficient: number;
+        interpretation: string;
+        recommendation: string;
+    };
+    recommendations: string[];
+}
+
+// Post-specific analytics
+export interface PostSpecificAnalytics {
+    postId: string;
+    content: string;
+    status: PostStatus;
+    createdAt: string;
+    publishedAt?: string;
+    scheduledFor?: string;
+    mediaType: string;
+    characterCount: number;
+    hashtags: string[];
+    platformData: {
+        platform: Platform;
+        externalPostId?: string;
+        publishingStatus: string;
+        publishedAt?: string;
+        errorMessage?: string;
+        accountHandle: string;
+    }[];
+    publishingSummary: {
+        totalPlatforms: number;
+        successfulPublishes: number;
+        failedPublishes: number;
+        pendingPublishes: number;
+        successRate: number;
+        successfulPlatforms: string[];
+        failedPlatforms: string[];
+    };
+    overallEngagement: {
+        totalLikes: number;
+        totalComments: number;
+        totalShares: number;
+        totalViews: number;
+        totalReach: number;
+        totalImpressions: number;
+        totalClicks: number;
+        totalSaves: number;
+        totalEngagement: number;
+        overallEngagementRate: number;
+        averageEngagementPerPlatform: number;
+    };
+    platformEngagements: {
+        platform: Platform;
+        likes: number;
+        comments: number;
+        shares: number;
+        views: number;
+        reach: number;
+        impressions: number;
+        clicks: number;
+        saves: number;
+        totalEngagement: number;
+        engagementRate: number;
+        lastFetched: string;
+        rankAmongPlatforms: string;
+    }[];
+    performance: {
+        performanceRating: string;
+        performanceScore: number;
+        bestPerformingPlatform: string;
+        worstPerformingPlatform: string;
+        isTopPerformer: boolean;
+        rankAmongAllPosts: number;
+        engagementGrowthRate: number;
+        insights: string[];
+    };
+    comparison: {
+        vsAverageEngagement: number;
+        vsAverageReach: number;
+        comparisonSummary: string;
+        isAboveAverage: boolean;
+        betterThanXPosts: number;
+        similarPosts: {
+            postId: string;
+            content: string;
+            totalEngagement: number;
+            similarity: string;
+        }[];
+    };
 }
 
 export interface OverviewStats {

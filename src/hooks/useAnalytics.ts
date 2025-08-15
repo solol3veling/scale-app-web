@@ -6,8 +6,13 @@ import {
   PlatformAnalyticsData, 
   EngagementAnalyticsData,
   ContentAnalyticsData,
+  AnalyticsOverview,
+  PostsAnalyticsData,
+  ContentInsights,
+  PostSpecificAnalytics,
   Platform 
 } from '@/types/api'
+import { PostsAnalyticsParams } from '@/services/api/analytics'
 
 // Analytics query keys
 export const analyticsKeys = {
@@ -18,6 +23,11 @@ export const analyticsKeys = {
   engagement: (dateRange: string) => [...analyticsKeys.all, 'engagement', dateRange] as const,
   content: (dateRange: string) => [...analyticsKeys.all, 'content', dateRange] as const,
   postAnalytics: (postId: string) => [...analyticsKeys.all, 'post', postId] as const,
+  overview: (dateRange: string) => [...analyticsKeys.all, 'overview', dateRange] as const,
+  postsAnalytics: (params: string) => [...analyticsKeys.all, 'posts', params] as const,
+  platformSpecific: (platform: Platform, dateRange: string) => [...analyticsKeys.all, 'platform-specific', platform, dateRange] as const,
+  contentInsights: (dateRange: string) => [...analyticsKeys.all, 'content-insights', dateRange] as const,
+  postSpecific: (postId: string) => [...analyticsKeys.all, 'post-specific', postId] as const,
 }
 
 // Basic Analytics Hook
@@ -158,6 +168,150 @@ export const useContentAnalytics = (dateRange: string = '30d') => {
       }
       return failureCount < 2
     }
+  })
+}
+
+// Analytics Overview Hook
+export const useAnalyticsOverview = (dateRange: string = '30d') => {
+  return useQuery({
+    queryKey: analyticsKeys.overview(dateRange),
+    queryFn: async () => {
+      try {
+        const response = await analyticsApi.getOverview({ dateRange })
+        console.log('📊 Analytics Overview API Response:', response)
+        return response
+      } catch (error) {
+        console.error('📊 Analytics Overview API Error:', error)
+        throw error
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: false,
+    retry: (failureCount, error) => {
+      if (error?.response?.status === 403 || error?.response?.status === 401) {
+        return false
+      }
+      if (!error?.response) {
+        return false
+      }
+      return failureCount < 2
+    }
+  })
+}
+
+// Posts Analytics Hook
+export const usePostsAnalytics = (params: PostsAnalyticsParams = {}) => {
+  const paramsKey = JSON.stringify(params)
+  
+  return useQuery({
+    queryKey: analyticsKeys.postsAnalytics(paramsKey),
+    queryFn: async () => {
+      try {
+        const response = await analyticsApi.getPostsAnalytics(params)
+        console.log('📊 Posts Analytics API Response:', response)
+        return response
+      } catch (error) {
+        console.error('📊 Posts Analytics API Error:', error)
+        throw error
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: false,
+    retry: (failureCount, error) => {
+      if (error?.response?.status === 403 || error?.response?.status === 401) {
+        return false
+      }
+      if (!error?.response) {
+        return false
+      }
+      return failureCount < 2
+    }
+  })
+}
+
+// Platform Specific Analytics Hook
+export const usePlatformSpecificAnalytics = (platform: Platform, dateRange: string = '30d') => {
+  return useQuery({
+    queryKey: analyticsKeys.platformSpecific(platform, dateRange),
+    queryFn: async () => {
+      try {
+        const response = await analyticsApi.getPlatformSpecificAnalytics(platform, { dateRange })
+        console.log(`📊 ${platform} Specific Analytics API Response:`, response)
+        return response
+      } catch (error) {
+        console.error(`📊 ${platform} Specific Analytics API Error:`, error)
+        throw error
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: false,
+    retry: (failureCount, error) => {
+      if (error?.response?.status === 403 || error?.response?.status === 401) {
+        return false
+      }
+      if (!error?.response) {
+        return false
+      }
+      return failureCount < 2
+    },
+    enabled: !!platform
+  })
+}
+
+// Content Insights Hook
+export const useContentInsights = (dateRange: string = '30d') => {
+  return useQuery({
+    queryKey: analyticsKeys.contentInsights(dateRange),
+    queryFn: async () => {
+      try {
+        const response = await analyticsApi.getContentInsights({ dateRange })
+        console.log('📊 Content Insights API Response:', response)
+        return response
+      } catch (error) {
+        console.error('📊 Content Insights API Error:', error)
+        throw error
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: false,
+    retry: (failureCount, error) => {
+      if (error?.response?.status === 403 || error?.response?.status === 401) {
+        return false
+      }
+      if (!error?.response) {
+        return false
+      }
+      return failureCount < 2
+    }
+  })
+}
+
+// Post-Specific Analytics Hook
+export const usePostSpecificAnalytics = (postId: string) => {
+  return useQuery({
+    queryKey: analyticsKeys.postSpecific(postId),
+    queryFn: async () => {
+      try {
+        const response = await analyticsApi.getPostSpecificAnalytics(postId)
+        console.log('📊 Post-Specific Analytics API Response:', response)
+        return response
+      } catch (error) {
+        console.error('📊 Post-Specific Analytics API Error:', error)
+        throw error
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: false,
+    retry: (failureCount, error) => {
+      if (error?.response?.status === 403 || error?.response?.status === 401) {
+        return false
+      }
+      if (!error?.response) {
+        return false
+      }
+      return failureCount < 2
+    },
+    enabled: !!postId
   })
 }
 

@@ -13,7 +13,12 @@ import {
   EngagementAnalyticsData,
   ContentAnalyticsData,
   RefreshEngagementResponse,
-  Platform
+  Platform,
+  AnalyticsOverview,
+  PostsAnalyticsData,
+  ContentInsights,
+  PostSpecificAnalytics,
+  ApiResponse
 } from '@/types/api';
 
 export interface AnalyticsParams {
@@ -22,6 +27,18 @@ export interface AnalyticsParams {
   accountId?: string;
   startDate?: string;
   endDate?: string;
+}
+
+export interface PostsAnalyticsParams {
+  platform?: Platform;
+  mediaType?: string;
+  dateRange?: string;
+  hashtag?: string;
+  accountId?: string;
+  sortBy?: string;
+  order?: 'ASC' | 'DESC';
+  page?: number;
+  size?: number;
 }
 
 export const analyticsApi = {
@@ -167,5 +184,67 @@ export const analyticsApi = {
       })
     );
     return response;
+  },
+
+  /**
+   * Get analytics overview - /api/v1/analytics/overview
+   */
+  getOverview: async (params: Pick<AnalyticsParams, 'dateRange'> = {}): Promise<AnalyticsOverview> => {
+    const queryString = buildQueryParams(params);
+    const url = queryString ? `/analytics/overview?${queryString}` : '/analytics/overview';
+    
+    const response = await makeApiCall<ApiResponse<AnalyticsOverview>>(
+      () => apiClient.get(buildApiUrl(url))
+    );
+    return response.data;
+  },
+
+  /**
+   * Get posts analytics with filtering and pagination - /api/v1/analytics/posts
+   */
+  getPostsAnalytics: async (params: PostsAnalyticsParams = {}): Promise<PostsAnalyticsData> => {
+    const queryString = buildQueryParams(params);
+    const url = queryString ? `/analytics/posts?${queryString}` : '/analytics/posts';
+    
+    const response = await makeApiCall<ApiResponse<PostsAnalyticsData>>(
+      () => apiClient.get(buildApiUrl(url))
+    );
+    return response.data;
+  },
+
+  /**
+   * Get platform-specific analytics - /api/v1/analytics/platforms/{platform}
+   */
+  getPlatformSpecificAnalytics: async (platform: Platform, params: Pick<AnalyticsParams, 'dateRange'> = {}): Promise<PlatformAnalyticsData> => {
+    const queryString = buildQueryParams(params);
+    const url = queryString ? `/analytics/platforms/${platform}?${queryString}` : `/analytics/platforms/${platform}`;
+    
+    const response = await makeApiCall<ApiResponse<PlatformAnalyticsData>>(
+      () => apiClient.get(buildApiUrl(url))
+    );
+    return response.data;
+  },
+
+  /**
+   * Get content insights - /api/v1/analytics/content-insights
+   */
+  getContentInsights: async (params: Pick<AnalyticsParams, 'dateRange'> = {}): Promise<ContentInsights> => {
+    const queryString = buildQueryParams(params);
+    const url = queryString ? `/analytics/content-insights?${queryString}` : '/analytics/content-insights';
+    
+    const response = await makeApiCall<ApiResponse<ContentInsights>>(
+      () => apiClient.get(buildApiUrl(url))
+    );
+    return response.data;
+  },
+
+  /**
+   * Get post-specific analytics - /api/v1/analytics/posts/{postId}
+   */
+  getPostSpecificAnalytics: async (postId: string): Promise<PostSpecificAnalytics> => {
+    const response = await makeApiCall<ApiResponse<PostSpecificAnalytics>>(
+      () => apiClient.get(buildApiUrl(`/analytics/posts/${postId}`))
+    );
+    return response.data;
   },
 };
