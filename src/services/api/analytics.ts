@@ -247,4 +247,17 @@ export const analyticsApi = {
     );
     return response.data;
   },
+
+  /**
+   * Get comprehensive dashboard analytics - /api/v1/analytics/dashboard
+   */
+  getDashboard: async (params: Pick<AnalyticsParams, 'dateRange'> = {}): Promise<any> => {
+    const queryString = buildQueryParams(params);
+    const url = queryString ? `/analytics/dashboard?${queryString}` : '/analytics/dashboard';
+    
+    const response = await makeApiCall<ApiResponse<any>>(
+      () => apiClient.get(buildApiUrl(url))
+    );
+    return response.data;
+  },
 };

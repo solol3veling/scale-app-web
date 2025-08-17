@@ -28,6 +28,7 @@ export const analyticsKeys = {
   platformSpecific: (platform: Platform, dateRange: string) => [...analyticsKeys.all, 'platform-specific', platform, dateRange] as const,
   contentInsights: (dateRange: string) => [...analyticsKeys.all, 'content-insights', dateRange] as const,
   postSpecific: (postId: string) => [...analyticsKeys.all, 'post-specific', postId] as const,
+  dashboard: (dateRange: string) => [...analyticsKeys.all, 'dashboard', dateRange] as const,
 }
 
 // Basic Analytics Hook
@@ -374,6 +375,31 @@ export const useRefreshAllEngagements = () => {
     },
     onError: (error) => {
       console.error('❌ Failed to refresh all engagements:', error)
+    }
+  })
+}
+
+// Analytics Dashboard Hook
+export const useAnalyticsDashboard = (dateRange: string = '30d') => {
+  return useQuery({
+    queryKey: analyticsKeys.dashboard(dateRange),
+    queryFn: async () => {
+      try {
+        const response = await analyticsApi.getDashboard({ dateRange })
+        console.log('📊 Dashboard Analytics Response:', response)
+        return response
+      } catch (error) {
+        console.error('📊 Dashboard Analytics Error:', error)
+        throw error
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: false,
+    retry: (failureCount, error) => {
+      if (error?.response?.status === 403 || error?.response?.status === 401) {
+        return false
+      }
+      return failureCount < 2
     }
   })
 }

@@ -32,7 +32,8 @@ import {
   useAnalyticsOverview,
   usePostsAnalytics,
   useContentInsights,
-  useRefreshAllEngagements 
+  useRefreshAllEngagements,
+  useAnalyticsDashboard
 } from "@/hooks/useAnalytics"
 import { useNavigate } from "react-router-dom"
 import { useState } from "react"
@@ -135,41 +136,39 @@ export default function Analytics() {
   const [selectedContent, setSelectedContent] = useState<SelectedContent | null>(null);
   const [selectedPlatform, setSelectedPlatform] = useState<SelectedPlatform | null>(null);
   
-  // All analytics data hooks
+  // Primary analytics data hook - use the comprehensive dashboard endpoint
+  const { data: dashboardData, isLoading: dashboardLoading, error: dashboardError, refetch: refetchDashboard } = useAnalyticsDashboard(dateRange);
+  
+  // Backup hooks for fallback (keep for compatibility)
   const { data: basicAnalyticsData, isLoading: basicLoading, error: basicError, refetch: refetchBasic } = useAnalytics(dateRange);
-  const { data: enhancedAnalyticsData, isLoading: enhancedLoading, error: enhancedError, refetch: refetchEnhanced } = useEnhancedAnalytics(dateRange);
   const { data: overviewData, isLoading: overviewLoading, error: overviewError, refetch: refetchOverview } = useAnalyticsOverview(dateRange);
   const { data: postsData, isLoading: postsLoading, error: postsError } = usePostsAnalytics({ dateRange, sortBy: 'engagement', order: 'DESC', size: 10 });
   const { data: insightsData, isLoading: insightsLoading, error: insightsError } = useContentInsights(dateRange);
-  const { data: engagementData, isLoading: engagementLoading, error: engagementError, refetch: refetchEngagement } = useEngagementAnalytics(dateRange);
-  const { data: contentData, isLoading: contentLoading, error: contentError, refetch: refetchContent } = useContentAnalytics(dateRange);
   
   // Refresh mutation
   const refreshAllMutation = useRefreshAllEngagements();
   
   // Determine which data to show based on current view and settings
   const getActiveData = () => {
-    // For dashboard view, prioritize overview data which is richer
-    const primaryData = overviewData || (useEnhanced ? enhancedAnalyticsData : basicAnalyticsData);
-    const primaryLoading = overviewLoading || (useEnhanced ? enhancedLoading : basicLoading);
-    const primaryError = overviewError || (useEnhanced ? enhancedError : basicError);
-    const primaryRefetch = refetchOverview || (useEnhanced ? refetchEnhanced : refetchBasic);
+    // Prioritize dashboard data which contains everything we need
+    const primaryData = dashboardData || overviewData || basicAnalyticsData;
+    const primaryLoading = dashboardLoading || overviewLoading || basicLoading;
+    const primaryError = dashboardError || overviewError || basicError;
+    const primaryRefetch = refetchDashboard || refetchOverview || refetchBasic;
     
     return { 
       data: primaryData, 
       loading: primaryLoading, 
       error: primaryError, 
       refetch: primaryRefetch,
+      dashboardData,
       overviewData,
       postsData,
       insightsData,
-      engagementData,
-      contentData,
+      dashboardLoading,
       overviewLoading,
       postsLoading,
-      insightsLoading,
-      engagementLoading,
-      contentLoading
+      insightsLoading
     };
   };
   
@@ -199,14 +198,73 @@ export default function Analytics() {
   const getCombinedAnalyticsData = () => {
     const { 
       data: primaryData, 
+      dashboardData,
       overviewData, 
       postsData, 
-      insightsData, 
-      engagementData, 
-      contentData 
+      insightsData
     } = getActiveData();
 
-    // Create comprehensive analytics data structure with available data (always return data for charts)
+    // Use dashboard data if available (this has everything we need!)
+    if (dashboardData) {
+      return {
+        // Basic metrics from dashboard overview
+        totalPosts: dashboardData.overview?.totalPosts || 0,
+        totalPublishedPosts: dashboardData.overview?.totalPublishedPosts || 0,
+        totalScheduledPosts: dashboardData.overview?.totalScheduledPosts || 0,
+        totalEngagement: dashboardData.overview?.totalEngagement || 0,
+        mostActiveplatform: dashboardData.overview?.mostActiveplatform || 'N/A',
+
+        // Performance data
+        performance: {
+          averageEngagementPerPost: dashboardData.overview?.averageEngagementPerPost || 0
+        },
+
+        // Publishing stats
+        publishingStats: {
+          successRate: dashboardData.overview?.publishingSuccessRate || 0,
+          successfulPublishes: dashboardData.overview?.successfulPublishes || 0,
+          mostSuccessfulPlatform: dashboardData.overview?.mostActiveplatform || 'N/A'
+        },
+
+        // Platform rankings (direct from API)
+        platformRankings: dashboardData.platformRankings || [],
+
+        // Top posts (direct from API)
+        topPosts: dashboardData.topPosts || [],
+
+        // Engagement analysis (direct from API)
+        engagementAnalysis: dashboardData.engagementAnalysis || {
+          totalLikes: 0,
+          totalComments: 0,
+          totalShares: 0,
+          totalViews: 0,
+          totalSaves: 0,
+          averageLikesPerPost: 0,
+          averageCommentsPerPost: 0,
+          averageSharesPerPost: 0
+        },
+
+        // Posting time analysis (direct from API with backend-calculated percentages!)
+        postingTimeAnalysis: dashboardData.postingTimeAnalysis || {
+          peakPostingDay: 'N/A',
+          peakPostingHour: 'N/A',
+          hourlyBreakdown: [],
+          dailyBreakdown: []
+        },
+
+        // Time series data (direct from API)
+        timeSeriesData: dashboardData.timeSeriesData || [],
+
+        // Scheduling analysis (direct from API)
+        schedulingAnalysis: dashboardData.schedulingAnalysis || {
+          schedulingRate: 0,
+          currentlyScheduled: 0,
+          monthlyTrends: []
+        }
+      };
+    }
+
+    // Fallback to other data sources if dashboard data is not available
     {
       // Calculate basic metrics from available data
       const totalPosts = insightsData?.mediaTypePerformance?.reduce((sum, type) => sum + type.postCount, 0) || 

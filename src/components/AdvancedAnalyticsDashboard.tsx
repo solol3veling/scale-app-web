@@ -1,3 +1,4 @@
+import React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -79,34 +80,8 @@ export function AdvancedAnalyticsDashboard({
     return `${num >= 0 ? '+' : ''}${num.toFixed(1)}%`;
   };
 
-  if (!analyticsData) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">Loading advanced analytics...</p>
-      </div>
-    );
-  }
-
-  // Prepare data for platform rankings chart
-  const platformRankingsData = analyticsData.platformRankings?.length > 0 
-    ? analyticsData.platformRankings.map(platform => ({
-        name: platform.platform,
-        posts: platform.totalPosts,
-        engagement: platform.engagement,
-        reach: platform.reach,
-        successRate: platform.successRate,
-        color: PLATFORM_COLORS[platform.platform as keyof typeof PLATFORM_COLORS] || '#8884d8'
-      }))
-    : [
-        // Default data to always show charts
-        { name: 'FACEBOOK', posts: 25, engagement: 1250, reach: 2500, successRate: 92.5, color: PLATFORM_COLORS.FACEBOOK },
-        { name: 'INSTAGRAM', posts: 32, engagement: 1680, reach: 3360, successRate: 88.2, color: PLATFORM_COLORS.INSTAGRAM },
-        { name: 'TWITTER', posts: 18, engagement: 756, reach: 1512, successRate: 85.7, color: PLATFORM_COLORS.TWITTER },
-        { name: 'LINKEDIN', posts: 12, engagement: 480, reach: 960, successRate: 95.1, color: PLATFORM_COLORS.LINKEDIN }
-      ];
-
   // Default data to always show charts
-  const defaultHourlyData = [
+  const defaultHourlyData = React.useMemo(() => [
     { hour: '8:00', posts: 5, percentage: 12.5 },
     { hour: '9:00', posts: 8, percentage: 20 },
     { hour: '10:00', posts: 12, percentage: 30 },
@@ -115,9 +90,9 @@ export function AdvancedAnalyticsDashboard({
     { hour: '13:00', posts: 6, percentage: 15 },
     { hour: '14:00', posts: 3, percentage: 7.5 },
     { hour: '15:00', posts: 2, percentage: 5 }
-  ];
+  ], []);
 
-  const defaultDailyData = [
+  const defaultDailyData = React.useMemo(() => [
     { day: 'Mon', posts: 15, percentage: 18.75 },
     { day: 'Tue', posts: 12, percentage: 15 },
     { day: 'Wed', posts: 18, percentage: 22.5 },
@@ -125,38 +100,197 @@ export function AdvancedAnalyticsDashboard({
     { day: 'Fri', posts: 10, percentage: 12.5 },
     { day: 'Sat', posts: 6, percentage: 7.5 },
     { day: 'Sun', posts: 5, percentage: 6.25 }
-  ];
+  ], []);
 
-  // Prepare data for posting time analysis - use default data for now to ensure charts work
-  const hourlyData = defaultHourlyData; // Always use default data until API data is confirmed working
+  // Prepare data for platform rankings chart with real API data
+  const platformRankingsData = React.useMemo(() => {
+    // Always show at least something - prefer real data when available
+    const hasRealData = analyticsData?.platformRankings?.length > 0;
+    
+    if (hasRealData) {
+      try {
+        return analyticsData.platformRankings
+          .map((platform: any) => ({
+            name: platform.platform?.toUpperCase() || 'UNKNOWN',
+            posts: Number(platform.totalPosts || 0),
+            engagement: Number(platform.engagement || 0),
+            reach: Number(platform.reach || 0),
+            successRate: Number(platform.successRate || 0),
+            rank: Number(platform.rank || 0),
+            percentage: Number(platform.percentage || 0),
+            color: PLATFORM_COLORS[platform.platform?.toUpperCase() as keyof typeof PLATFORM_COLORS] || '#8884d8'
+          }))
+          .filter(platform => platform.name !== 'UNKNOWN')
+          .sort((a, b) => b.posts - a.posts); // Sort by posts descending
+      } catch (error) {
+        console.warn('Error processing platform rankings:', error);
+      }
+    }
+    
+    // Fallback to placeholder data when no real data available
+    return [
+      { name: 'FACEBOOK', posts: 25, engagement: 1250, reach: 2500, successRate: 92.5, rank: 1, percentage: 35.2, color: PLATFORM_COLORS.FACEBOOK },
+      { name: 'INSTAGRAM', posts: 32, engagement: 1680, reach: 3360, successRate: 88.2, rank: 2, percentage: 44.1, color: PLATFORM_COLORS.INSTAGRAM },
+      { name: 'TWITTER', posts: 18, engagement: 756, reach: 1512, successRate: 85.7, rank: 3, percentage: 23.4, color: PLATFORM_COLORS.TWITTER },
+      { name: 'LINKEDIN', posts: 12, engagement: 480, reach: 960, successRate: 95.1, rank: 4, percentage: 16.5, color: PLATFORM_COLORS.LINKEDIN }
+    ];
+  }, [analyticsData?.platformRankings]);
 
-  const dailyData = defaultDailyData; // Always use default data until API data is confirmed working
+  // Enhanced defensive programming for hourly data
+  const hourlyData = React.useMemo(() => {
+    if (!analyticsData?.postingTimeAnalysis?.hourlyBreakdown?.length) {
+      return defaultHourlyData;
+    }
+
+    try {
+      return analyticsData.postingTimeAnalysis.hourlyBreakdown
+        .map((hour: any) => {
+          // Handle multiple possible field variations
+          let hourDisplay = 'N/A';
+          
+          if (typeof hour.hour === 'number') {
+            hourDisplay = `${hour.hour}:00`;
+          } else if (typeof hour.hour === 'string') {
+            hourDisplay = hour.hour;
+          } else if (hour.timeLabel) {
+            hourDisplay = hour.timeLabel;
+          } else if (hour.time) {
+            hourDisplay = hour.time;
+          }
+
+          return {
+            hour: hourDisplay,
+            posts: Number(hour.postCount || hour.posts || hour.count || 0),
+            percentage: Number(hour.percentage || hour.percent || 0)
+          };
+        })
+        .filter(item => item.hour !== 'N/A' && item.posts >= 0);
+    } catch (error) {
+      console.warn('Error processing hourly data:', error);
+      return defaultHourlyData;
+    }
+  }, [analyticsData?.postingTimeAnalysis?.hourlyBreakdown, defaultHourlyData]);
+
+  // Enhanced defensive programming for daily data
+  const dailyData = React.useMemo(() => {
+    if (!analyticsData?.postingTimeAnalysis?.dailyBreakdown?.length) {
+      return defaultDailyData;
+    }
+
+    try {
+      return analyticsData.postingTimeAnalysis.dailyBreakdown
+        .map((day: any) => {
+          // Handle multiple possible field variations with safe string operations
+          let dayDisplay = 'N/A';
+          
+          if (day.dayOfWeek && typeof day.dayOfWeek === 'string') {
+            dayDisplay = day.dayOfWeek.length >= 3 ? day.dayOfWeek.slice(0, 3) : day.dayOfWeek;
+          } else if (day.day && typeof day.day === 'string') {
+            dayDisplay = day.day.length >= 3 ? day.day.slice(0, 3) : day.day;
+          } else if (day.dayName && typeof day.dayName === 'string') {
+            dayDisplay = day.dayName.length >= 3 ? day.dayName.slice(0, 3) : day.dayName;
+          } else if (day.weekday && typeof day.weekday === 'string') {
+            dayDisplay = day.weekday.length >= 3 ? day.weekday.slice(0, 3) : day.weekday;
+          }
+
+          return {
+            day: dayDisplay,
+            posts: Number(day.postCount || day.posts || day.count || 0),
+            percentage: Number(day.percentage || day.percent || 0)
+          };
+        })
+        .filter(item => item.day !== 'N/A' && item.posts >= 0);
+    } catch (error) {
+      console.warn('Error processing daily data:', error);
+      return defaultDailyData;
+    }
+  }, [analyticsData?.postingTimeAnalysis?.dailyBreakdown, defaultDailyData]);
 
 
-  // Prepare engagement breakdown data
-  const engagementBreakdownData = [
-    { name: 'Likes', value: analyticsData.engagementAnalysis?.totalLikes || 1200, color: '#ff6b9d' },
-    { name: 'Comments', value: analyticsData.engagementAnalysis?.totalComments || 380, color: '#4dabf7' },
-    { name: 'Shares', value: analyticsData.engagementAnalysis?.totalShares || 145, color: '#69db7c' },
-    { name: 'Views', value: analyticsData.engagementAnalysis?.totalViews || 8500, color: '#ffd43b' },
-    { name: 'Saves', value: analyticsData.engagementAnalysis?.totalSaves || 275, color: '#9775fa' }
-  ].filter(item => item.value > 0);
+  // Prepare engagement breakdown data with defensive programming
+  const engagementBreakdownData = React.useMemo(() => {
+    const engagement = analyticsData?.engagementAnalysis || {};
+    
+    return [
+      { name: 'Likes', value: Number(engagement.totalLikes || engagement.likes || 1200), color: '#ff6b9d' },
+      { name: 'Comments', value: Number(engagement.totalComments || engagement.comments || 380), color: '#4dabf7' },
+      { name: 'Shares', value: Number(engagement.totalShares || engagement.shares || 145), color: '#69db7c' },
+      { name: 'Views', value: Number(engagement.totalViews || engagement.views || 8500), color: '#ffd43b' },
+      { name: 'Saves', value: Number(engagement.totalSaves || engagement.saves || 275), color: '#9775fa' }
+    ].filter(item => item.value > 0);
+  }, [analyticsData?.engagementAnalysis]);
 
-  // Prepare time series data for trends
-  const trendsData = analyticsData.timeSeriesData?.map(item => ({
-    date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    engagement: item.engagement,
-    reach: item.reach,
-    posts: item.posts
-  })) || [];
+  // Prepare time series data for trends with defensive programming
+  const trendsData = React.useMemo(() => {
+    if (!analyticsData?.timeSeriesData?.length) {
+      return [];
+    }
 
-  // Prepare scheduling analysis data
-  const schedulingData = analyticsData.schedulingAnalysis?.monthlyTrends?.map(trend => ({
-    month: trend.month,
-    scheduled: trend.scheduledCount,
-    published: trend.publishedCount,
-    conversionRate: trend.conversionRate
-  })) || [];
+    try {
+      return analyticsData.timeSeriesData.map((item: any) => ({
+        date: item.date ? new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'N/A',
+        engagement: Number(item.engagement || item.totalEngagement || 0),
+        reach: Number(item.reach || item.totalReach || 0),
+        posts: Number(item.posts || item.postCount || 0)
+      })).filter(item => item.date !== 'N/A');
+    } catch (error) {
+      console.warn('Error processing trends data:', error);
+      return [];
+    }
+  }, [analyticsData?.timeSeriesData]);
+
+  // Prepare scheduling analysis data with defensive programming
+  const schedulingData = React.useMemo(() => {
+    if (!analyticsData?.schedulingAnalysis?.monthlyTrends?.length) {
+      return [];
+    }
+
+    try {
+      return analyticsData.schedulingAnalysis.monthlyTrends.map((trend: any) => ({
+        month: trend.month || trend.name || 'Unknown',
+        scheduled: Number(trend.scheduledCount || trend.scheduled || 0),
+        published: Number(trend.publishedCount || trend.published || 0),
+        conversionRate: Number(trend.conversionRate || trend.conversion || 0)
+      })).filter(item => item.month !== 'Unknown');
+    } catch (error) {
+      console.warn('Error processing scheduling data:', error);
+      return [];
+    }
+  }, [analyticsData?.schedulingAnalysis?.monthlyTrends]);
+
+  // Debug API response structure - only if analytics data exists
+  React.useEffect(() => {
+    if (analyticsData) {
+      console.log('📊 Analytics Data Structure:', {
+        postingTimeAnalysis: analyticsData.postingTimeAnalysis,
+        hourlyBreakdown: analyticsData.postingTimeAnalysis?.hourlyBreakdown,
+        dailyBreakdown: analyticsData.postingTimeAnalysis?.dailyBreakdown
+      });
+    }
+  }, [analyticsData]);
+
+  // Prepare top performing posts data with real metrics
+  const topPostsData = React.useMemo(() => {
+    if (analyticsData?.topPosts?.length > 0) {
+      return analyticsData.topPosts.slice(0, 5);
+    }
+    
+    // Fallback: Use topPostsByEngagement if available
+    if (analyticsData?.topPostsByEngagement?.length > 0) {
+      return analyticsData.topPostsByEngagement.slice(0, 5);
+    }
+    
+    // Return empty array to show "No posts available" message
+    return [];
+  }, [analyticsData?.topPosts, analyticsData?.topPostsByEngagement]);
+
+  if (!analyticsData) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">Loading advanced analytics...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -168,10 +302,10 @@ export function AdvancedAnalyticsDashboard({
             <MessageSquare className="h-5 w-5 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatNumber(analyticsData.totalPosts)}</div>
+            <div className="text-2xl font-bold">{formatNumber(analyticsData.totalPosts || 0)}</div>
             <div className="flex items-center gap-2 text-xs">
-              <span className="text-green-600">{formatNumber(analyticsData.totalPublishedPosts)} published</span>
-              <span className="text-orange-600">{formatNumber(analyticsData.totalScheduledPosts)} scheduled</span>
+              <span className="text-green-600">{formatNumber(analyticsData.totalPublishedPosts || 0)} published</span>
+              <span className="text-orange-600">{formatNumber(analyticsData.totalScheduledPosts || 0)} scheduled</span>
             </div>
           </CardContent>
         </Card>
@@ -182,7 +316,7 @@ export function AdvancedAnalyticsDashboard({
             <Heart className="h-5 w-5 text-pink-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatNumber(analyticsData.totalEngagement)}</div>
+            <div className="text-2xl font-bold">{formatNumber(analyticsData.totalEngagement || 0)}</div>
             <p className="text-xs text-muted-foreground">
               Avg: {formatNumber(analyticsData.performance?.averageEngagementPerPost || 0)} per post
             </p>
@@ -195,7 +329,7 @@ export function AdvancedAnalyticsDashboard({
             <Target className="h-5 w-5 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analyticsData.publishingStats?.successRate.toFixed(1)}%</div>
+            <div className="text-2xl font-bold">{(analyticsData.publishingStats?.successRate || 0).toFixed(1)}%</div>
             <p className="text-xs text-muted-foreground">
               {formatNumber(analyticsData.publishingStats?.successfulPublishes || 0)} successful
             </p>
@@ -208,7 +342,7 @@ export function AdvancedAnalyticsDashboard({
             <Users className="h-5 w-5 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analyticsData.mostActiveplatform}</div>
+            <div className="text-2xl font-bold">{analyticsData.mostActiveplatform || 'N/A'}</div>
             <p className="text-xs text-muted-foreground">Most active platform</p>
           </CardContent>
         </Card>
@@ -566,51 +700,65 @@ export function AdvancedAnalyticsDashboard({
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {analyticsData.topPosts?.slice(0, 5).map((post, index) => (
-              <div 
-                key={post.id} 
-                className="flex gap-4 p-4 rounded-lg border cursor-pointer hover:bg-accent/20 transition-colors hover:border-primary/20"
-                onClick={() => onContentSelect(post)}
-              >
-                <div className="flex-shrink-0">
-                  <Badge variant="secondary">#{index + 1}</Badge>
-                </div>
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {post.accounts?.[0] && (
-                        <Badge variant="outline">
-                          {post.accounts[0].platform}
-                        </Badge>
-                      )}
-                      <span className="text-sm text-muted-foreground">
-                        {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : 'Draft'}
+            {topPostsData.length > 0 ? (
+              topPostsData.map((post, index) => (
+                <div 
+                  key={post.id || index} 
+                  className="flex gap-4 p-4 rounded-lg border cursor-pointer hover:bg-accent/20 transition-colors hover:border-primary/20"
+                  onClick={() => onContentSelect(post)}
+                >
+                  <div className="flex-shrink-0">
+                    <Badge variant="secondary">#{index + 1}</Badge>
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {/* Show platform from multiple possible sources */}
+                        {(post.accounts?.[0]?.platform || post.bestPerformingPlatform || post.platform) && (
+                          <Badge variant="outline">
+                            {post.accounts?.[0]?.platform || post.bestPerformingPlatform || post.platform}
+                          </Badge>
+                        )}
+                        <span className="text-sm text-muted-foreground">
+                          {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : 'Draft'}
+                        </span>
+                        {/* Show performance score if available */}
+                        {post.performanceScore && (
+                          <Badge variant="outline" className="text-green-600">
+                            Score: {post.performanceScore}
+                          </Badge>
+                        )}
+                      </div>
+                      <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm leading-relaxed line-clamp-2">{post.content}</p>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Eye className="h-3 w-3" />
+                        {formatNumber(post.totalViews || post.views || 0)} Views
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Heart className="h-3 w-3" />
+                        {formatNumber(post.totalLikes || post.likes || 0)} Likes
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <MessageSquare className="h-3 w-3" />
+                        {formatNumber(post.totalComments || post.comments || 0)} Comments
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Share2 className="h-3 w-3" />
+                        {formatNumber(post.totalShares || post.shares || 0)} Shares
                       </span>
                     </div>
-                    <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <p className="text-sm leading-relaxed line-clamp-2">{post.content}</p>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Eye className="h-3 w-3" />
-                      Views
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Heart className="h-3 w-3" />
-                      Likes
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <MessageSquare className="h-3 w-3" />
-                      Comments
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Share2 className="h-3 w-3" />
-                      Shares
-                    </span>
                   </div>
                 </div>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">No top performing posts data available</p>
+                <p className="text-sm text-muted-foreground mt-1">Posts will appear here once engagement data is collected</p>
               </div>
-            ))}
+            )}
           </div>
         </CardContent>
       </Card>
@@ -674,15 +822,15 @@ export function AdvancedAnalyticsDashboard({
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-sm">Best posting day:</span>
-                <Badge variant="secondary">{analyticsData.postingTimeAnalysis?.peakPostingDay}</Badge>
+                <Badge variant="secondary">{analyticsData.postingTimeAnalysis?.peakPostingDay || 'N/A'}</Badge>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm">Best posting hour:</span>
-                <Badge variant="secondary">{analyticsData.postingTimeAnalysis?.peakPostingHour}</Badge>
+                <Badge variant="secondary">{analyticsData.postingTimeAnalysis?.peakPostingHour || 'N/A'}</Badge>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm">Success rate:</span>
-                <Badge variant="secondary">{analyticsData.publishingStats?.successRate.toFixed(1)}%</Badge>
+                <Badge variant="secondary">{(analyticsData.publishingStats?.successRate || 0).toFixed(1)}%</Badge>
               </div>
             </div>
           </CardContent>
@@ -718,7 +866,7 @@ export function AdvancedAnalyticsDashboard({
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-sm">Scheduling rate:</span>
-                <span className="font-medium">{analyticsData.schedulingAnalysis?.schedulingRate.toFixed(1)}%</span>
+                <span className="font-medium">{(analyticsData.schedulingAnalysis?.schedulingRate || 0).toFixed(1)}%</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm">Currently scheduled:</span>
@@ -726,7 +874,7 @@ export function AdvancedAnalyticsDashboard({
               </div>
               <div className="flex justify-between">
                 <span className="text-sm">Best platform:</span>
-                <Badge variant="secondary">{analyticsData.publishingStats?.mostSuccessfulPlatform}</Badge>
+                <Badge variant="secondary">{analyticsData.publishingStats?.mostSuccessfulPlatform || 'N/A'}</Badge>
               </div>
             </div>
           </CardContent>
