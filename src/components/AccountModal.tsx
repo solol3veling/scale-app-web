@@ -124,17 +124,6 @@ export function AccountModal({ account, isOpen, onClose, mode, onSave }: Account
             </div>
             <div className="flex items-center gap-2">
               {getStatusDisplay()}
-              {mode === 'view' && !isEditing && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsEditing(true)}
-                  className="gap-2"
-                >
-                  <Edit3 className="h-4 w-4" />
-                  Edit
-                </Button>
-              )}
             </div>
           </div>
         </DialogHeader>
@@ -246,29 +235,10 @@ export function AccountModal({ account, isOpen, onClose, mode, onSave }: Account
 
         {/* Action Buttons */}
         <div className="flex justify-end gap-2 pt-4 border-t">
-          {isEditing ? (
-            <>
-              <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
-                <X className="h-4 w-4 mr-2" />
-                Cancel
-              </Button>
-              <Button onClick={handleSave} disabled={isSaving}>
-                {isSaving ? (
-                  "Saving..."
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Changes
-                  </>
-                )}
-              </Button>
-            </>
-          ) : (
-            <Button variant="outline" onClick={onClose}>
-              <Eye className="h-4 w-4 mr-2" />
-              Close
-            </Button>
-          )}
+          <Button variant="outline" onClick={onClose}>
+            <Eye className="h-4 w-4 mr-2" />
+            Close
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

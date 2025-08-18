@@ -163,18 +163,18 @@ export function AccountsList({ searchTerm, selectedPlatform, action, accountId, 
 
   const getStatusBadge = (status: string, isConnected: boolean) => {
     if (!isConnected) {
-      return <Badge variant="destructive" className="gap-1"><AlertCircle className="h-3 w-3" />Disconnected</Badge>
+      return <Badge variant="destructive" className="gap-1 text-xs"><AlertCircle className="h-3 w-3" />Disconnected</Badge>
     }
     
     switch (status?.toLowerCase()) {
       case "active":
-        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 gap-1"><CheckCircle className="h-3 w-3" />Connected</Badge>
+        return <CheckCircle className="h-4 w-4 text-green-500" title="Connected" />
       case "inactive":
-        return <Badge variant="secondary" className="gap-1">Inactive</Badge>
+        return <Badge variant="secondary" className="gap-1 text-xs">Inactive</Badge>
       case "pending":
-        return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100 gap-1"><AlertCircle className="h-3 w-3" />Pending</Badge>
+        return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100 gap-1 text-xs"><AlertCircle className="h-3 w-3" />Pending</Badge>
       default:
-        return <Badge variant="outline" className="gap-1">Unknown</Badge>
+        return <Badge variant="outline" className="gap-1 text-xs">Unknown</Badge>
     }
   }
 
@@ -260,18 +260,18 @@ export function AccountsList({ searchTerm, selectedPlatform, action, accountId, 
   return (
     <TooltipProvider>
       <div className="space-y-6">
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
           {accounts.map((account) => (
-        <Card key={account.id} className="shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02] flex flex-col h-full border border-gray-200 dark:border-gray-700">
-          <CardHeader className="pb-3 px-4 pt-4">
+        <Card key={account.id} className="shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02] flex flex-col h-full border border-gray-200 dark:border-gray-700 p-4">
+          <CardHeader className="pb-2 px-0 pt-0">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0 flex-1">
-                <Avatar className="h-12 w-12 flex-shrink-0">
+                <Avatar className="h-10 w-10 flex-shrink-0">
                   <AvatarImage src={account?.profileImage} />
                   <AvatarFallback className={`${getPlatformConfig(account?.platform).color} text-white`}>
                     {(() => {
                       const PlatformIcon = getPlatformConfig(account?.platform).icon
-                      return <PlatformIcon className="w-6 h-6" />
+                      return <PlatformIcon className="w-5 h-5" />
                     })()}
                   </AvatarFallback>
                 </Avatar>
@@ -285,87 +285,34 @@ export function AccountsList({ searchTerm, selectedPlatform, action, accountId, 
               </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4 flex-1 px-4 pb-4">
-            <div>
-              <p className="text-xs text-muted-foreground">Platform</p>
+          <div className="flex-1 px-0 pb-0 flex flex-col justify-between pt-3">
+            <div className="flex justify-between items-center gap-2">
               <div className="flex items-center gap-2">
                 {(() => {
                   const platformConfig = getPlatformConfig(account?.platform)
                   const PlatformIcon = platformConfig.icon
                   return (
                     <>
-                      <div className={`p-1.5 rounded-md ${platformConfig.bgColor}`}>
-                        <PlatformIcon className={`w-4 h-4 ${platformConfig.textColor}`} />
+                      <div className={`p-1 rounded-md ${platformConfig.bgColor}`}>
+                        <PlatformIcon className={`w-3 h-3 ${platformConfig.textColor}`} />
                       </div>
-                      <span className={`text-sm font-medium truncate ${platformConfig.textColor}`}>
+                      <span className={`text-xs font-medium truncate ${platformConfig.textColor}`}>
                         {platformConfig.name}
                       </span>
                     </>
                   )
                 })()}
               </div>
-            </div>
-
-            {account?.tags && account?.tags.length > 0 && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-2">Tags</p>
-                <div className="flex flex-wrap gap-1">
-                  {account?.tags.slice(0, 3).map((tag, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      <Tag className="h-3 w-3 mr-1" />
-                      <span className="truncate max-w-[80px]">{tag}</span>
-                    </Badge>
-                  ))}
-                  {account?.tags.length > 3 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{account?.tags.length - 3}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            )}
-
-            <div className="flex justify-between items-center gap-2 pt-3 border-t mt-auto">
-              <span className="text-xs text-muted-foreground truncate flex-1">
-                Last: {account?.lastPost || 'Never'}
-              </span>
               <div className="flex gap-1">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      className="h-8 w-8 hover:scale-105 transition-transform"
-                      onClick={() => handleEditAccount(account)}
-                    >
-                      <Edit3 className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Edit account details</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:scale-105 transition-transform">
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>View profile on {getPlatformConfig(account.platform).name}</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-8 w-8 hover:scale-105 transition-transform"
+                      className="h-7 w-7 hover:scale-105 transition-transform"
                       onClick={() => handleViewSettings(account)}
                     >
-                      <SettingsIcon className="h-4 w-4" />
+                      <SettingsIcon className="h-3 w-3" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -378,10 +325,10 @@ export function AccountsList({ searchTerm, selectedPlatform, action, accountId, 
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10 hover:scale-105 transition-transform"
+                      className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10 hover:scale-105 transition-transform"
                       onClick={() => handleDeleteClick(account.id)}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3 w-3" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -390,7 +337,7 @@ export function AccountsList({ searchTerm, selectedPlatform, action, accountId, 
                 </Tooltip>
               </div>
             </div>
-          </CardContent>
+          </div>
         </Card>
           ))}
         </div>
