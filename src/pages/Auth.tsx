@@ -12,31 +12,24 @@ export default function Auth() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is already authenticated
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      console.log('Auth page - initial session check:', session);
       if (session?.user) {
-        console.log('Auth page - user already authenticated, redirecting');
         navigate("/");
       }
     };
 
     checkUser();
 
-    // Listen for auth changes - but only on this page
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('Auth page - auth state change:', event, session);
         if (event === 'SIGNED_IN' && session?.user) {
-          console.log('Auth page - user signed in, redirecting');
           navigate("/");
         }
       }
     );
 
     return () => {
-      console.log('Auth page - cleaning up auth listener');
       subscription.unsubscribe();
     };
   }, [navigate]);
@@ -47,7 +40,6 @@ export default function Auth() {
     setIsLoading(true);
 
     try {
-      console.log('Starting Google OAuth...');
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -59,14 +51,13 @@ export default function Auth() {
         },
       });
 
-      console.log('OAuth response:', { data, error });
 
       if (error) throw error;
-    } catch (error: any) {
-      console.error('OAuth error:', error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Authentication failed';
       toast({
         title: "Error",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
       setIsLoading(false);
@@ -76,7 +67,6 @@ export default function Auth() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-sm space-y-8">
-        {/* Header */}
         <div className="text-center space-y-6">
           <div className="w-16 h-16 mx-auto">
             <img 

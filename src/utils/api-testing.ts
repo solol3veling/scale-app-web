@@ -7,7 +7,7 @@ export interface TestResult {
   endpoint: string;
   status: 'success' | 'error' | 'skipped';
   duration: number;
-  response?: any;
+  response?: unknown;
   error?: string;
 }
 
@@ -29,7 +29,7 @@ class ApiTester {
    */
   private async testEndpoint(
     name: string, 
-    testFn: () => Promise<any>,
+    testFn: () => Promise<unknown>,
     shouldSkip: boolean = false
   ): Promise<TestResult> {
     const startTime = Date.now();
@@ -43,11 +43,9 @@ class ApiTester {
     }
 
     try {
-      console.log(`🧪 Testing ${name}...`);
       const response = await testFn();
       const duration = Date.now() - startTime;
       
-      console.log(`✅ ${name} - ${duration}ms`, response);
       
       return {
         endpoint: name,
@@ -55,16 +53,15 @@ class ApiTester {
         duration,
         response,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       const duration = Date.now() - startTime;
-      
-      console.log(`❌ ${name} - ${duration}ms`, error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       
       return {
         endpoint: name,
         status: 'error',
         duration,
-        error: error.message,
+        error: errorMessage,
       };
     }
   }
@@ -73,7 +70,6 @@ class ApiTester {
    * Test Overview APIs
    */
   async testOverviewApis(): Promise<TestResult[]> {
-    console.log('📊 Testing Overview APIs...');
     
     const tests = [
       () => api.overview.getStats(),
@@ -106,7 +102,6 @@ class ApiTester {
    * Test Social Accounts APIs
    */
   async testSocialAccountsApis(): Promise<TestResult[]> {
-    console.log('👥 Testing Social Accounts APIs...');
     
     let accountId: string | null = null;
 
@@ -147,7 +142,6 @@ class ApiTester {
    * Test Posts APIs
    */
   async testPostsApis(): Promise<TestResult[]> {
-    console.log('📝 Testing Posts APIs...');
     
     let postId: string | null = null;
     
@@ -206,7 +200,6 @@ class ApiTester {
    * Test Analytics APIs
    */
   async testAnalyticsApis(): Promise<TestResult[]> {
-    console.log('📈 Testing Analytics APIs...');
     
     const tests = [
       () => api.analytics.getAnalytics(),
@@ -243,7 +236,6 @@ class ApiTester {
    * Test Billing APIs
    */
   async testBillingApis(): Promise<TestResult[]> {
-    console.log('💳 Testing Billing APIs...');
     
     const tests = [
       () => api.billing.getStatus(),
@@ -272,7 +264,6 @@ class ApiTester {
    * Test OAuth APIs
    */
   async testOAuthApis(): Promise<TestResult[]> {
-    console.log('🔐 Testing OAuth APIs...');
     
     // These are mostly initialization tests since full OAuth flow requires user interaction
     const results = [];
@@ -291,7 +282,6 @@ class ApiTester {
    * Test Create Operations (with cleanup)
    */
   async testCreateOperations(): Promise<TestResult[]> {
-    console.log('🔨 Testing Create Operations...');
     
     const results = [];
 
@@ -343,10 +333,6 @@ class ApiTester {
     
     const startTime = Date.now();
     
-    console.log('🚀 Starting comprehensive API test suite...');
-    console.log('📡 Backend URL:', 'http://localhost:8000');
-    console.log('⏰ Started at:', new Date().toLocaleTimeString());
-    console.log('=====================================');
 
     try {
       // Run all test suites
@@ -382,13 +368,6 @@ class ApiTester {
         skipped,
       };
 
-      console.log('=====================================');
-      console.log('🏁 Test Suite Completed!');
-      console.log(`⏱️  Duration: ${duration}ms`);
-      console.log(`✅ Passed: ${passed}`);
-      console.log(`❌ Failed: ${failed}`);
-      console.log(`⏭️  Skipped: ${skipped}`);
-      console.log(`📊 Success Rate: ${((passed / (passed + failed)) * 100).toFixed(1)}%`);
 
       return suite;
     } finally {
@@ -399,7 +378,7 @@ class ApiTester {
   /**
    * Test a specific endpoint manually
    */
-  async testSingleEndpoint(name: string, testFn: () => Promise<any>): Promise<TestResult> {
+  async testSingleEndpoint(name: string, testFn: () => Promise<unknown>): Promise<TestResult> {
     return this.testEndpoint(name, testFn);
   }
 }
@@ -427,12 +406,4 @@ if (import.meta.env.DEV) {
     api, // Direct API access
   };
 
-  console.log('🔧 API Testing utilities loaded!');
-  console.log('📋 Available commands:');
-  console.log('  - apiTester.testAll() - Run all tests');
-  console.log('  - apiTester.testOverview() - Test overview endpoints');
-  console.log('  - apiTester.testSocialAccounts() - Test social accounts');
-  console.log('  - apiTester.testPosts() - Test posts endpoints');
-  console.log('  - apiTester.testAnalytics() - Test analytics endpoints');
-  console.log('  - apiTester.api.* - Direct API access');
 }

@@ -105,17 +105,6 @@ export function PostEventsDeleteModal({
     return acc + (Array.isArray(events) ? events.length : 0);
   }, 0)
 
-  // Debug: Log posts and events data
-  console.log('PostEventsDeleteModal - Posts received:', Array.isArray(posts) ? posts.map(p => ({
-    id: p?.id,
-    status: p?.status,
-    accountsCount: p?.accounts?.length || 0,
-    fetchedEventsCount: (p?.id && Array.isArray(postEventsData?.[p.id])) ? postEventsData[p.id].length : 0,
-    fetchedEvents: p?.id ? postEventsData?.[p.id] : undefined
-  })) : [])
-  console.log('PostEventsDeleteModal - Posts with events:', postsWithEvents?.length || 0)
-  console.log('PostEventsDeleteModal - Events loading:', eventsLoading)
-  console.log('PostEventsDeleteModal - Post events data:', postEventsData)
 
   const handleEventToggle = (postId: string, eventId: string) => {
     if (!postId || !eventId) return

@@ -10,13 +10,9 @@ export function useAuth() {
   useEffect(() => {
     let mounted = true;
 
-    // Check for existing session first
     const initializeAuth = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
-        console.log('🔍 useAuth - Initial session check:', session);
-        console.log('🔍 useAuth - Initial access token:', session?.access_token);
-        console.log('🔍 useAuth - Error:', error);
         
         if (mounted) {
           setSession(session);
@@ -24,20 +20,16 @@ export function useAuth() {
           setIsLoading(false);
         }
       } catch (error) {
-        console.error('🔍 useAuth - Session initialization error:', error);
         if (mounted) {
+          setSession(null);
+          setUser(null);
           setIsLoading(false);
         }
       }
     };
 
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('🔄 useAuth - Auth state change:', event, session);
-        console.log('🔄 useAuth - Access token:', session?.access_token);
-        console.log('🔄 useAuth - Refresh token:', session?.refresh_token);
-        console.log('🔄 useAuth - Provider token:', session?.provider_token);
         
         if (mounted) {
           // Only update state if we have a session or if explicitly signing out
@@ -53,7 +45,6 @@ export function useAuth() {
     initializeAuth();
 
     return () => {
-      console.log('🧹 useAuth - Cleaning up');
       mounted = false;
       subscription.unsubscribe();
     };

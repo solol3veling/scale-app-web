@@ -35,7 +35,7 @@ export const ApiTestingInterface: React.FC<ApiTestingInterfaceProps> = ({
   const [currentTest, setCurrentTest] = useState<string>('');
   const [results, setResults] = useState<TestSuite | null>(null);
   const [selectedEndpoint, setSelectedEndpoint] = useState<string>('');
-  const [customResponse, setCustomResponse] = useState<any>(null);
+  const [customResponse, setCustomResponse] = useState<unknown>(null);
 
   const runAllTests = async () => {
     setIsRunning(true);
@@ -46,14 +46,13 @@ export const ApiTestingInterface: React.FC<ApiTestingInterfaceProps> = ({
       const suite = await apiTester.runAllTests();
       setResults(suite);
     } catch (error) {
-      console.error('Test suite failed:', error);
     } finally {
       setIsRunning(false);
       setCurrentTest('');
     }
   };
 
-  const runSpecificTest = async (testName: string, testFn: () => Promise<any>) => {
+  const runSpecificTest = async (testName: string, testFn: () => Promise<unknown>) => {
     setIsRunning(true);
     setCurrentTest(testName);
     setCustomResponse(null);
@@ -61,9 +60,9 @@ export const ApiTestingInterface: React.FC<ApiTestingInterfaceProps> = ({
     try {
       const result = await apiTester.testSingleEndpoint(testName, testFn);
       setCustomResponse(result);
-    } catch (error) {
-      console.error(`Test ${testName} failed:`, error);
-      setCustomResponse({ error: error.message });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setCustomResponse({ error: errorMessage });
     } finally {
       setIsRunning(false);
       setCurrentTest('');

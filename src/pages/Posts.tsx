@@ -123,7 +123,7 @@ function PostsHeader({
           </p>
         </div>
         
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-1 sm:gap-2 min-w-0">
           {selectedPostIds.size > 0 ? (
             <>
               <Button 
@@ -169,8 +169,8 @@ function PostsHeader({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 flex-wrap">
-        <div className="flex-1 relative min-w-[150px]">
+      <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+        <div className="flex-1 relative min-w-[120px] sm:min-w-[150px]">
           {selectedPostIds.size > 0 ? (
             <div className="flex items-center gap-2 h-10 px-3 bg-background/50 backdrop-blur-sm border border-border/50 rounded-md">
               <input 
@@ -207,9 +207,11 @@ function PostsHeader({
         {selectedPostIds.size === 0 && (
           <>
             <Select value={statusFilter} onValueChange={onStatusChange}>
-              <SelectTrigger className="w-auto sm:w-[180px] bg-background/50 backdrop-blur-sm border-border/50 px-3 sm:px-4 h-10">
-                <Filter className="h-4 w-4 mr-0 sm:mr-2" />
-                <SelectValue placeholder="Filter" className="hidden sm:inline" />
+              <SelectTrigger className="w-10 sm:w-[180px] bg-background/50 backdrop-blur-sm border-border/50 px-2 sm:px-4 h-10" title="Filter posts by status">
+                <Filter className="h-4 w-4 sm:mr-2" />
+                <div className="hidden sm:block">
+                  <SelectValue placeholder="Filter" />
+                </div>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Posts</SelectItem>
@@ -222,9 +224,11 @@ function PostsHeader({
             </Select>
 
             <Select value={sortBy} onValueChange={onSortChange}>
-              <SelectTrigger className="w-auto sm:w-[180px] bg-background/50 backdrop-blur-sm border-border/50 px-3 sm:px-4 h-10">
-                <ArrowUpDown className="h-4 w-4 mr-0 sm:mr-2" />
-                <SelectValue placeholder="Sort" className="hidden sm:inline" />
+              <SelectTrigger className="w-10 sm:w-[180px] bg-background/50 backdrop-blur-sm border-border/50 px-2 sm:px-4 h-10" title="Sort posts">
+                <ArrowUpDown className="h-4 w-4 sm:mr-2" />
+                <div className="hidden sm:block">
+                  <SelectValue placeholder="Sort" />
+                </div>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="createdAt,desc">Newest First</SelectItem>
