@@ -59,7 +59,90 @@ const PLATFORM_COLORS = {
   YOUTUBE: '#FF0000'
 }
 
-const CHART_COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00ff00', '#ff00ff']
+const CHART_COLORS = [
+  '#6366f1', // indigo-500
+  '#8b5cf6', // violet-500  
+  '#06b6d4', // cyan-500
+  '#10b981', // emerald-500
+  '#f59e0b', // amber-500
+  '#ef4444'  // red-500
+]
+
+const ENGAGEMENT_COLORS = {
+  likes: '#ff6b9d',
+  comments: '#4dabf7', 
+  shares: '#69db7c',
+  views: '#ffd43b',
+  saves: '#9775fa'
+}
+
+// Custom Tooltip Components
+const CustomTooltip = ({ active, payload, label, type = 'default' }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white dark:bg-gray-900 p-4 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 backdrop-blur-sm bg-white/95 dark:bg-gray-900/95">
+        <p className="font-medium text-gray-900 dark:text-gray-100 mb-2 text-sm">
+          {type === 'platform' && `Platform: ${label}`}
+          {type === 'time' && `Time: ${label}`}
+          {type === 'day' && `${label}`}
+          {type === 'trends' && `Date: ${label}`}
+          {type === 'engagement' && `${label}`}
+          {type === 'default' && label}
+        </p>
+        <div className="space-y-1">
+          {payload.map((entry: any, index: number) => (
+            <div key={index} className="flex items-center justify-between gap-4 text-xs">
+              <div className="flex items-center gap-2">
+                <div 
+                  className="w-3 h-3 rounded-full flex-shrink-0" 
+                  style={{ backgroundColor: entry.color }}
+                />
+                <span className="text-gray-600 dark:text-gray-400">{entry.dataKey || entry.name}</span>
+              </div>
+              <span className="font-medium text-gray-900 dark:text-gray-100">
+                {typeof entry.value === 'number' ? 
+                  (entry.value >= 1000 ? 
+                    (entry.value / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : 
+                    entry.value.toLocaleString()
+                  ) : 
+                  entry.value
+                }
+                {entry.unit && ` ${entry.unit}`}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+const PlatformBadge = ({ platform, size = 'sm' }: { platform: string; size?: 'sm' | 'md' | 'lg' }) => {
+  const platformLogos: Record<string, string> = {
+    FACEBOOK: '📘',
+    TWITTER: '🐦', 
+    INSTAGRAM: '📷',
+    LINKEDIN: '💼',
+    PINTEREST: '📌',
+    YOUTUBE: '📺'
+  };
+
+  const sizeClasses = {
+    sm: 'text-xs px-2 py-1',
+    md: 'text-sm px-3 py-1.5', 
+    lg: 'text-base px-4 py-2'
+  };
+
+  const logo = platformLogos[platform.toUpperCase()] || '📱';
+  
+  return (
+    <div className={`inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 border border-gray-300 dark:border-gray-600 font-medium text-gray-700 dark:text-gray-300 ${sizeClasses[size]}`}>
+      <span>{logo}</span>
+      <span>{platform}</span>
+    </div>
+  );
+};
 
 export function AdvancedAnalyticsDashboard({ 
   analyticsData, 
@@ -369,36 +452,35 @@ export function AdvancedAnalyticsDashboard({
               >
                 <defs>
                   <linearGradient id="postsGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#8884d8" stopOpacity={0.3}/>
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0.2}/>
                   </linearGradient>
                   <linearGradient id="engagementGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#82ca9d" stopOpacity={0.3}/>
+                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.2}/>
+                  </linearGradient>
+                  <linearGradient id="hourlyGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#06b6d4" stopOpacity={0.2}/>
+                  </linearGradient>
+                  <linearGradient id="weeklyGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.2}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.6} />
                 <XAxis 
                   dataKey="name" 
                   tick={{ fontSize: 12 }}
-                  axisLine={{ stroke: '#e0e0e0' }}
-                  tickLine={{ stroke: '#e0e0e0' }}
+                  axisLine={{ stroke: '#d1d5db' }}
+                  tickLine={{ stroke: '#d1d5db' }}
                 />
                 <YAxis 
                   tick={{ fontSize: 12 }}
-                  axisLine={{ stroke: '#e0e0e0' }}
-                  tickLine={{ stroke: '#e0e0e0' }}
+                  axisLine={{ stroke: '#d1d5db' }}
+                  tickLine={{ stroke: '#d1d5db' }}
                 />
-                <Tooltip 
-                  formatter={(value, name) => [formatNumber(Number(value)), name]}
-                  labelFormatter={(label) => `Platform: ${label}`}
-                  contentStyle={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    border: '1px solid #e0e0e0',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                  }}
-                />
+                <Tooltip content={<CustomTooltip type="platform" />} />
                 <Bar 
                   dataKey="posts" 
                   fill="url(#postsGradient)" 
@@ -458,16 +540,7 @@ export function AdvancedAnalyticsDashboard({
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip 
-                    formatter={(value) => [formatNumber(Number(value)), '']}
-                    labelFormatter={(label) => `${label}`}
-                    contentStyle={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                      border: '1px solid #e0e0e0',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                    }}
-                  />
+                  <Tooltip content={<CustomTooltip type="engagement" />} />
                 </RechartsPieChart>
               </ResponsiveContainer>
             </div>
@@ -506,7 +579,7 @@ export function AdvancedAnalyticsDashboard({
                       <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.1}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.6} />
                   <XAxis 
                     dataKey="hour" 
                     tick={{ fontSize: 12 }}
@@ -518,24 +591,15 @@ export function AdvancedAnalyticsDashboard({
                     axisLine={{ stroke: '#e0e0e0' }}
                     tickLine={{ stroke: '#e0e0e0' }}
                   />
-                  <Tooltip 
-                    formatter={(value) => [value, 'Posts']}
-                    labelFormatter={(label) => `Time: ${label}`}
-                    contentStyle={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                      border: '1px solid #e0e0e0',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                    }}
-                  />
+                  <Tooltip content={<CustomTooltip type="time" />} />
                   <Area 
                     type="monotone" 
                     dataKey="posts" 
-                    stroke="#8b5cf6" 
+                    stroke="#06b6d4" 
                     strokeWidth={2}
-                    fill="url(#postingTimeGradient)"
-                    dot={{ r: 4, fill: '#8b5cf6' }}
-                    activeDot={{ r: 6, fill: '#8b5cf6', stroke: '#fff', strokeWidth: 2 }}
+                    fill="url(#hourlyGradient)"
+                    dot={{ r: 4, fill: '#06b6d4' }}
+                    activeDot={{ r: 6, fill: '#06b6d4', stroke: '#fff', strokeWidth: 2 }}
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -566,29 +630,33 @@ export function AdvancedAnalyticsDashboard({
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
                 <YAxis />
-                <Tooltip 
-                  formatter={(value, name) => [formatNumber(Number(value)), name]}
-                />
+                <Tooltip content={<CustomTooltip type="trends" />} />
                 <Line 
                   type="monotone" 
                   dataKey="engagement" 
-                  stroke="#8884d8" 
+                  stroke="#6366f1" 
                   strokeWidth={2}
                   name="Engagement"
+                  dot={{ r: 4, fill: '#6366f1' }}
+                  activeDot={{ r: 6, fill: '#6366f1', stroke: '#fff', strokeWidth: 2 }}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="reach" 
-                  stroke="#82ca9d" 
+                  stroke="#8b5cf6" 
                   strokeWidth={2}
                   name="Reach"
+                  dot={{ r: 4, fill: '#8b5cf6' }}
+                  activeDot={{ r: 6, fill: '#8b5cf6', stroke: '#fff', strokeWidth: 2 }}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="posts" 
-                  stroke="#ffc658" 
+                  stroke="#f59e0b" 
                   strokeWidth={2}
                   name="Posts"
+                  dot={{ r: 4, fill: '#f59e0b' }}
+                  activeDot={{ r: 6, fill: '#f59e0b', stroke: '#fff', strokeWidth: 2 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -619,7 +687,7 @@ export function AdvancedAnalyticsDashboard({
                       <stop offset="95%" stopColor="#10b981" stopOpacity={0.3}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.6} />
                   <XAxis 
                     dataKey="day" 
                     tick={{ fontSize: 12 }}
@@ -631,16 +699,7 @@ export function AdvancedAnalyticsDashboard({
                     axisLine={{ stroke: '#e0e0e0' }}
                     tickLine={{ stroke: '#e0e0e0' }}
                   />
-                  <Tooltip 
-                    formatter={(value) => [value, 'Posts']}
-                    labelFormatter={(label) => `${label}day`}
-                    contentStyle={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                      border: '1px solid #e0e0e0',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                    }}
-                  />
+                  <Tooltip content={<CustomTooltip type="day" />} />
                   <Bar 
                     dataKey="posts" 
                     fill="url(#weeklyGradient)" 
@@ -676,9 +735,9 @@ export function AdvancedAnalyticsDashboard({
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
-                  <Tooltip formatter={(value) => [value, 'Posts']} />
-                  <Bar dataKey="scheduled" fill="#ff7300" name="Scheduled" />
-                  <Bar dataKey="published" fill="#00ff00" name="Published" />
+                  <Tooltip content={<CustomTooltip type="default" />} />
+                  <Bar dataKey="scheduled" fill="#f59e0b" name="Scheduled" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="published" fill="#10b981" name="Published" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -694,7 +753,10 @@ export function AdvancedAnalyticsDashboard({
               <Zap className="h-5 w-5" />
               Top Performing Content
             </div>
-            <Badge variant="secondary">Click for detailed analytics</Badge>
+            <Badge variant="secondary" className="bg-gradient-to-r from-violet-100 to-purple-100 dark:from-violet-900/30 dark:to-purple-900/30 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-700">
+              <Activity className="h-3 w-3 mr-1" />
+              Interactive Analysis
+            </Badge>
           </CardTitle>
           <CardDescription>Your highest-performing posts with engagement breakdown</CardDescription>
         </CardHeader>
@@ -704,8 +766,7 @@ export function AdvancedAnalyticsDashboard({
               topPostsData.map((post, index) => (
                 <div 
                   key={post.id || index} 
-                  className="flex gap-4 p-4 rounded-lg border cursor-pointer hover:bg-accent/20 transition-colors hover:border-primary/20"
-                  onClick={() => onContentSelect(post)}
+                  className="group relative flex gap-4 p-4 rounded-lg border hover:bg-accent/20 transition-all duration-200 hover:border-primary/20 hover:shadow-md"
                 >
                   <div className="flex-shrink-0">
                     <Badge variant="secondary">#{index + 1}</Badge>
@@ -715,40 +776,63 @@ export function AdvancedAnalyticsDashboard({
                       <div className="flex items-center gap-2">
                         {/* Show platform from multiple possible sources */}
                         {(post.accounts?.[0]?.platform || post.bestPerformingPlatform || post.platform) && (
-                          <Badge variant="outline">
-                            {post.accounts?.[0]?.platform || post.bestPerformingPlatform || post.platform}
-                          </Badge>
+                          <PlatformBadge 
+                            platform={post.accounts?.[0]?.platform || post.bestPerformingPlatform || post.platform} 
+                            size="sm" 
+                          />
                         )}
                         <span className="text-sm text-muted-foreground">
                           {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : 'Draft'}
                         </span>
                         {/* Show performance score if available */}
                         {post.performanceScore && (
-                          <Badge variant="outline" className="text-green-600">
+                          <Badge variant="outline" className="text-green-600 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700">
                             Score: {post.performanceScore}
                           </Badge>
                         )}
                       </div>
-                      <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onContentSelect(post);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary"
+                        title="View detailed analytics"
+                      >
+                        <BarChart3 className="h-4 w-4" />
+                      </Button>
                     </div>
                     <p className="text-sm leading-relaxed line-clamp-2">{post.content}</p>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Eye className="h-3 w-3" />
-                        {formatNumber(post.totalViews || post.views || 0)} Views
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Heart className="h-3 w-3" />
-                        {formatNumber(post.totalLikes || post.likes || 0)} Likes
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <MessageSquare className="h-3 w-3" />
-                        {formatNumber(post.totalComments || post.comments || 0)} Comments
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Share2 className="h-3 w-3" />
-                        {formatNumber(post.totalShares || post.shares || 0)} Shares
-                      </span>
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Eye className="h-3 w-3" />
+                          {formatNumber(post.totalViews || post.views || 0)} Views
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Heart className="h-3 w-3" />
+                          {formatNumber(post.totalLikes || post.likes || 0)} Likes
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <MessageSquare className="h-3 w-3" />
+                          {formatNumber(post.totalComments || post.comments || 0)} Comments
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Share2 className="h-3 w-3" />
+                          {formatNumber(post.totalShares || post.shares || 0)} Shares
+                        </span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onContentSelect(post)}
+                        className="text-xs h-7 px-3 bg-background/50 hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors"
+                      >
+                        <Activity className="h-3 w-3 mr-1" />
+                        Analyze
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -778,13 +862,11 @@ export function AdvancedAnalyticsDashboard({
                 onClick={() => onPlatformSelect(platform.name, platform)}
               >
                 <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-4 h-4 rounded-full" 
-                      style={{ backgroundColor: platform.color }}
-                    />
-                    <span className="font-medium">{platform.name}</span>
-                    <Badge variant="outline">#{index + 1}</Badge>
+                  <div className="flex items-center gap-3">
+                    <PlatformBadge platform={platform.name} size="md" />
+                    <Badge variant="outline" className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300">
+                      #{index + 1}
+                    </Badge>
                   </div>
                 </div>
                 <div className="flex items-center gap-6 text-sm">
