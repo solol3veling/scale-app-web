@@ -19,8 +19,10 @@ export default function AccountManagement() {
 
   const { refetch, isFetching } = useAccounts()
   const queryClient = useQueryClient()
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedPlatform, setSelectedPlatform] = useState("all")
+  const [filters, setFilters] = useState({
+    searchTerm: "",
+    selectedPlatform: "all",
+  });
 
   const handleAccountAdded = async () => {
     // Force immediate refresh of all account data
@@ -71,16 +73,14 @@ export default function AccountManagement() {
       <div className="space-y-6 p-6">
         {/* Filters */}
         <AccountsFilter 
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          selectedPlatform={selectedPlatform}
-          setSelectedPlatform={setSelectedPlatform}
+          filters={filters}
+          setFilters={setFilters}
         />
 
         {/* Accounts Grid */}
         <AccountsList 
-          searchTerm={searchTerm}
-          selectedPlatform={selectedPlatform}
+          searchTerm={filters.searchTerm}
+          selectedPlatform={filters.selectedPlatform}
           action={action}
           accountId={accountId}
           setSearchParams={setSearchParams}

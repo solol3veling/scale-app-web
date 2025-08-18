@@ -12,17 +12,13 @@ const platformOptions = [
 ]
 
 interface AccountsFilterProps {
-  searchTerm: string
-  setSearchTerm: (term: string) => void
-  selectedPlatform: string
-  setSelectedPlatform: (platform: string) => void
+  filters: { searchTerm: string; selectedPlatform: string };
+  setFilters: React.Dispatch<React.SetStateAction<{ searchTerm: string; selectedPlatform: string }>>;
 }
 
-export function AccountsFilter({ 
-  searchTerm, 
-  setSearchTerm, 
-  selectedPlatform, 
-  setSelectedPlatform 
+export function AccountsFilter({
+  filters,
+  setFilters,
 }: AccountsFilterProps) {
   return (
     <Card className="shadow-soft">
@@ -32,12 +28,12 @@ export function AccountsFilter({
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search accounts..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={filters.searchTerm}
+              onChange={(e) => setFilters(prev => ({ ...prev, searchTerm: e.target.value }))}
               className="pl-10"
             />
           </div>
-          <Select value={selectedPlatform} onValueChange={setSelectedPlatform}>
+          <Select value={filters.selectedPlatform} onValueChange={(value) => setFilters(prev => ({ ...prev, selectedPlatform: value }))}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="All platforms" />
             </SelectTrigger>

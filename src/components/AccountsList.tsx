@@ -32,13 +32,14 @@ import { AccountModal } from "@/components/AccountModal"
 import { SocialAccount, SocialAccountStatus, Platform } from "@/types/api"
 import { useToast } from "@/hooks/use-toast"
 import { socialAccountsApi } from "@/services/api/social-accounts"
+import { URLSearchParamsInit, URLSearchParamsSetter } from "react-router-dom"
 
 interface AccountsListProps {
-  searchTerm: string
-  selectedPlatform: string
+  searchTerm?: string;
+  selectedPlatform?: string;
   action: string | null;
   accountId: string | null;
-  setSearchParams: (params: any) => void;
+  setSearchParams: URLSearchParamsSetter;
 }
 
 export function AccountsList({ searchTerm, selectedPlatform, action, accountId, setSearchParams }: AccountsListProps) {
@@ -54,11 +55,11 @@ export function AccountsList({ searchTerm, selectedPlatform, action, accountId, 
   const apiParams = useMemo(() => {
     // Check if selectedPlatform is a valid Platform enum value
     const isValidPlatform = selectedPlatform !== "all" && 
-      Object.values(Platform).includes(selectedPlatform.toUpperCase() as Platform);
+      Object.values(Platform).includes(selectedPlatform?.toUpperCase() as Platform);
     
     return {
       searchTerm: searchTerm || undefined,
-      platform: isValidPlatform ? (selectedPlatform.toUpperCase() as Platform) : undefined,
+      platform: isValidPlatform ? (selectedPlatform?.toUpperCase() as Platform) : undefined,
       pageable: {
         page: currentPage,
         size: 12, // Show 12 accounts per page
@@ -69,7 +70,7 @@ export function AccountsList({ searchTerm, selectedPlatform, action, accountId, 
 
   const { data: paginatedData, isLoading, error, refetch } = useSocialAccountsPaginated(apiParams)
   
-  const accounts = paginatedData?.data || []
+  const accounts = useMemo(() => paginatedData?.data || [], [paginatedData?.data])
   const totalAccounts = paginatedData?.total || 0
   const hasNext = paginatedData?.hasNext || false
   const hasPrev = paginatedData?.hasPrev || false
@@ -98,7 +99,6 @@ export function AccountsList({ searchTerm, selectedPlatform, action, accountId, 
       handleCloseModal()
     } catch (error) {
       // Error handling is already done in the modal component
-      console.error('Error in handleSaveAccount:', error)
     }
   }
 
@@ -158,6 +158,7 @@ export function AccountsList({ searchTerm, selectedPlatform, action, accountId, 
     if (currentPage !== 0) {
       setCurrentPage(0)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, selectedPlatform]);
 
   const getStatusBadge = (status: string, isConnected: boolean) => {
@@ -165,7 +166,7 @@ export function AccountsList({ searchTerm, selectedPlatform, action, accountId, 
       return <Badge variant="destructive" className="gap-1"><AlertCircle className="h-3 w-3" />Disconnected</Badge>
     }
     
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case "active":
         return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 gap-1"><CheckCircle className="h-3 w-3" />Connected</Badge>
       case "inactive":
@@ -189,7 +190,7 @@ export function AccountsList({ searchTerm, selectedPlatform, action, accountId, 
   if (error) {
     return (
       <div className="text-center py-8">
-        <p className="text-destructive">{error.message}</p>
+        <p className="text-destructive">{error?.message}</p>
         <Button variant="outline" className="mt-4" onClick={() => refetch()}>
           Try Again
         </Button>
@@ -266,21 +267,21 @@ export function AccountsList({ searchTerm, selectedPlatform, action, accountId, 
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <Avatar className="h-12 w-12 flex-shrink-0">
-                  <AvatarImage src={account.profileImage} />
-                  <AvatarFallback className={`${getPlatformConfig(account.platform).color} text-white`}>
+                  <AvatarImage src={account?.profileImage} />
+                  <AvatarFallback className={`${getPlatformConfig(account?.platform).color} text-white`}>
                     {(() => {
-                      const PlatformIcon = getPlatformConfig(account.platform).icon
+                      const PlatformIcon = getPlatformConfig(account?.platform).icon
                       return <PlatformIcon className="w-6 h-6" />
                     })()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold text-base leading-tight">{account.displayName}</h3>
-                  <p className="text-sm text-muted-foreground truncate">{account.handle}</p>
+                  <h3 className="font-semibold text-base leading-tight">{account?.displayName}</h3>
+                  <p className="text-sm text-muted-foreground truncate">{account?.handle}</p>
                 </div>
               </div>
               <div className="flex-shrink-0">
-                {getStatusBadge(account.status, account.isConnected)}
+                {getStatusBadge(account?.status, account?.isConnected)}
               </div>
             </div>
           </CardHeader>
@@ -289,7 +290,7 @@ export function AccountsList({ searchTerm, selectedPlatform, action, accountId, 
               <p className="text-xs text-muted-foreground">Platform</p>
               <div className="flex items-center gap-2">
                 {(() => {
-                  const platformConfig = getPlatformConfig(account.platform)
+                  const platformConfig = getPlatformConfig(account?.platform)
                   const PlatformIcon = platformConfig.icon
                   return (
                     <>
@@ -305,19 +306,19 @@ export function AccountsList({ searchTerm, selectedPlatform, action, accountId, 
               </div>
             </div>
 
-            {account.tags && account.tags.length > 0 && (
+            {account?.tags && account?.tags.length > 0 && (
               <div>
                 <p className="text-xs text-muted-foreground mb-2">Tags</p>
                 <div className="flex flex-wrap gap-1">
-                  {account.tags.slice(0, 3).map((tag, index) => (
+                  {account?.tags.slice(0, 3).map((tag, index) => (
                     <Badge key={index} variant="outline" className="text-xs">
                       <Tag className="h-3 w-3 mr-1" />
                       <span className="truncate max-w-[80px]">{tag}</span>
                     </Badge>
                   ))}
-                  {account.tags.length > 3 && (
+                  {account?.tags.length > 3 && (
                     <Badge variant="outline" className="text-xs">
-                      +{account.tags.length - 3}
+                      +{account?.tags.length - 3}
                     </Badge>
                   )}
                 </div>
@@ -326,7 +327,7 @@ export function AccountsList({ searchTerm, selectedPlatform, action, accountId, 
 
             <div className="flex justify-between items-center gap-2 pt-3 border-t mt-auto">
               <span className="text-xs text-muted-foreground truncate flex-1">
-                Last: {account.lastPost || 'Never'}
+                Last: {account?.lastPost || 'Never'}
               </span>
               <div className="flex gap-1">
                 <Tooltip>
