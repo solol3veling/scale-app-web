@@ -3,7 +3,7 @@ import { Search, Plus, Filter, Calendar, Clock, CheckCircle, Circle, Edit, Trash
 import { format } from 'date-fns';
 import { usePosts, useDeletePost, useDuplicatePost } from '@/hooks/api/usePosts';
 import { useMultiplePostEvents } from '@/hooks/api/usePostEvents';
-import { PostStatus, Post } from '@/types/api';
+import { PostStatus, Post, Platform } from '@/types/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -22,18 +22,14 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
 import { toast } from 'sonner';
 
-// Helper functions for user profile data
 const useUserProfile = () => {
   const { user } = useAuth();
-  
-  // Memoize values to prevent flickering during rerenders
   const displayName = useMemo(() => {
-    if (!user) return 'User';
-    return user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
+    return user?.user_metadata?.full_name || user?.email?.split('@')?.[0] || 'User';
   }, [user?.user_metadata?.full_name, user?.email]);
   
   const initials = useMemo(() => {
-    return displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    return displayName?.split(' ')?.map(n => n?.[0])?.join('')?.toUpperCase()?.slice(0, 2) || 'U';
   }, [displayName]);
   
   const avatarUrl = useMemo(() => {
@@ -47,7 +43,7 @@ const useUserProfile = () => {
   return { getDisplayName, getInitials, getAvatarUrl };
 };
 
-const MAX_POST_DESCRIPTION_LENGTH = 20; // Max words for the post description in the list
+const MAX_POST_DESCRIPTION_LENGTH = 20;
 
 const truncateWords = (text: string, maxWords: number) => {
   const words = text.split(/\s+/);
@@ -57,13 +53,11 @@ const truncateWords = (text: string, maxWords: number) => {
   return words.slice(0, maxWords).join(' ') + '...';
 };
 
-// Media Count Component
-function MediaCount({ media }: { media: any[] }) {
-  if (!media || media.length === 0) return null;
+function MediaCount({ media }: { media: { type: 'image' | 'video'; url: string; }[] }) {
+  if (!media?.length) return null;
   
-  // Count images and videos
-  const imageCount = media.filter(item => item.type === 'image').length;
-  const videoCount = media.filter(item => item.type === 'video').length;
+  const imageCount = media?.filter(item => item?.type === 'image')?.length || 0;
+  const videoCount = media?.filter(item => item?.type === 'video')?.length || 0;
   
   return (
     <div className="flex items-center gap-3">
@@ -83,7 +77,6 @@ function MediaCount({ media }: { media: any[] }) {
   );
 }
 
-// Static Header Component - Independent of data fetching
 function PostsHeader({ 
   searchTerm, 
   onSearchChange, 
@@ -119,7 +112,6 @@ function PostsHeader({
   
   return (
     <div className="space-y-4">
-      {/* Title and Create Button */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Posts</h1>
@@ -177,7 +169,6 @@ function PostsHeader({
         </div>
       </div>
 
-      {/* Search and Filters */}
       <div className="flex items-center gap-2 flex-wrap">
         <div className="flex-1 relative min-w-[150px]">
           {selectedPostIds.size > 0 ? (
@@ -251,7 +242,6 @@ function PostsHeader({
 }
 
 
-// Modern No Posts Illustration
 function NoPostsIllustration() {
   return (
     <svg
@@ -260,7 +250,6 @@ function NoPostsIllustration() {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Background gradient circle */}
       <defs>
         <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="currentColor" className="text-blue-100" />
@@ -272,35 +261,28 @@ function NoPostsIllustration() {
         </linearGradient>
       </defs>
       
-      {/* Background */}
       <circle cx="200" cy="150" r="120" fill="url(#bgGradient)" />
       
-      {/* Floating documents */}
       <g className="animate-pulse">
-        {/* Document 1 */}
         <rect x="140" y="100" width="40" height="50" rx="6" fill="url(#docGradient)" transform="rotate(-15 160 125)" />
         <rect x="145" y="110" width="30" height="2" rx="1" fill="white" transform="rotate(-15 160 125)" />
         <rect x="145" y="115" width="25" height="2" rx="1" fill="white" transform="rotate(-15 160 125)" />
         <rect x="145" y="120" width="28" height="2" rx="1" fill="white" transform="rotate(-15 160 125)" />
         
-        {/* Document 2 */}
         <rect x="220" y="90" width="40" height="50" rx="6" fill="url(#docGradient)" transform="rotate(15 240 115)" />
         <rect x="225" y="100" width="30" height="2" rx="1" fill="white" transform="rotate(15 240 115)" />
         <rect x="225" y="105" width="25" height="2" rx="1" fill="white" transform="rotate(15 240 115)" />
         <rect x="225" y="110" width="28" height="2" rx="1" fill="white" transform="rotate(15 240 115)" />
         
-        {/* Document 3 */}
         <rect x="160" y="180" width="40" height="50" rx="6" fill="url(#docGradient)" transform="rotate(-10 180 205)" />
         <rect x="165" y="190" width="30" height="2" rx="1" fill="white" transform="rotate(-10 180 205)" />
         <rect x="165" y="195" width="25" height="2" rx="1" fill="white" transform="rotate(-10 180 205)" />
         <rect x="165" y="200" width="28" height="2" rx="1" fill="white" transform="rotate(-10 180 205)" />
       </g>
       
-      {/* Central icon */}
       <circle cx="200" cy="150" r="25" fill="currentColor" className="text-white" />
       <circle cx="200" cy="150" r="20" fill="currentColor" className="text-blue-500" />
       
-      {/* Plus icon */}
       <path 
         d="M200 140 L200 160 M190 150 L210 150" 
         stroke="white" 
@@ -308,7 +290,6 @@ function NoPostsIllustration() {
         strokeLinecap="round"
       />
       
-      {/* Sparkles */}
       <g className="animate-pulse">
         <circle cx="130" cy="80" r="2" fill="currentColor" className="text-yellow-400" />
         <circle cx="270" cy="70" r="1.5" fill="currentColor" className="text-blue-400" />
@@ -316,7 +297,6 @@ function NoPostsIllustration() {
         <circle cx="110" cy="220" r="1.5" fill="currentColor" className="text-pink-400" />
       </g>
       
-      {/* Connecting lines */}
       <g stroke="currentColor" strokeWidth="1" strokeDasharray="3,3" className="text-gray-300">
         <line x1="170" y1="125" x2="185" y2="135" />
         <line x1="215" y1="135" x2="230" y2="125" />
@@ -326,7 +306,6 @@ function NoPostsIllustration() {
   );
 }
 
-// Posts Content Component - Handles data fetching and display
 function PostsContent({ 
   searchTerm, 
   statusFilter,
@@ -372,7 +351,6 @@ function PostsContent({
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedPostId = searchParams.get('post');
   
-  // Selection-related state for delete modals
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [showEventsModal, setShowEventsModal] = useState(false);
   const [postsToDelete, setPostsToDelete] = useState<Post[]>([]);
@@ -383,7 +361,6 @@ function PostsContent({
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Watch for delete trigger from parent
   useEffect(() => {
     if (triggerDelete) {
       handleBulkDelete();
@@ -391,7 +368,6 @@ function PostsContent({
     }
   }, [triggerDelete]);
 
-  // Watch for select all trigger from parent
   useEffect(() => {
     if (triggerSelectAll) {
       handleSelectAll();
@@ -399,7 +375,6 @@ function PostsContent({
     }
   }, [triggerSelectAll]);
   
-  // Handle modal open/close via URL params
   const openModal = useCallback((postId: string) => {
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.set('post', postId);
@@ -412,11 +387,9 @@ function PostsContent({
     setSearchParams(newSearchParams);
   }, [searchParams, setSearchParams]);
   
-  // Build query params
   const queryParams = useMemo(() => {
-    const pageable: any = { page: currentPage, size: pageSize };
+    const pageable: { page: number; size: number; sort?: string[]; } = { page: currentPage, size: pageSize };
     
-    // Add sort if specified
     if (sortBy) {
       pageable.sort = [sortBy];
     }
@@ -469,8 +442,7 @@ function PostsContent({
       setPostsToDelete([]);
       setFetchEventsEnabled(false);
     },
-    onError: (error: any) => {
-      console.error('Error deleting posts:', error);
+    onError: (error: unknown) => {
       const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error occurred';
       toast.error(`Failed to delete posts: ${errorMessage}`);
     }
@@ -487,20 +459,19 @@ function PostsContent({
       queryClient.invalidateQueries({ queryKey: ['post-events'] });
       toast.success('Events deleted successfully!');
     },
-    onError: (error: any) => {
-      console.error('Error deleting events:', error);
+    onError: (error: unknown) => {
       const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error occurred';
       toast.error(`Failed to delete events: ${errorMessage}`);
     }
   });
   
   const posts = data?.data || [];
-  const totalPages = data ? Math.ceil(data.total / data.limit) : 0;
+  const totalPages = data ? Math.ceil((data?.total || 0) / (data?.limit || 1)) : 0;
   const hasNext = data?.hasNext || false;
   const hasPrev = data?.hasPrev || false;
 
   // Helper function to extract meaningful error message
-  const getErrorMessage = (error: any) => {
+  const getErrorMessage = (error: unknown) => {
     if (typeof error === 'string') return error;
     if (error?.message) return error.message;
     if (error?.error) return error.error;
@@ -521,7 +492,7 @@ function PostsContent({
       setDeleteDialog({ open: false, postId: null });
       refetch();
     } catch (error) {
-      console.error('Failed to delete post:', error);
+      // Error handled by mutation
     }
   };
   
@@ -530,7 +501,7 @@ function PostsContent({
       await duplicatePost.mutateAsync(postId);
       refetch();
     } catch (error) {
-      console.error('Failed to duplicate post:', error);
+      // Error handled by mutation
     }
   };
   
@@ -538,12 +509,11 @@ function PostsContent({
   const handleBulkDelete = () => {
     if (selectedPostIds.size === 0) return;
     
-    const selectedPosts = posts.filter(p => selectedPostIds.has(p.id));
+    const selectedPosts = posts?.filter(p => selectedPostIds?.has(p?.id)) || [];
     
-    // Check if any posts have social accounts (which might have events)
-    const postsWithAccounts = selectedPosts.filter(p => 
-      p.accounts && p.accounts.length > 0
-    );
+    const postsWithAccounts = selectedPosts?.filter(p => 
+      p?.accounts?.length > 0
+    ) || [];
     
     if (postsWithAccounts.length > 0) {
       // Set posts to delete and enable events fetching
@@ -688,27 +658,33 @@ function PostsContent({
     );
   }
 
-  const getSocialPlatformIcon = (platform: string) => {
-    const platformLower = platform.toLowerCase();
-    const colors = {
-      twitter: 'bg-blue-500',
-      facebook: 'bg-blue-600', 
-      instagram: 'bg-pink-500',
-      linkedin: 'bg-blue-700',
-      tiktok: 'bg-black',
-      youtube: 'bg-red-500',
+  const getSocialPlatformIcon = (platform: Platform) => {
+    const colors: Record<Platform, string> = {
+      [Platform.TWITTER]: 'bg-blue-500',
+      [Platform.FACEBOOK]: 'bg-blue-600', 
+      [Platform.INSTAGRAM]: 'bg-pink-500',
+      [Platform.LINKEDIN]: 'bg-blue-700',
+      [Platform.GOOGLE]: 'bg-gray-500',
     };
     
-    const bgColor = colors[platformLower as keyof typeof colors] || 'bg-gray-500';
+    const platformCharMap: Record<Platform, string> = {
+      [Platform.FACEBOOK]: 'F',
+      [Platform.TWITTER]: 'X',
+      [Platform.INSTAGRAM]: 'I',
+      [Platform.LINKEDIN]: 'L',
+      [Platform.GOOGLE]: 'G',
+    };
+    
+    const bgColor = colors[platform] || 'bg-gray-500';
+    const char = platformCharMap[platform] || platform?.charAt(0)?.toUpperCase() || '';
     
     return (
       <div className={`w-5 h-5 rounded-full ${bgColor} flex items-center justify-center text-white text-xs font-bold border border-white dark:border-gray-900`}>
-        {platform.charAt(0).toUpperCase()}
+        {char}
       </div>
     );
   };
 
-  // PostCard Component with long press and selection functionality
   const PostCard = memo(({ 
     post, 
     isSelected, 
@@ -870,7 +846,7 @@ function PostsContent({
         {/* Main content - now takes center stage */}
         <div className="px-5 pb-3 flex-1 flex flex-col min-h-0">
           <p className="text-base font-semibold text-gray-900 dark:text-white leading-relaxed">
-            {truncateWords(post.content, MAX_POST_DESCRIPTION_LENGTH)}
+            {truncateWords(post?.content || '', MAX_POST_DESCRIPTION_LENGTH)}
           </p>
         </div>
 
@@ -880,20 +856,19 @@ function PostsContent({
             <div className="flex items-center gap-4">
               {/* Date */}
               <span className="text-gray-500 dark:text-gray-400 text-xs font-medium">
-                {post.status === PostStatus.SCHEDULED && post.scheduledFor
-                  ? format(new Date(post.scheduledFor), 'MMM dd, HH:mm')
-                  : format(new Date(post.createdAt), 'MMM dd, yyyy')}
+                {post?.status === PostStatus.SCHEDULED && post?.scheduledFor
+                  ? format(new Date(post?.scheduledFor), 'MMM dd, HH:mm')
+                  : format(new Date(post?.createdAt || new Date()), 'MMM dd, yyyy')}
               </span>
               
-              {/* Media count indicators */}
-              {post.media && post.media.length > 0 && (
-                <MediaCount media={post.media} />
+              {post?.media?.length > 0 && (
+                <MediaCount media={post?.media} />
               )}
             </div>
             
             <div className="flex items-center">
               {/* Status badge */}
-              {getStatusBadge(post.status)}
+              {getStatusBadge(post?.status || PostStatus.DRAFT)}
             </div>
           </div>
         </div>
@@ -903,7 +878,7 @@ function PostsContent({
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            onOpenModal(post.id);
+            onOpenModal(post?.id);
           }}
           className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/60 hover:bg-black/80 text-white rounded-full w-8 h-8 flex items-center justify-center z-10 shadow-lg"
         >
@@ -1069,18 +1044,20 @@ function PostsContent({
 
 // Main Posts Component
 export default function Posts() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<PostStatus | 'all'>('all');
-  const [sortBy, setSortBy] = useState('createdAt,desc');
+  const [filters, setFilters] = useState({
+    searchTerm: '',
+    statusFilter: 'all' as PostStatus | 'all',
+    sortBy: 'createdAt,desc'
+  });
   
-  // Selection state
-  const [selectedPostIds, setSelectedPostIds] = useState<Set<string>>(new Set());
-  const [selectAllChecked, setSelectAllChecked] = useState(false);
-  const [selectionMode, setSelectionMode] = useState(false);
-  const [triggerDelete, setTriggerDelete] = useState(false);
-  const [triggerSelectAll, setTriggerSelectAll] = useState(false);
+  const [selection, setSelection] = useState({
+    selectedPostIds: new Set<string>(),
+    selectAllChecked: false,
+    selectionMode: false,
+    triggerDelete: false,
+    triggerSelectAll: false
+  });
   
-  // Refresh functionality
   const refetchRef = useRef<(() => void) | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   
@@ -1088,67 +1065,74 @@ export default function Posts() {
   const userProfile = useUserProfile();
   
   const handleClearFilters = () => {
-    setSearchTerm('');
-    setStatusFilter('all');
-    setSortBy('createdAt,desc');
+    setFilters({
+      searchTerm: '',
+      statusFilter: 'all',
+      sortBy: 'createdAt,desc'
+    });
   };
 
-  // Selection handlers
   const handlePostLongPress = useCallback((postId: string) => {
-    // Long press always enters selection mode and selects the post
-    setSelectionMode(true);
-    const newSelected = new Set(selectedPostIds);
-    newSelected.add(postId); // Always add on long press
-    setSelectedPostIds(newSelected);
-  }, [selectedPostIds]);
+    setSelection(prev => ({
+      ...prev,
+      selectionMode: true,
+      selectedPostIds: new Set(prev.selectedPostIds).add(postId)
+    }));
+  }, []);
 
   const handlePostSelect = useCallback((postId: string) => {
-    const newSelected = new Set(selectedPostIds);
-    if (newSelected.has(postId)) {
-      newSelected.delete(postId);
-    } else {
-      newSelected.add(postId);
-      // Enter selection mode when first post is selected
-      setSelectionMode(true);
-    }
-    setSelectedPostIds(newSelected);
-    
-    // Exit selection mode if no posts are selected
-    if (newSelected.size === 0) {
-      setSelectionMode(false);
-      setSelectAllChecked(false);
-    }
-  }, [selectedPostIds]);
+    setSelection(prev => {
+      const newSelected = new Set(prev.selectedPostIds);
+      if (newSelected.has(postId)) {
+        newSelected.delete(postId);
+      } else {
+        newSelected.add(postId);
+      }
+      
+      return {
+        ...prev,
+        selectedPostIds: newSelected,
+        selectionMode: newSelected.size > 0,
+        selectAllChecked: newSelected.size === 0 ? false : prev.selectAllChecked
+      };
+    });
+  }, []);
 
   const handleSelectAllChange = (posts: Post[]) => {
     if (posts.length === 0) {
-      // This is a trigger from the header, set the trigger state
-      setTriggerSelectAll(true);
+      setSelection(prev => ({ ...prev, triggerSelectAll: true }));
       return;
     }
     
-    const newSelected = new Set(selectedPostIds);
-    
-    if (selectAllChecked) {
-      // Deselect all posts on current page
-      posts.forEach(post => newSelected.delete(post.id));
-    } else {
-      // Select all posts on current page
-      posts.forEach(post => newSelected.add(post.id));
-    }
-    
-    setSelectedPostIds(newSelected);
-    setSelectAllChecked(!selectAllChecked);
+    setSelection(prev => {
+      const newSelected = new Set(prev.selectedPostIds);
+      
+      if (prev.selectAllChecked) {
+        posts.forEach(post => newSelected.delete(post.id));
+      } else {
+        posts.forEach(post => newSelected.add(post.id));
+      }
+      
+      return {
+        ...prev,
+        selectedPostIds: newSelected,
+        selectAllChecked: !prev.selectAllChecked
+      };
+    });
   };
 
   const handleClearSelection = () => {
-    setSelectedPostIds(new Set());
-    setSelectAllChecked(false);
-    setSelectionMode(false);
+    setSelection({
+      selectedPostIds: new Set(),
+      selectAllChecked: false,
+      selectionMode: false,
+      triggerDelete: false,
+      triggerSelectAll: false
+    });
   };
 
   const handleDeleteSelected = () => {
-    setTriggerDelete(true);
+    setSelection(prev => ({ ...prev, triggerDelete: true }));
   };
   
   return (
@@ -1156,18 +1140,18 @@ export default function Posts() {
       {/* Header directly after topbar */}
       <PageHeader>
         <PostsHeader 
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          statusFilter={statusFilter}
-          onStatusChange={(value) => setStatusFilter(value as PostStatus | 'all')}
-          sortBy={sortBy}
-          onSortChange={setSortBy}
-          selectedPostIds={selectedPostIds}
-          selectAllChecked={selectAllChecked}
-          onSelectAllChange={() => {}} // Will be handled in PostsContent
+          searchTerm={filters.searchTerm}
+          onSearchChange={(value) => setFilters(prev => ({ ...prev, searchTerm: value }))}
+          statusFilter={filters.statusFilter}
+          onStatusChange={(value) => setFilters(prev => ({ ...prev, statusFilter: value as PostStatus | 'all' }))}
+          sortBy={filters.sortBy}
+          onSortChange={(value) => setFilters(prev => ({ ...prev, sortBy: value }))}
+          selectedPostIds={selection.selectedPostIds}
+          selectAllChecked={selection.selectAllChecked}
+          onSelectAllChange={() => {}}
           onDeleteSelected={handleDeleteSelected}
           onClearSelection={handleClearSelection}
-          selectionMode={selectionMode}
+          selectionMode={selection.selectionMode}
           onRefresh={async () => {
             try {
               setIsRefreshing(true);
@@ -1175,7 +1159,7 @@ export default function Posts() {
                 await refetchRef.current();
               }
             } catch (error) {
-              console.error('Error refreshing posts:', error);
+              // Error handled silently
             } finally {
               setIsRefreshing(false);
             }
@@ -1188,22 +1172,22 @@ export default function Posts() {
       <div className="space-y-4">
         {/* Dynamic Posts Content */}
         <PostsContent 
-          searchTerm={searchTerm}
-          statusFilter={statusFilter}
-          sortBy={sortBy}
+          searchTerm={filters.searchTerm}
+          statusFilter={filters.statusFilter}
+          sortBy={filters.sortBy}
           onClearFilters={handleClearFilters}
-          selectedPostIds={selectedPostIds}
-          selectAllChecked={selectAllChecked}
+          selectedPostIds={selection.selectedPostIds}
+          selectAllChecked={selection.selectAllChecked}
           onSelectAllChange={handleSelectAllChange}
           onDeleteSelected={handleDeleteSelected}
           onClearSelection={handleClearSelection}
-          selectionMode={selectionMode}
+          selectionMode={selection.selectionMode}
           onPostLongPress={handlePostLongPress}
           onPostSelect={handlePostSelect}
-          triggerDelete={triggerDelete}
-          onDeleteTriggered={() => setTriggerDelete(false)}
-          triggerSelectAll={triggerSelectAll}
-          onSelectAllTriggered={() => setTriggerSelectAll(false)}
+          triggerDelete={selection.triggerDelete}
+          onDeleteTriggered={() => setSelection(prev => ({ ...prev, triggerDelete: false }))}
+          triggerSelectAll={selection.triggerSelectAll}
+          onSelectAllTriggered={() => setSelection(prev => ({ ...prev, triggerSelectAll: false }))}
           userProfile={userProfile}
           refetchRef={refetchRef}
         />
