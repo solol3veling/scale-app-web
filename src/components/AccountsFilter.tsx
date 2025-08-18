@@ -1,4 +1,3 @@
-import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search } from "lucide-react"
@@ -21,33 +20,29 @@ export function AccountsFilter({
   setFilters,
 }: AccountsFilterProps) {
   return (
-    <Card className="shadow-soft">
-      <CardContent className="pt-6">
-        <div className="flex gap-4 items-center">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search accounts..."
-              value={filters.searchTerm}
-              onChange={(e) => setFilters(prev => ({ ...prev, searchTerm: e.target.value }))}
-              className="pl-10"
-            />
-          </div>
-          <Select value={filters.selectedPlatform} onValueChange={(value) => setFilters(prev => ({ ...prev, selectedPlatform: value }))}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="All platforms" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All platforms</SelectItem>
-              {platformOptions.map((platform) => (
-                <SelectItem key={platform.value} value={platform.value}>
-                  {platform.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="flex gap-4 items-center">
+      <div className="relative flex-1 max-w-md">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search accounts..."
+          value={filters.searchTerm}
+          onChange={(e) => setFilters(prev => ({ ...prev, searchTerm: e.target.value }))}
+          className="pl-10"
+        />
+      </div>
+      <Select value={filters.selectedPlatform} onValueChange={(value) => setFilters(prev => ({ ...prev, selectedPlatform: value }))}>
+        <SelectTrigger className="w-48">
+          <SelectValue placeholder="All platforms" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All platforms</SelectItem>
+          {platformOptions.map((platform) => (
+            <SelectItem key={platform.value} value={platform.value}>
+              {platform.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   )
 }

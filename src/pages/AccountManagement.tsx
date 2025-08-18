@@ -44,38 +44,40 @@ export default function AccountManagement() {
     <div className="space-y-0">
       {/* Header */}
       <PageHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Accounts</h1>
-            <p className="text-muted-foreground text-sm">Manage your connected social media accounts</p>
+        <div className="flex flex-col space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">Accounts</h1>
+              <p className="text-muted-foreground text-sm">Manage your connected social media accounts</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline"
+                size="sm"
+                onClick={refetch}
+                disabled={isFetching}
+                className="h-9 w-9 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                title="Refresh accounts"
+              >
+                <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+              </Button>
+              <Button className="gradient-primary hover-scale" onClick={() => setSearchParams({ action: 'add' })}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Account
+              </Button>
+            </div>
+            <AddAccountDialog onAccountAdded={handleAccountAdded} open={action === 'add'} onOpenChange={(open) => !open && closeDialog()} platform={platform} />
           </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline"
-              size="sm"
-              onClick={refetch}
-              disabled={isFetching}
-              className="h-9 w-9 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-              title="Refresh accounts"
-            >
-              <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
-            </Button>
-            <Button className="gradient-primary hover-scale" onClick={() => setSearchParams({ action: 'add' })}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Account
-            </Button>
-          </div>
-          <AddAccountDialog onAccountAdded={handleAccountAdded} open={action === 'add'} onOpenChange={(open) => !open && closeDialog()} platform={platform} />
+          {/* Filters */}
+          <AccountsFilter 
+            filters={filters}
+            setFilters={setFilters}
+          />
         </div>
       </PageHeader>
 
       {/* Main content area */}
       <div className="space-y-6 p-6">
-        {/* Filters */}
-        <AccountsFilter 
-          filters={filters}
-          setFilters={setFilters}
-        />
 
         {/* Accounts Grid */}
         <AccountsList 
