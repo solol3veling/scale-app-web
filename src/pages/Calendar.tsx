@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react"
+import React, { useState, useMemo, useEffect } from "react"
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, CheckCircle, Edit3, AlertCircle, RefreshCw } from "lucide-react"
 import { format } from "date-fns"
 import { DndProvider } from 'react-dnd'
@@ -6,6 +6,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend'
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar as DatePickerCalendar } from "@/components/ui/calendar"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useMonthlyCalendarPosts } from "@/hooks/api/useCalendarPosts"
 import { useMultiplePostEvents } from "@/hooks/api/usePostEvents"
 import { Post, PostStatus } from "@/types/api"
@@ -381,6 +382,24 @@ export function Calendar() {
 
     const postCounts = getPostCounts()
 
+    // Get filter option display info
+    const getFilterDisplayInfo = (filter: StatusFilterType) => {
+        switch (filter) {
+            case "all":
+                return { icon: CalendarIcon, label: "Calendar", count: null }
+            case "scheduled":
+                return { icon: Clock, label: "Scheduled", count: postCounts.scheduled }
+            case "drafts":
+                return { icon: Edit3, label: "Drafts", count: postCounts.drafts }
+            case "posted":
+                return { icon: CheckCircle, label: "Posted", count: postCounts.posted }
+            default:
+                return { icon: CalendarIcon, label: "Calendar", count: null }
+        }
+    }
+
+    const currentFilterInfo = getFilterDisplayInfo(statusFilter)
+
     // Handle post drop on calendar day
     const handlePostDropped = (post: Post, newTargetDate: Date) => {
         // Create a fresh copy of the target date to avoid mutation issues
@@ -638,7 +657,7 @@ export function Calendar() {
                 <div key={`${year}-${month}`} className="grid grid-cols-7 h-full">
                     {/* Week header */}
                     {WEEKDAYS.map((day) => (
-                        <div key={day} className="p-3 text-center text-sm font-medium text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                        <div key={day} className="p-1.5 sm:p-3 text-center text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
                             {day}
                         </div>
                     ))}
@@ -675,7 +694,8 @@ export function Calendar() {
                 <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
                     {/* Filter tabs */}
                     <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800">
-                        <div className="flex items-center gap-1">
+                        {/* Desktop: Tabs */}
+                        <div className="hidden sm:flex items-center gap-1">
                             <button
                                 onClick={() => setStatusFilter("all")}
                                 className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${statusFilter === "all"
@@ -719,6 +739,47 @@ export function Calendar() {
                                 <CheckCircle className="h-4 w-4" />
                                 Posted ({postCounts?.posted})
                             </button>
+                        </div>
+
+                        {/* Mobile: Dropdown */}
+                        <div className="sm:hidden">
+                            <Select value={statusFilter} onValueChange={(value: StatusFilterType) => setStatusFilter(value)}>
+                                <SelectTrigger className="w-40 bg-background/50 backdrop-blur-sm border-border/50 h-9">
+                                    <div className="flex items-center gap-1.5">
+                                        {React.createElement(currentFilterInfo.icon, { className: "h-3.5 w-3.5" })}
+                                        <span className="text-sm">
+                                            {currentFilterInfo.label}
+                                            {currentFilterInfo.count !== null && ` (${currentFilterInfo.count})`}
+                                        </span>
+                                    </div>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">
+                                        <div className="flex items-center gap-2">
+                                            <CalendarIcon className="h-4 w-4" />
+                                            Calendar
+                                        </div>
+                                    </SelectItem>
+                                    <SelectItem value="scheduled">
+                                        <div className="flex items-center gap-2">
+                                            <Clock className="h-4 w-4" />
+                                            Scheduled ({postCounts.scheduled})
+                                        </div>
+                                    </SelectItem>
+                                    <SelectItem value="drafts">
+                                        <div className="flex items-center gap-2">
+                                            <Edit3 className="h-4 w-4" />
+                                            Drafts ({postCounts.drafts})
+                                        </div>
+                                    </SelectItem>
+                                    <SelectItem value="posted">
+                                        <div className="flex items-center gap-2">
+                                            <CheckCircle className="h-4 w-4" />
+                                            Posted ({postCounts.posted})
+                                        </div>
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         <div className="flex items-center gap-2">
@@ -784,20 +845,20 @@ export function Calendar() {
                     </div>
 
                     {/* Calendar navigation */}
-                    <div className="flex items-center justify-between px-6 py-4">
-                        <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                    <div className="flex items-center justify-between px-3 sm:px-6 py-2 sm:py-4">
+                        <h1 className="text-lg sm:text-2xl font-semibold text-gray-900 dark:text-gray-100">
                             {MONTHS[month]} {year}
                         </h1>
 
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-0.5 sm:gap-1">
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => navigateMonth('prev')}
                                 disabled={isLoading}
-                                className="h-9 w-9 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                                className="h-8 w-8 sm:h-9 sm:w-9 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                             >
-                                <ChevronLeft className="h-5 w-5" />
+                                <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
                             </Button>
 
                             <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
@@ -805,11 +866,13 @@ export function Calendar() {
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="mx-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors"
+                                        className="mx-1 sm:mx-2 px-2 sm:px-3 py-1 sm:py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors"
                                         disabled={isLoading}
                                     >
-                                        <CalendarIcon className="h-4 w-4 mr-2" />
-                                        {format(currentDate, "MMM d, yyyy")}
+                                        <CalendarIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                                        <span className="text-xs sm:text-sm">
+                                            {format(currentDate, "MMM d, yyyy")}
+                                        </span>
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0" align="center">
@@ -827,18 +890,19 @@ export function Calendar() {
                                 size="sm"
                                 onClick={() => refetch()}
                                 disabled={isLoading || isRefetching}
-                                className="h-9 w-9 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors mr-2"
+                                className="h-8 w-8 sm:h-9 sm:w-9 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors mr-1 sm:mr-2"
                                 title="Refresh calendar"
                             >
-                                <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
+                                <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 ${isRefetching ? 'animate-spin' : ''}`} />
                             </Button>
 
+                            {/* Today button - hidden on mobile */}
                             <Button
                                 variant="default"
                                 size="sm"
                                 onClick={() => setCurrentDate(new Date())}
                                 disabled={isLoading}
-                                className="mr-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:shadow-md"
+                                className="hidden sm:block mr-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:shadow-md"
                             >
                                 Today
                             </Button>
@@ -848,9 +912,9 @@ export function Calendar() {
                                 size="sm"
                                 onClick={() => navigateMonth('next')}
                                 disabled={isLoading}
-                                className="h-9 w-9 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                                className="h-8 w-8 sm:h-9 sm:w-9 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                             >
-                                <ChevronRight className="h-5 w-5" />
+                                <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
                             </Button>
                         </div>
                     </div>
