@@ -60,13 +60,25 @@ export function AddAccountDialog({ onAccountAdded, open, onOpenChange, defaultPl
         try {
             setIsConnecting(true)
 
-            // Initialize OAuth flow
-            const response = await oauthApi.initialize({
-                platform: platform.toUpperCase(),
-                account: accountName
-            })
+            let redirectUri: string;
 
-            const { redirectUri } = response
+            // Check if platform uses OAuth2 (Facebook, Instagram, LinkedIn) or OAuth1 (Twitter)
+            if (platform.toLowerCase() === 'twitter') {
+                // Use OAuth1 flow for Twitter
+                const response = await oauthApi.initialize({
+                    platform: platform.toUpperCase(),
+                    account: accountName
+                })
+                redirectUri = response.redirectUri
+            } else {
+                // Use OAuth2 flow for all other platforms (Facebook, Instagram, LinkedIn, etc.)
+                const response = await oauthApi.initializeOAuth2(
+                    platform.toUpperCase(),
+                    accountName,
+                    window.location.origin + '/oauth-callback'
+                )
+                redirectUri = response.authorizationUrl || response.redirectUri
+            }
 
             // Open popup window for OAuth
             const popup = window.open(

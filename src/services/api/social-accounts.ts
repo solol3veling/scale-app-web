@@ -16,9 +16,14 @@ export const socialAccountsApi = {
    * Get all social accounts for the current user (legacy method for non-paginated use)
    */
   getAll: async (): Promise<SocialAccount[]> => {
-    const response = await makeApiCall<ApiResponseListSocialAccount>(
-      () => apiClient.get(buildApiUrl('/socials'))
-    );
+    // Backend now returns paginated response, so we use getPaginated with large size
+    const response = await socialAccountsApi.getPaginated({
+      pageable: {
+        page: 0,
+        size: 100, // Large size to get "all" accounts
+        sort: ['createdAt,desc']
+      }
+    });
     return response.data;
   },
 

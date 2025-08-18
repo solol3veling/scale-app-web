@@ -30,6 +30,7 @@ import { useSocialAccounts } from "@/hooks/api/useSocialAccounts"
 import { PublishingEventStatus, Platform, MediaItem } from "@/types/api"
 import { format } from "date-fns"
 import { getVideoThumbnailUrl, isVideoType } from "@/utils/mediaUtils"
+import { useToast } from "@/hooks/use-toast"
 
 interface PostDetailsModalProps {
   isOpen: boolean
@@ -48,12 +49,72 @@ export function PostDetailsModal({ isOpen, onClose, postId }: PostDetailsModalPr
   const { data: socialAccounts } = useSocialAccounts()
   const retryEvent = useRetryEvent()
   const extendPost = useExtendPost()
+  const { toast } = useToast()
 
   const postData = post.data
   const eventsData = events.data || []
 
+  // Parse error message to extract user-friendly details
+  const parseErrorMessage = (errorMessage: string): { title: string; description: string } => {
+    try {
+      // Try to extract JSON error details from the message
+      const jsonMatch = errorMessage.match(/\{.*\}/)
+      if (jsonMatch) {
+        const errorObj = JSON.parse(jsonMatch[0])
+        if (errorObj.detail) {
+          return {
+            title: "Publishing Failed",
+            description: errorObj.detail
+          }
+        }
+      }
+
+      // Handle status code patterns
+      if (errorMessage.includes('403')) {
+        return {
+          title: "Access Forbidden",
+          description: "You don't have permission to publish to this platform. Please check your account connection."
+        }
+      }
+      if (errorMessage.includes('401')) {
+        return {
+          title: "Authentication Failed", 
+          description: "Your account authorization has expired. Please reconnect your account."
+        }
+      }
+      if (errorMessage.includes('429')) {
+        return {
+          title: "Rate Limited",
+          description: "Too many requests. Please wait before trying again."
+        }
+      }
+
+      // Default fallback
+      return {
+        title: "Publishing Failed",
+        description: errorMessage.length > 100 ? `${errorMessage.substring(0, 100)}...` : errorMessage
+      }
+    } catch {
+      return {
+        title: "Publishing Failed",
+        description: errorMessage.length > 100 ? `${errorMessage.substring(0, 100)}...` : errorMessage
+      }
+    }
+  }
+
+  // Show error details in toast
+  const showErrorDetails = (errorMessage: string) => {
+    const { title, description } = parseErrorMessage(errorMessage)
+    toast({
+      title,
+      description,
+      variant: "destructive",
+      duration: 8000, // Show longer for error messages
+    })
+  }
+
   // Get status badge for publishing events
-  const getEventStatusBadge = (status: PublishingEventStatus) => {
+  const getEventStatusBadge = (status: PublishingEventStatus, errorMessage?: string) => {
     switch (status) {
       case PublishingEventStatus.COMPLETED:
         return (
@@ -78,10 +139,14 @@ export function PostDetailsModal({ isOpen, onClose, postId }: PostDetailsModalPr
         )
       case PublishingEventStatus.FAILED:
         return (
-          <Badge variant="destructive" className="flex items-center gap-1">
+          <Badge 
+            variant="destructive" 
+            className="flex items-center gap-1 cursor-pointer hover:bg-red-600 transition-colors"
+            onClick={() => errorMessage && showErrorDetails(errorMessage)}
+            title={errorMessage ? "Click to see error details" : undefined}
+          >
             <XCircle className="h-3 w-3" />
             Failed
-            {event.errorMessage && <span className="text-xs">: {event.errorMessage}</span>}
           </Badge>
         )
       default:
@@ -273,7 +338,7 @@ export function PostDetailsModal({ isOpen, onClose, postId }: PostDetailsModalPr
                             </div>
                           </div>
                           <div className="flex items-center justify-between">
-                            {getEventStatusBadge(event.status)}
+                            {getEventStatusBadge(event.status, event.errorMessage)}
                             {event.status === PublishingEventStatus.FAILED && (
                               <Button
                                 variant="ghost"

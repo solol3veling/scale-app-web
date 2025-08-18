@@ -83,6 +83,7 @@ export interface MediaItem {
     url: string;
     type: string;
     thumbnailUrl?: string; // For video thumbnails
+    file?: File; // Added for client-side validation
 }
 
 export interface Engagement {
@@ -105,6 +106,8 @@ export interface SocialAccount {
     profileImage?: string;
     userId: string;
     isConnected: boolean;
+    isFullyConnected: boolean;
+    pageId?: string | null;
     // Deprecated fields - keeping for backward compatibility but marking as optional
     accessToken?: string;
     refreshToken?: string;
@@ -125,6 +128,8 @@ export interface SocialAccountResponse {
     lastPost?: string | null;
     profileImage?: string;
     isConnected: boolean;
+    isFullyConnected: boolean;
+    pageId?: string | null;
     userId: string;
 }
 
@@ -915,6 +920,47 @@ export interface OAuthInitResponse {
 export interface OAuthCallbackParams {
     oauth_verifier: string;
     oauth_request_token?: string;
+}
+
+// Page Selection Types
+export interface PageInfo {
+    id: string;
+    name: string;
+    category?: string;
+    accessToken: string;
+    pictureUrl?: string;
+    followersCount?: number;
+    description?: string;
+}
+
+export interface PageSelectionData {
+    pages: PageInfo[];
+    userInfo: {
+        id: string;
+        name: string;
+        username?: string;
+        profilePicture?: string;
+    };
+}
+
+export interface OAuth2CallbackResponse {
+    success: boolean;
+    requiresPageSelection?: boolean;
+    tempData?: string; // encrypted OAuth tokens + user info
+    accountId?: string; // if direct creation
+    platform?: Platform;
+    userInfo?: {
+        id: string;
+        name: string;
+        username?: string;
+        profilePicture?: string;
+    };
+}
+
+export interface CompleteWithPageRequest {
+    tempData: string;
+    selectedPageId: string;
+    accountName: string;
 }
 
 // Calendar API Types

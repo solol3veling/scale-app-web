@@ -4,6 +4,9 @@ import { PostComposer } from "@/components/PostComposer"
 import { PostPreviewTabs } from "@/components/PostPreviewTabs";
 import { PageHeader } from "@/components/PageHeader"
 import { AccountSelector } from "@/components/AccountSelector"
+import { ValidationStack } from "@/components/validation/ValidationStack"
+import { usePostValidation } from "@/hooks/usePostValidation"
+import { useSocialAccounts } from "@/hooks/api/useSocialAccounts"
 
 
 export default function MakePost() {
@@ -14,6 +17,19 @@ export default function MakePost() {
   const [scheduledDate, setScheduledDate] = useState<Date>()
   const [scheduledTime, setScheduledTime] = useState("")
   const [isMediaUploading, setIsMediaUploading] = useState(false)
+
+  // Get all social accounts and filter selected ones
+  const { data: allAccounts = [] } = useSocialAccounts()
+  const selectedAccounts = allAccounts.filter(account => 
+    selectedAccountIds.includes(account.id)
+  )
+
+  // Real-time validation
+  const validation = usePostValidation({
+    content: postContent,
+    media: uploadedMedia,
+    selectedAccounts: selectedAccounts,
+  })
 
   const handleAccountToggle = (accountId: string) => {
     setSelectedAccountIds(prev => 
@@ -40,10 +56,10 @@ export default function MakePost() {
         </div>
       </PageHeader>
 
-      {/* Main content area - Simplified Layout */}
-      <div className="grid gap-6 lg:grid-cols-2 p-6">
+      {/* Main content area - Enhanced Layout with Validation */}
+      <div className="grid gap-6 lg:grid-cols-3 p-6">
         {/* Post Creation Form */}
-        <div className="space-y-6">
+        <div className="lg:col-span-2 space-y-6">
           {/* Account Selector */}
           <AccountSelector 
             selectedAccountIds={selectedAccountIds}
@@ -66,14 +82,31 @@ export default function MakePost() {
             onUploadStateChange={setIsMediaUploading}
             selectedAccountIds={selectedAccountIds}
           />
+
+          {/* Preview Panel - Mobile/Tablet */}
+          <div className="lg:hidden">
+            <PostPreviewTabs 
+              postContent={postContent}
+              uploadedMedia={uploadedMedia}
+            />
+          </div>
         </div>
 
-        {/* Preview Panel */}
+        {/* Right Sidebar - Validation & Preview */}
         <div className="space-y-6">
-          <PostPreviewTabs 
-            postContent={postContent}
-            uploadedMedia={uploadedMedia}
+          {/* Real-time Validation Stack */}
+          <ValidationStack 
+            validationResult={validation.result}
+            isValidating={validation.isValidating}
           />
+
+          {/* Preview Panel - Desktop */}
+          <div className="hidden lg:block">
+            <PostPreviewTabs 
+              postContent={postContent}
+              uploadedMedia={uploadedMedia}
+            />
+          </div>
         </div>
       </div>
     </div>

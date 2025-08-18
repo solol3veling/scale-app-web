@@ -65,12 +65,15 @@ export const oauthApi = {
   /**
    * Initialize OAuth2 flow
    */
-  initializeOAuth2: async (platform: string, redirectUri: string): Promise<Record<string, string>> => {
+  initializeOAuth2: async (platform: string, account: string, redirectUri: string): Promise<Record<string, string>> => {
+    const queryString = buildQueryParams({
+      platform,
+      account,
+      redirectUri
+    });
+    
     return makeApiCall<Record<string, string>>(
-      () => apiClient.post(buildApiUrl('/oauth2/initialize'), {
-        platform,
-        redirectUri
-      })
+      () => apiClient.post(buildApiUrl(`/oauth2/initialize?${queryString}`))
     );
   },
 
@@ -113,4 +116,5 @@ export const oauthApi = {
       () => apiClient.get(buildApiUrl(`/oauth/status/${accountId}`))
     );
   },
+
 };

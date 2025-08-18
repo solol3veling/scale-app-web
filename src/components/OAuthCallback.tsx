@@ -9,7 +9,14 @@ export function OAuthCallback() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
+        // Check for OAuth1 (Twitter) parameters
         const oauthVerifier = searchParams.get('oauth_verifier');
+        
+        // Check for OAuth2 parameters
+        const code = searchParams.get('code');
+        const state = searchParams.get('state');
+        
+        // Check for errors
         const denied = searchParams.get('denied');
         const error = searchParams.get('error');
         const errorDescription = searchParams.get('error_description');
@@ -25,31 +32,45 @@ export function OAuthCallback() {
           return;
         }
 
-        if (!oauthVerifier) {
-          sendMessageToParent('ERROR', 'Missing OAuth verifier parameter');
+        // Handle OAuth1 flow (Twitter)
+        if (oauthVerifier) {
+          // Get the oauth_request_token from cookies
+          const cookies = document.cookie.split(';');
+          let oauthRequestToken = null;
+          
+          for (const cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'oauth_request_token' || name === 'oauth1_state') {
+              oauthRequestToken = value;
+              break;
+            }
+          }
+
+          // Complete the OAuth1 flow
+          const response = await oauthApi.completeJson({
+            oauth_verifier: oauthVerifier,
+            oauth_request_token: oauthRequestToken
+          });
+
+          sendMessageToParent('OK', 'Account connected successfully');
           return;
         }
 
-        // Get the oauth_request_token from cookies
-        const cookies = document.cookie.split(';');
-        let oauthRequestToken = null;
-        
-        for (const cookie of cookies) {
-          const [name, value] = cookie.trim().split('=');
-          if (name === 'oauth_request_token' || name === 'oauth1_state') {
-            oauthRequestToken = value;
-            break;
-          }
+        // Handle OAuth2 flow (Facebook, Instagram, LinkedIn)
+        if (code) {
+          // Extract platform from state or URL
+          const platform = state || searchParams.get('platform') || 'unknown';
+          
+          // Complete OAuth2 flow - now works the same as OAuth1
+          const response = await oauthApi.completeOAuth2(platform, code, state);
+
+          // Send success message to parent window (same as OAuth1)
+          sendMessageToParent('OK', 'Account connected successfully');
+          return;
         }
 
-        // Complete the OAuth flow
-        const response = await oauthApi.completeJson({
-          oauth_verifier: oauthVerifier,
-          oauth_request_token: oauthRequestToken
-        });
-
-        // Send success message to parent window
-        sendMessageToParent('OK', 'Account connected successfully');
+        // If we get here, neither OAuth1 nor OAuth2 parameters were found
+        sendMessageToParent('ERROR', 'Missing OAuth parameters');
 
       } catch (error) {
         console.error('OAuth callback error:', error);
@@ -57,11 +78,12 @@ export function OAuthCallback() {
       }
     };
 
-    const sendMessageToParent = (status: string, message: string) => {
+    const sendMessageToParent = (status: string, message: string, additionalData?: any) => {
       if (window.opener && !window.opener.closed) {
         try {
-          window.opener.postMessage({ status, message }, window.location.origin);
-          console.log('OAuth callback: Message sent to parent:', { status, message });
+          const messageData = { status, message, ...additionalData };
+          window.opener.postMessage(messageData, window.location.origin);
+          console.log('OAuth callback: Message sent to parent:', messageData);
         } catch (error) {
           console.error('OAuth callback: Failed to send message to parent:', error);
         }

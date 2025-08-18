@@ -27,7 +27,10 @@ import {
   EyeOff,
   Share2,
   CheckCircle,
-  Users
+  Users,
+  Info,
+  AlertCircle,
+  Check
 } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
@@ -41,6 +44,9 @@ import { useNavigate } from "react-router-dom"
 import { useSocialAccounts } from "@/hooks/api/useSocialAccounts"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getVideoThumbnailUrl } from "@/utils/mediaUtils"
+import { validatePost, PostValidationResult, ValidationMessage, SocialAccount } from '@/utils/postValidator'
+import { EnhancedPostValidator } from '@/utils/enhancedPostValidator'
+
 
 interface PostComposerProps {
   postContent: string
@@ -90,6 +96,18 @@ export function PostComposer({
   const createPost = useCreatePost()
   const { toast } = useToast()
   const navigate = useNavigate()
+
+  // Get social accounts for validation
+  const { data: allAccounts = [] } = useSocialAccounts();
+  const selectedAccounts = allAccounts.filter(account => 
+    selectedAccountIds.includes(account.id)
+  );
+
+  // Enhanced validation for character limit display
+  const platforms = EnhancedPostValidator.convertToPlatforms(selectedAccounts);
+  const characterLimit = platforms.length > 0 
+    ? EnhancedPostValidator.getStrictestCharacterLimit(platforms)
+    : 2000;
 
   // Handle textarea change with HighlightWithinTextarea
   const handleTextareaChange = (value: string) => {
@@ -384,7 +402,7 @@ export function PostComposer({
               
               {/* Character Count */}
               <div className="absolute bottom-6 right-2 text-xs text-muted-foreground/60 z-10">
-                {postContent.length}/2000
+                {postContent.length}/{characterLimit}
               </div>
             </div>
 
