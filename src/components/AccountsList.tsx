@@ -262,31 +262,29 @@ export function AccountsList({ searchTerm, selectedPlatform, action, accountId, 
       <div className="space-y-6">
         <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
           {accounts.map((account) => (
-        <Card key={account.id} className="shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02] flex flex-col h-full border border-gray-200 dark:border-gray-700 p-4">
-          <CardHeader className="pb-2 px-0 pt-0">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <Avatar className="h-10 w-10 flex-shrink-0">
-                  <AvatarImage src={account?.profileImage} />
-                  <AvatarFallback className={`${getPlatformConfig(account?.platform).color} text-white`}>
-                    {(() => {
-                      const PlatformIcon = getPlatformConfig(account?.platform).icon
-                      return <PlatformIcon className="w-5 h-5" />
-                    })()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold text-base leading-tight">{account?.displayName}</h3>
-                  <p className="text-sm text-muted-foreground truncate">{account?.handle}</p>
-                </div>
-              </div>
-              <div className="flex-shrink-0">
-                {getStatusBadge(account?.status, account?.isConnected)}
+        <Card key={account.id} className="shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02] flex flex-col h-full border border-gray-200 dark:border-gray-700 p-3">
+          <CardHeader className="pb-2 px-0 pt-0 flex flex-row items-center justify-between">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <Avatar className="h-10 w-10 flex-shrink-0">
+                <AvatarImage src={account?.profileImage} />
+                <AvatarFallback className={`${getPlatformConfig(account?.platform).color} text-white`}>
+                  {(() => {
+                    const PlatformIcon = getPlatformConfig(account?.platform).icon
+                    return <PlatformIcon className="w-5 h-5" />
+                  })()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-semibold text-base leading-tight">{account?.displayName}</h3>
+                <p className="text-sm text-muted-foreground truncate">{account?.handle}</p>
               </div>
             </div>
+            <div className="flex-shrink-0">
+              {getStatusBadge(account?.status, account?.isConnected)}
+            </div>
           </CardHeader>
-          <div className="flex-1 px-0 pb-0 flex flex-col justify-between pt-3">
-            <div className="flex justify-between items-center gap-2">
+          <div className="flex-1 px-0 pb-0 flex flex-col justify-between">
+            <div className="flex justify-between items-center gap-1 pt-3 border-t mt-auto">
               <div className="flex items-center gap-2">
                 {(() => {
                   const platformConfig = getPlatformConfig(account?.platform)
