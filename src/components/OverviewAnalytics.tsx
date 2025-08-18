@@ -1,40 +1,20 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  Eye, 
-  Heart, 
-  MessageSquare, 
-  Share2, 
-  TrendingUp,
-  TrendingDown,
-  Users,
-  BarChart3
-} from "lucide-react"
-import { AnalyticsData, EnhancedAnalyticsData } from "@/types/api"
+import { formatNumber, formatPercentage } from "@/utils/overviewHelpers";
 
 interface OverviewAnalyticsProps {
   data: AnalyticsData | EnhancedAnalyticsData;
   isEnhanced?: boolean;
 }
 
-export function OverviewAnalytics({ data, isEnhanced = false }: OverviewAnalyticsProps) {
-  const formatNumber = (num: number): string => {
-    if (num >= 1000000) {
-      return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M'
-    }
-    if (num >= 1000) {
-      return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K'
-    }
-    return num.toString()
-  };
-
-  const formatPercentage = (num: number): string => {
-    return `${num.toFixed(1)}%`;
-  };
+const platformInfoMap = {
+  FACEBOOK: { name: 'Facebook', color: 'bg-blue-600' },
+  TWITTER: { name: 'Twitter', color: 'bg-blue-500' },
+  INSTAGRAM: { name: 'Instagram', color: 'bg-pink-500' },
+  LINKEDIN: { name: 'LinkedIn', color: 'bg-blue-700' },
+  GOOGLE: { name: 'Google', color: 'bg-green-500' }
+};
 
   const getMetricsForDisplay = () => {
-    if (isEnhanced && 'overallMetrics' in data) {
+    if (isEnhanced && data?.overallMetrics) {
       return {
         totalReach: data.overallMetrics.totalViews,
         totalEngagement: data.overallMetrics.totalEngagement,
@@ -43,10 +23,10 @@ export function OverviewAnalytics({ data, isEnhanced = false }: OverviewAnalytic
       };
     } else {
       return {
-        totalReach: data.totalReach,
-        totalEngagement: data.totalEngagement,
-        engagementRate: data.engagementRate,
-        totalPosts: data.platformBreakdown ? data.platformBreakdown.reduce((total, platform) => total + platform.posts, 0) : 0
+        totalReach: data?.totalReach || 0,
+        totalEngagement: data?.totalEngagement || 0,
+        engagementRate: data?.engagementRate || 0,
+        totalPosts: data?.platformBreakdown ? data.platformBreakdown.reduce((total, platform) => total + platform.posts, 0) : 0
       };
     }
   };
@@ -113,18 +93,10 @@ export function OverviewAnalytics({ data, isEnhanced = false }: OverviewAnalytic
         <TabsContent value="platforms" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             {data.platformBreakdown?.map((platform, index) => {
-              const platformInfo = {
-                FACEBOOK: { name: 'Facebook', color: 'bg-blue-600' },
-                TWITTER: { name: 'Twitter', color: 'bg-blue-500' },
-                INSTAGRAM: { name: 'Instagram', color: 'bg-pink-500' },
-                LINKEDIN: { name: 'LinkedIn', color: 'bg-blue-700' },
-                GOOGLE: { name: 'Google', color: 'bg-green-500' }
-              };
-              
               const platformKey = typeof platform.platform === 'string' 
-                ? platform.platform.toUpperCase() as keyof typeof platformInfo
+                ? platform.platform.toUpperCase() as keyof typeof platformInfoMap
                 : platform.platform;
-              const info = platformInfo[platformKey] || { name: String(platform.platform), color: 'bg-gray-500' };
+              const info = platformInfoMap[platformKey] || { name: String(platform.platform), color: 'bg-gray-500' };
               
               return (
                 <Card key={index} className="shadow-medium hover-lift">
@@ -140,29 +112,29 @@ export function OverviewAnalytics({ data, isEnhanced = false }: OverviewAnalytic
                         <div className="grid grid-cols-3 gap-4">
                           <div>
                             <p className="text-sm text-muted-foreground">Likes</p>
-                            <p className="text-xl font-bold">{formatNumber(platform.likes)}</p>
+                            <p className="text-xl font-bold">{formatNumber(platform.likes || 0)}</p>
                           </div>
                           <div>
                             <p className="text-sm text-muted-foreground">Shares</p>
-                            <p className="text-xl font-bold">{formatNumber(platform.shares)}</p>
+                            <p className="text-xl font-bold">{formatNumber(platform.shares || 0)}</p>
                           </div>
                           <div>
                             <p className="text-sm text-muted-foreground">Comments</p>
-                            <p className="text-xl font-bold">{formatNumber(platform.comments)}</p>
+                            <p className="text-xl font-bold">{formatNumber(platform.comments || 0)}</p>
                           </div>
                         </div>
                         <div className="grid grid-cols-3 gap-4">
                           <div>
                             <p className="text-sm text-muted-foreground">Views</p>
-                            <p className="text-lg font-semibold">{formatNumber(platform.views)}</p>
+                            <p className="text-lg font-semibold">{formatNumber(platform.views || 0)}</p>
                           </div>
                           <div>
                             <p className="text-sm text-muted-foreground">Impressions</p>
-                            <p className="text-lg font-semibold">{formatNumber(platform.impressions)}</p>
+                            <p className="text-lg font-semibold">{formatNumber(platform.impressions || 0)}</p>
                           </div>
                           <div>
                             <p className="text-sm text-muted-foreground">Posts</p>
-                            <p className="text-lg font-semibold">{platform.posts}</p>
+                            <p className="text-lg font-semibold">{platform.posts || 0}</p>
                           </div>
                         </div>
                       </>
@@ -171,17 +143,17 @@ export function OverviewAnalytics({ data, isEnhanced = false }: OverviewAnalytic
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <p className="text-sm text-muted-foreground">Reach</p>
-                            <p className="text-2xl font-bold">{formatNumber(platform.reach)}</p>
+                            <p className="text-2xl font-bold">{formatNumber(platform.reach || 0)}</p>
                           </div>
                           <div>
                             <p className="text-sm text-muted-foreground">Engagement</p>
-                            <p className="text-2xl font-bold">{formatNumber(platform.engagement)}</p>
+                            <p className="text-2xl font-bold">{formatNumber(platform.engagement || 0)}</p>
                           </div>
                         </div>
                         <div className="grid grid-cols-1 gap-4">
                           <div>
                             <p className="text-sm text-muted-foreground">Posts</p>
-                            <p className="text-lg font-semibold">{platform.posts}</p>
+                            <p className="text-lg font-semibold">{platform.posts || 0}</p>
                           </div>
                         </div>
                       </>
@@ -202,32 +174,32 @@ export function OverviewAnalytics({ data, isEnhanced = false }: OverviewAnalytic
             <CardContent>
               <div className="space-y-4">
                 {(() => {
-                  const posts = 'topPosts' in data 
+                  const posts = 'topPosts' in data && data.topPosts 
                     ? data.topPosts 
-                    : ('topPostsByEngagement' in data ? data.topPostsByEngagement : []);
+                    : ('topPostsByEngagement' in data && data.topPostsByEngagement ? data.topPostsByEngagement : []);
                   
                   return posts.map((post, index) => (
                     <div key={'id' in post ? post.id : index} className="flex gap-4 p-4 rounded-lg border hover:bg-accent/20 transition-colors">
                       <div className="flex-1 space-y-2">
                         <div className="flex items-center gap-2">
-                          {'platform' in post ? (
+                          {'platform' in post && post.platform ? (
                             <Badge variant="secondary">
                               {post.platform.charAt(0).toUpperCase() + post.platform.slice(1).toLowerCase()}
                             </Badge>
-                          ) : 'accounts' in post && post.accounts?.[0] && (
+                          ) : 'accounts' in post && post.accounts?.[0] && post.accounts[0].platform ? (
                             <Badge variant="secondary">
                               {post.accounts[0].platform.charAt(0).toUpperCase() + post.accounts[0].platform.slice(1).toLowerCase()}
                             </Badge>
-                          )}
+                          ) : null}
                           <span className="text-sm text-muted-foreground">
                             {'publishedAt' in post && post.publishedAt 
                               ? new Date(post.publishedAt).toLocaleDateString()
-                              : 'createdAt' in post 
+                              : 'createdAt' in post && post.createdAt
                                 ? new Date(post.createdAt).toLocaleDateString()
                                 : 'N/A'}
                           </span>
                         </div>
-                        <p className="text-sm leading-relaxed">{post.content}</p>
+                        <p className="text-sm leading-relaxed">{post.content || ''}</p>
                         <div className="flex items-center gap-4 text-xs text-muted-foreground">
                           {'engagement' in post && post.engagement && 'totalEngagement' in post.engagement ? (
                             <>
@@ -237,34 +209,34 @@ export function OverviewAnalytics({ data, isEnhanced = false }: OverviewAnalytic
                               </span>
                               <span className="flex items-center gap-1">
                                 <Heart className="h-3 w-3" />
-                                {formatNumber(post.engagement.likes)}
+                                {formatNumber(post.engagement.likes || 0)}
                               </span>
                               <span className="flex items-center gap-1">
                                 <MessageSquare className="h-3 w-3" />
-                                {formatNumber(post.engagement.comments)}
+                                {formatNumber(post.engagement.comments || 0)}
                               </span>
                               <span className="flex items-center gap-1">
                                 <Share2 className="h-3 w-3" />
-                                {formatNumber(post.engagement.shares)}
+                                {formatNumber(post.engagement.shares || 0)}
                               </span>
                             </>
                           ) : 'engagement' in post && post.engagement ? (
                             <>
                               <span className="flex items-center gap-1">
                                 <Eye className="h-3 w-3" />
-                                {formatNumber(post.engagement.reach)}
+                                {formatNumber(post.engagement.reach || 0)}
                               </span>
                               <span className="flex items-center gap-1">
                                 <Heart className="h-3 w-3" />
-                                {formatNumber(post.engagement.likes)}
+                                {formatNumber(post.engagement.likes || 0)}
                               </span>
                               <span className="flex items-center gap-1">
                                 <MessageSquare className="h-3 w-3" />
-                                {formatNumber(post.engagement.comments)}
+                                {formatNumber(post.engagement.comments || 0)}
                               </span>
                               <span className="flex items-center gap-1">
                                 <Share2 className="h-3 w-3" />
-                                {formatNumber(post.engagement.shares)}
+                                {formatNumber(post.engagement.shares || 0)}
                               </span>
                             </>
                           ) : null}
@@ -297,20 +269,20 @@ export function OverviewAnalytics({ data, isEnhanced = false }: OverviewAnalytic
                         <div className="flex items-center gap-4 text-xs">
                           <span className="flex items-center gap-1">
                             <Eye className="h-3 w-3" />
-                            {formatNumber(dataPoint.reach)}
+                            {formatNumber(dataPoint.reach || 0)}
                           </span>
                           <span className="flex items-center gap-1">
                             <Heart className="h-3 w-3" />
-                            {formatNumber(dataPoint.engagement)}
+                            {formatNumber(dataPoint.engagement || 0)}
                           </span>
                           <span className="flex items-center gap-1">
                             <MessageSquare className="h-3 w-3" />
-                            {dataPoint.posts}
+                            {dataPoint.posts || 0}
                           </span>
                           {dataPoint.likes && (
                             <span className="flex items-center gap-1">
                               <Heart className="h-3 w-3" />
-                              {formatNumber(dataPoint.likes)}
+                              {formatNumber(dataPoint.likes || 0)}
                             </span>
                           )}
                         </div>
@@ -327,7 +299,7 @@ export function OverviewAnalytics({ data, isEnhanced = false }: OverviewAnalytic
                 <CardContent>
                   <div className="space-y-4">
                     <div className="text-center">
-                      <p className="text-2xl font-bold">{data.dateRange}</p>
+                      <p className="text-2xl font-bold">{data.dateRange || 'N/A'}</p>
                       <p className="text-sm text-muted-foreground">Date Range</p>
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-center">
@@ -353,4 +325,3 @@ export function OverviewAnalytics({ data, isEnhanced = false }: OverviewAnalytic
       </Tabs>
     </div>
   );
-}

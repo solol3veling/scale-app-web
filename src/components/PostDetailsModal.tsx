@@ -226,6 +226,7 @@ export function PostDetailsModal({ isOpen, onClose, postId }: PostDetailsModalPr
             {/* Left Column: Post Content, Media, Engagement */}
             <div className="lg:col-span-2 flex flex-col border-r dark:border-gray-800">
               <DialogHeader className="p-4 border-b dark:border-gray-800">
+                <DialogTitle className="text-lg font-semibold">Post Details</DialogTitle>
                 <div className="flex items-center justify-between">
                   <div>
                     <DialogDescription className="text-sm">

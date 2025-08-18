@@ -106,7 +106,7 @@ export const useRefreshOverview = () => {
     onError: (error: any) => {
       toast({
         title: "Failed to refresh",
-        description: error.message || "Please try again.",
+        description: error?.message || "Please try again.",
         variant: "destructive",
       });
     },
