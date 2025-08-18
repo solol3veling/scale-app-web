@@ -599,8 +599,8 @@ function PostsContent({
   // Loading state
   if (isLoading) {
     return (
-      <div className="space-y-3 px-6">
-        {[...Array(5)].map((_, i) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 px-6 py-6">
+        {[...Array(10)].map((_, i) => (
           <div 
             key={i} 
             className="bg-card/50 backdrop-blur-sm rounded-2xl p-6 border border-border/50 animate-pulse"
@@ -825,7 +825,7 @@ function PostsContent({
 
     return (
       <article 
-        className={`group bg-white dark:bg-gray-900 rounded-2xl border transition-all duration-200 hover:shadow-lg overflow-hidden w-full sm:w-80 flex-shrink-0 flex flex-col relative cursor-pointer ${
+        className={`group bg-white dark:bg-gray-900 rounded-2xl border transition-all duration-200 hover:shadow-lg overflow-hidden w-full flex flex-col relative cursor-pointer ${
           isSelected 
             ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-lg' 
             : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
@@ -896,7 +896,7 @@ function PostsContent({
   // Posts list
   return (
     <>
-      <div className="flex flex-row flex-wrap gap-4 px-6 py-6 justify-start">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 px-6 py-6">
         {posts.map((post) => (
           <PostCard
             key={post.id}
