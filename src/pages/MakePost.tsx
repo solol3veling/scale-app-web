@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useMemo, useCallback } from "react"
 import { MediaItem } from "@/types/api"
 import { PostComposer } from "@/components/PostComposer"
 import { PostPreviewTabs } from "@/components/PostPreviewTabs";
@@ -20,8 +20,9 @@ export default function MakePost() {
 
   // Get all social accounts and filter selected ones
   const { data: allAccounts = [] } = useSocialAccounts()
-  const selectedAccounts = allAccounts.filter(account => 
-    selectedAccountIds.includes(account.id)
+  const selectedAccounts = useMemo(() => 
+    allAccounts.filter(account => selectedAccountIds.includes(account.id)),
+    [allAccounts, selectedAccountIds]
   )
 
   // Real-time validation
@@ -31,17 +32,9 @@ export default function MakePost() {
     selectedAccounts: selectedAccounts,
   })
 
-  const handleAccountToggle = (accountId: string) => {
-    setSelectedAccountIds(prev => 
-      prev.includes(accountId) 
-        ? prev.filter(id => id !== accountId)
-        : [...prev, accountId]
-    )
-  }
-
-  const handleSelectionChange = (accountIds: string[]) => {
+  const handleSelectionChange = useCallback((accountIds: string[]) => {
     setSelectedAccountIds(accountIds)
-  }
+  }, [])
 
 
   return (
@@ -63,7 +56,6 @@ export default function MakePost() {
           {/* Account Selector */}
           <AccountSelector 
             selectedAccountIds={selectedAccountIds}
-            onAccountToggle={handleAccountToggle}
             onSelectionChange={handleSelectionChange}
           />
           

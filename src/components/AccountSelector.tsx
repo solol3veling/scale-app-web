@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -14,33 +14,44 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 interface AccountSelectorProps {
   selectedAccountIds: string[]
-  onAccountToggle: (accountId: string) => void
   onSelectionChange: (accountIds: string[]) => void
 }
 
 export function AccountSelector({ 
   selectedAccountIds, 
-  onAccountToggle, 
   onSelectionChange 
 }: AccountSelectorProps) {
   const { data: socialAccounts, isLoading: accountsLoading } = useSocialAccounts()
   const navigate = useNavigate()
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const selectedAccounts = socialAccounts?.filter(account => 
-    selectedAccountIds.includes(account.id)
-  ) || []
+  // Memoize expensive computations to prevent unnecessary re-renders
+  const selectedAccounts = useMemo(() => {
+    if (!socialAccounts) return []
+    return socialAccounts.filter(account => selectedAccountIds.includes(account.id))
+  }, [socialAccounts, selectedAccountIds])
 
-  const handleSelectAll = () => {
-    const activeAccountIds = socialAccounts
-      ?.filter(account => account.isConnected && account.status === 'ACTIVE')
-      .map(account => account.id) || []
+  const activeAccountIds = useMemo(() => {
+    if (!socialAccounts) return []
+    return socialAccounts
+      .filter(account => account.isConnected && account.status === 'ACTIVE')
+      .map(account => account.id)
+  }, [socialAccounts])
+
+  const handleSelectAll = useCallback(() => {
     onSelectionChange(activeAccountIds)
-  }
+  }, [onSelectionChange, activeAccountIds])
 
-  const handleClearAll = () => {
+  const handleClearAll = useCallback(() => {
     onSelectionChange([])
-  }
+  }, [onSelectionChange])
+
+  const handleAccountToggle = useCallback((accountId: string) => {
+    const newSelectedIds = selectedAccountIds.includes(accountId)
+      ? selectedAccountIds.filter(id => id !== accountId)
+      : [...selectedAccountIds, accountId]
+    onSelectionChange(newSelectedIds)
+  }, [selectedAccountIds, onSelectionChange])
 
   // Modal version of the account grid
   const AccountGrid = ({ inModal = false }: { inModal?: boolean }) => (
@@ -61,7 +72,7 @@ export function AccountSelector({
                 className={`h-14 w-14 border-4 cursor-pointer transition-all duration-200 active:scale-95 active:shadow-inner
                     ${isSelected ? "border-primary" : "border-transparent hover:border-muted"}
                   `}
-                onClick={() => !isDisabled && onAccountToggle(account.id)}
+                onClick={() => !isDisabled && handleAccountToggle(account.id)}
               >
                 <AvatarImage src={account.profileImage} alt={`${account.handle}'s avatar`} />
                 <AvatarFallback>{account.handle ? account.handle[0].toUpperCase() : '?'}</AvatarFallback>
