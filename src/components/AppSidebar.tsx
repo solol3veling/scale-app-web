@@ -8,7 +8,7 @@ import {
     LogOut,
     Home,
     ChevronRight,
-    FileText,
+    Library,
     Plus,
     PanelLeft,
     Calendar
@@ -37,7 +37,7 @@ import { useToast } from "@/hooks/use-toast"
 
 const menuItems = [
     { title: "Overview", url: "/", icon: Home },
-    { title: "Posts", url: "/posts", icon: FileText },
+    { title: "Posts", url: "/posts", icon: Library },
     { title: "Calendar", url: "/calendar", icon: Calendar },
     { title: "Analytics", url: "/analytics", icon: TrendingUp },
     { title: "Accounts", url: "/accounts", icon: Users },
