@@ -435,19 +435,19 @@ export function PlatformSpecificAnalyticsView({ platform, onBack }: PlatformSpec
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-3">
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div className="text-2xl font-bold" style={{ color: platformColor }}>
                   {bestTime.bestHourToPost}:00
                 </div>
                 <p className="text-sm text-muted-foreground">Best Hour</p>
               </div>
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div className="text-2xl font-bold" style={{ color: platformColor }}>
                   {bestTime.bestDayToPost}
                 </div>
                 <p className="text-sm text-muted-foreground">Best Day</p>
               </div>
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div className="text-2xl font-bold" style={{ color: platformColor }}>
                   {formatPercentage(bestTime.bestTimeSuccessRate || 0)}
                 </div>
