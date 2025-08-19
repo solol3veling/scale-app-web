@@ -1,136 +1,151 @@
 import { apiClient, makeApiCall, buildApiUrl, buildQueryParams } from './base';
 import {
-  ApiResponseAnalyticsData,
-  ApiResponseEnhancedAnalyticsData,
-  ApiResponsePlatformAnalyticsData,
-  ApiResponseEngagementAnalyticsData,
-  ApiResponseContentAnalyticsData,
   ApiResponseRefreshEngagement,
   ApiResponseRefreshGeneric,
-  AnalyticsData,
-  EnhancedAnalyticsData,
-  PlatformAnalyticsData,
-  EngagementAnalyticsData,
-  ContentAnalyticsData,
   RefreshEngagementResponse,
   Platform,
-  AnalyticsOverview,
-  PostsAnalyticsData,
-  ContentInsights,
-  PostSpecificAnalytics,
   ApiResponse
 } from '@/types/api';
 
-export interface AnalyticsParams {
-  dateRange?: string;
-  platform?: Platform;
-  accountId?: string;
-  startDate?: string;
-  endDate?: string;
-}
-
-export interface PostsAnalyticsParams {
-  platform?: Platform;
-  mediaType?: string;
-  dateRange?: string;
-  hashtag?: string;
-  accountId?: string;
-  sortBy?: string;
-  order?: 'ASC' | 'DESC';
-  page?: number;
-  size?: number;
+// Real API interfaces based on actual endpoints
+export interface DateRangeRequest {
+  startDate?: string;        // ISO 8601 format: "2025-08-19T15:51:51.285Z"
+  endDate?: string;          // ISO 8601 format: "2025-08-19T15:51:51.285Z"
+  presetRange?: string;      // "7d" | "30d" | "90d" | "365d"
+  validRange?: boolean;
+  customRange?: boolean;
 }
 
 export const analyticsApi = {
+  // Real API endpoints based on actual backend
+
   /**
-   * Get general analytics data - /api/v1/analytics
+   * GET /api/v1/analytics/overview - General analytics overview
    */
-  getAnalytics: async (params: AnalyticsParams = {}): Promise<AnalyticsData> => {
-    const queryString = buildQueryParams(params);
-    const url = queryString ? `/analytics?${queryString}` : '/analytics';
-    
-    const response = await makeApiCall<ApiResponseAnalyticsData>(
-      () => apiClient.get(buildApiUrl(url))
+  getAnalyticsOverview: async (dateRange: string = '30d'): Promise<any> => {
+    const response = await makeApiCall<ApiResponse<any>>(
+      () => apiClient.get(buildApiUrl(`/analytics/overview?dateRange=${dateRange}`))
     );
     return response.data;
   },
 
   /**
-   * Get enhanced analytics data - /api/v1/analytics/enhanced
+   * POST /api/v1/analytics/overview - Advanced overview with custom date ranges
    */
-  getEnhancedAnalytics: async (params: AnalyticsParams = {}): Promise<EnhancedAnalyticsData> => {
-    const queryString = buildQueryParams(params);
-    const url = queryString ? `/analytics/enhanced?${queryString}` : '/analytics/enhanced';
-    
-    const response = await makeApiCall<ApiResponseEnhancedAnalyticsData>(
-      () => apiClient.get(buildApiUrl(url))
+  getAnalyticsOverviewAdvanced: async (request: DateRangeRequest): Promise<any> => {
+    const response = await makeApiCall<ApiResponse<any>>(
+      () => apiClient.post(buildApiUrl('/analytics/overview'), request)
     );
     return response.data;
   },
 
   /**
-   * Get platform-specific analytics - /api/v1/analytics/platform/{platform}
+   * GET /api/v1/analytics/platform/{platform}/overview - Platform-specific analytics
    */
-  getPlatformAnalytics: async (platform: Platform, params: Omit<AnalyticsParams, 'platform'> = {}): Promise<PlatformAnalyticsData> => {
-    const queryString = buildQueryParams(params);
-    const url = queryString ? `/analytics/platform/${platform}?${queryString}` : `/analytics/platform/${platform}`;
-    
-    const response = await makeApiCall<ApiResponsePlatformAnalyticsData>(
-      () => apiClient.get(buildApiUrl(url))
+  getPlatformOverview: async (platform: Platform, dateRange: string = '30d'): Promise<any> => {
+    const response = await makeApiCall<ApiResponse<any>>(
+      () => apiClient.get(buildApiUrl(`/analytics/platform/${platform}/overview?dateRange=${dateRange}`))
     );
     return response.data;
   },
 
   /**
-   * Get post analytics (from post controller)
+   * POST /api/v1/analytics/platform/{platform}/overview - Platform analytics with custom date ranges
    */
-  getPostAnalytics: async (params: AnalyticsParams = {}): Promise<AnalyticsData> => {
-    const queryString = buildQueryParams(params);
-    const url = queryString ? `/post/analytics?${queryString}` : '/post/analytics';
-    
-    const response = await makeApiCall<ApiResponseAnalyticsData>(
-      () => apiClient.get(buildApiUrl(url))
+  getPlatformOverviewAdvanced: async (platform: Platform, request: DateRangeRequest): Promise<any> => {
+    const response = await makeApiCall<ApiResponse<any>>(
+      () => apiClient.post(buildApiUrl(`/analytics/platform/${platform}/overview`), request)
     );
     return response.data;
   },
 
   /**
-   * Get analytics for a specific account
+   * GET /api/v1/analytics/post/{postId}/overview - Individual post analytics
    */
-  getAccountAnalytics: async (accountId: string, params: AnalyticsParams = {}): Promise<AnalyticsData> => {
-    const queryString = buildQueryParams({ ...params, accountId });
-    
-    const response = await makeApiCall<ApiResponseAnalyticsData>(
-      () => apiClient.get(buildApiUrl(`/analytics/account?${queryString}`))
+  getPostAnalyticsOverview: async (postId: string): Promise<any> => {
+    const response = await makeApiCall<ApiResponse<any>>(
+      () => apiClient.get(buildApiUrl(`/analytics/post/${postId}/overview`))
     );
     return response.data;
   },
 
+  // Derived data from main endpoints
+
   /**
-   * Get engagement analytics - /api/v1/analytics/engagement
+   * Get platform rankings from overview endpoint
    */
-  getEngagementAnalytics: async (params: AnalyticsParams = {}): Promise<EngagementAnalyticsData> => {
-    const queryString = buildQueryParams(params);
-    const url = queryString ? `/analytics/engagement?${queryString}` : '/analytics/engagement';
-    
-    const response = await makeApiCall<ApiResponseEngagementAnalyticsData>(
-      () => apiClient.get(buildApiUrl(url))
-    );
-    return response.data;
+  getPlatformRankings: async (dateRange: string = '30d'): Promise<any> => {
+    const response = await analyticsApi.getAnalyticsOverview(dateRange);
+    return {
+      rankings: response.platformRankings || [],
+      summary: {
+        totalPlatforms: response.platformRankings?.length || 0,
+        bestPerformer: response.generalStats?.topPlatform || null,
+        avgSuccessRate: response.generalStats?.publishingSuccessRate || 0
+      }
+    };
   },
 
   /**
-   * Get content analytics - /api/v1/analytics/content
+   * Get platform rankings with advanced date range
    */
-  getContentAnalytics: async (params: AnalyticsParams = {}): Promise<ContentAnalyticsData> => {
-    const queryString = buildQueryParams(params);
-    const url = queryString ? `/analytics/content?${queryString}` : '/analytics/content';
-    
-    const response = await makeApiCall<ApiResponseContentAnalyticsData>(
-      () => apiClient.get(buildApiUrl(url))
-    );
-    return response.data;
+  getPlatformRankingsAdvanced: async (request: DateRangeRequest): Promise<any> => {
+    const response = await analyticsApi.getAnalyticsOverviewAdvanced(request);
+    return {
+      rankings: response.platformRankings || [],
+      summary: {
+        totalPlatforms: response.platformRankings?.length || 0,
+        bestPerformer: response.generalStats?.topPlatform || null,
+        avgSuccessRate: response.generalStats?.publishingSuccessRate || 0
+      }
+    };
   },
+
+  /**
+   * Get top performing posts from overview endpoint
+   */
+  getTopPerformingPosts: async (dateRange: string = '30d'): Promise<any> => {
+    const response = await analyticsApi.getAnalyticsOverview(dateRange);
+    return {
+      topPosts: response.topPerformingPosts || [],
+      analytics: {
+        totalAnalyzedPosts: response.generalStats?.publishedPosts || 0,
+        averageEngagementRate: response.performanceMetrics?.overallEngagementRate || 0,
+        topPerformingPlatform: response.generalStats?.topPlatform || null
+      }
+    };
+  },
+
+  /**
+   * Get top performing posts with advanced date range
+   */
+  getTopPerformingPostsAdvanced: async (request: DateRangeRequest): Promise<any> => {
+    const response = await analyticsApi.getAnalyticsOverviewAdvanced(request);
+    return {
+      topPosts: response.topPerformingPosts || [],
+      analytics: {
+        totalAnalyzedPosts: response.generalStats?.publishedPosts || 0,
+        averageEngagementRate: response.performanceMetrics?.overallEngagementRate || 0,
+        topPerformingPlatform: response.generalStats?.topPlatform || null
+      }
+    };
+  },
+
+  // Export functionality
+
+  /**
+   * POST /api/v1/analytics/export - Export analytics data
+   */
+  exportAnalytics: async (format: 'JSON' | 'CSV' | 'EXCEL' = 'CSV', request: DateRangeRequest): Promise<Blob> => {
+    const response = await makeApiCall(
+      () => apiClient.post(buildApiUrl(`/analytics/export?format=${format}`), request, {
+        responseType: 'blob'
+      })
+    );
+    return response;
+  },
+
+  // Refresh functionality
 
   /**
    * Refresh post engagements - POST /api/v1/analytics/refresh-post-engagements/{postId}
@@ -168,95 +183,6 @@ export const analyticsApi = {
   refreshAllEngagements: async (): Promise<Record<string, any>> => {
     const response = await makeApiCall<ApiResponseRefreshGeneric>(
       () => apiClient.post(buildApiUrl('/analytics/refresh-all-engagements'))
-    );
-    return response.data;
-  },
-
-  /**
-   * Export analytics data
-   */
-  exportData: async (format: 'csv' | 'pdf' | 'excel', params: AnalyticsParams = {}): Promise<Blob> => {
-    const queryString = buildQueryParams({ ...params, format });
-    
-    const response = await makeApiCall(
-      () => apiClient.get(buildApiUrl(`/analytics/export?${queryString}`), {
-        responseType: 'blob'
-      })
-    );
-    return response;
-  },
-
-  /**
-   * Get analytics overview - /api/v1/analytics/overview
-   */
-  getOverview: async (params: Pick<AnalyticsParams, 'dateRange'> = {}): Promise<AnalyticsOverview> => {
-    const queryString = buildQueryParams(params);
-    const url = queryString ? `/analytics/overview?${queryString}` : '/analytics/overview';
-    
-    const response = await makeApiCall<ApiResponse<AnalyticsOverview>>(
-      () => apiClient.get(buildApiUrl(url))
-    );
-    return response.data;
-  },
-
-  /**
-   * Get posts analytics with filtering and pagination - /api/v1/analytics/posts
-   */
-  getPostsAnalytics: async (params: PostsAnalyticsParams = {}): Promise<PostsAnalyticsData> => {
-    const queryString = buildQueryParams(params);
-    const url = queryString ? `/analytics/posts?${queryString}` : '/analytics/posts';
-    
-    const response = await makeApiCall<ApiResponse<PostsAnalyticsData>>(
-      () => apiClient.get(buildApiUrl(url))
-    );
-    return response.data;
-  },
-
-  /**
-   * Get platform-specific analytics - /api/v1/analytics/platforms/{platform}
-   */
-  getPlatformSpecificAnalytics: async (platform: Platform, params: Pick<AnalyticsParams, 'dateRange'> = {}): Promise<PlatformAnalyticsData> => {
-    const queryString = buildQueryParams(params);
-    const url = queryString ? `/analytics/platforms/${platform}?${queryString}` : `/analytics/platforms/${platform}`;
-    
-    const response = await makeApiCall<ApiResponse<PlatformAnalyticsData>>(
-      () => apiClient.get(buildApiUrl(url))
-    );
-    return response.data;
-  },
-
-  /**
-   * Get content insights - /api/v1/analytics/content-insights
-   */
-  getContentInsights: async (params: Pick<AnalyticsParams, 'dateRange'> = {}): Promise<ContentInsights> => {
-    const queryString = buildQueryParams(params);
-    const url = queryString ? `/analytics/content-insights?${queryString}` : '/analytics/content-insights';
-    
-    const response = await makeApiCall<ApiResponse<ContentInsights>>(
-      () => apiClient.get(buildApiUrl(url))
-    );
-    return response.data;
-  },
-
-  /**
-   * Get post-specific analytics - /api/v1/analytics/posts/{postId}
-   */
-  getPostSpecificAnalytics: async (postId: string): Promise<PostSpecificAnalytics> => {
-    const response = await makeApiCall<ApiResponse<PostSpecificAnalytics>>(
-      () => apiClient.get(buildApiUrl(`/analytics/posts/${postId}`))
-    );
-    return response.data;
-  },
-
-  /**
-   * Get comprehensive dashboard analytics - /api/v1/analytics/dashboard
-   */
-  getDashboard: async (params: Pick<AnalyticsParams, 'dateRange'> = {}): Promise<any> => {
-    const queryString = buildQueryParams(params);
-    const url = queryString ? `/analytics/dashboard?${queryString}` : '/analytics/dashboard';
-    
-    const response = await makeApiCall<ApiResponse<any>>(
-      () => apiClient.get(buildApiUrl(url))
     );
     return response.data;
   },

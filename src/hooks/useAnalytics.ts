@@ -12,7 +12,7 @@ import {
   PostSpecificAnalytics,
   Platform 
 } from '@/types/api'
-import { PostsAnalyticsParams } from '@/services/api/analytics'
+import { PostsAnalyticsParams, DateRangeRequest } from '@/services/api/analytics'
 
 // Analytics query keys
 export const analyticsKeys = {
@@ -22,16 +22,37 @@ export const analyticsKeys = {
   platform: (platform: Platform, dateRange: string) => [...analyticsKeys.all, 'platform', platform, dateRange] as const,
   engagement: (dateRange: string) => [...analyticsKeys.all, 'engagement', dateRange] as const,
   content: (dateRange: string) => [...analyticsKeys.all, 'content', dateRange] as const,
-  postAnalytics: (postId: string) => [...analyticsKeys.all, 'post', postId] as const,
+  // Real API endpoints
   overview: (dateRange: string) => [...analyticsKeys.all, 'overview', dateRange] as const,
-  postsAnalytics: (params: string) => [...analyticsKeys.all, 'posts', params] as const,
-  platformSpecific: (platform: Platform, dateRange: string) => [...analyticsKeys.all, 'platform-specific', platform, dateRange] as const,
-  contentInsights: (dateRange: string) => [...analyticsKeys.all, 'content-insights', dateRange] as const,
+  overviewAdvanced: (request: string) => [...analyticsKeys.all, 'overview-advanced', request] as const,
+  platformOverview: (platform: Platform, params: string) => [...analyticsKeys.all, 'platform-overview', platform, params] as const,
+  postOverview: (postId: string) => [...analyticsKeys.all, 'post-overview', postId] as const,
+  platformRankings: (dateRange: string) => [...analyticsKeys.all, 'platform-rankings', dateRange] as const,
+  platformRankingsAdvanced: (request: string) => [...analyticsKeys.all, 'platform-rankings-advanced', request] as const,
+  topPerformingPosts: (params: string) => [...analyticsKeys.all, 'top-performing-posts', params] as const,
+  postAnalytics: (postId: string) => [...analyticsKeys.all, 'post', postId] as const,
   postSpecific: (postId: string) => [...analyticsKeys.all, 'post-specific', postId] as const,
+  platformSpecific: (platform: Platform, dateRange: string) => [...analyticsKeys.all, 'platform-specific', platform, dateRange] as const,
+  // Legacy
+  postsAnalytics: (params: string) => [...analyticsKeys.all, 'posts', params] as const,
+  contentInsights: (dateRange: string) => [...analyticsKeys.all, 'content-insights', dateRange] as const,
   dashboard: (dateRange: string) => [...analyticsKeys.all, 'dashboard', dateRange] as const,
 }
 
-// Basic Analytics Hook
+const defaultRetryConfig = {
+  retry: (failureCount: number, error: any) => {
+    if (error?.response?.status === 403 || error?.response?.status === 401) {
+      return false
+    }
+    if (!error?.response) {
+      return false
+    }
+    return failureCount < 2
+  }
+}
+
+// Legacy Analytics Hooks (keeping for backward compatibility)
+
 export const useAnalytics = (dateRange: string = '30d') => {
   return useQuery({
     queryKey: analyticsKeys.basic(dateRange),
@@ -47,19 +68,10 @@ export const useAnalytics = (dateRange: string = '30d') => {
     },
     staleTime: 5 * 60 * 1000,
     refetchInterval: false,
-    retry: (failureCount, error) => {
-      if (error?.response?.status === 403 || error?.response?.status === 401) {
-        return false
-      }
-      if (!error?.response) {
-        return false
-      }
-      return failureCount < 2
-    }
+    ...defaultRetryConfig
   })
 }
 
-// Enhanced Analytics Hook
 export const useEnhancedAnalytics = (dateRange: string = '30d') => {
   return useQuery({
     queryKey: analyticsKeys.enhanced(dateRange),
@@ -75,48 +87,10 @@ export const useEnhancedAnalytics = (dateRange: string = '30d') => {
     },
     staleTime: 5 * 60 * 1000,
     refetchInterval: false,
-    retry: (failureCount, error) => {
-      if (error?.response?.status === 403 || error?.response?.status === 401) {
-        return false
-      }
-      if (!error?.response) {
-        return false
-      }
-      return failureCount < 2
-    }
+    ...defaultRetryConfig
   })
 }
 
-// Platform Analytics Hook
-export const usePlatformAnalytics = (platform: Platform, dateRange: string = '30d') => {
-  return useQuery({
-    queryKey: analyticsKeys.platform(platform, dateRange),
-    queryFn: async () => {
-      try {
-        const response = await analyticsApi.getPlatformAnalytics(platform, { dateRange })
-        console.log(`📊 ${platform} Analytics API Response:`, response)
-        return response
-      } catch (error) {
-        console.error(`📊 ${platform} Analytics API Error:`, error)
-        throw error
-      }
-    },
-    staleTime: 5 * 60 * 1000,
-    refetchInterval: false,
-    retry: (failureCount, error) => {
-      if (error?.response?.status === 403 || error?.response?.status === 401) {
-        return false
-      }
-      if (!error?.response) {
-        return false
-      }
-      return failureCount < 2
-    },
-    enabled: !!platform
-  })
-}
-
-// Engagement Analytics Hook
 export const useEngagementAnalytics = (dateRange: string = '30d') => {
   return useQuery({
     queryKey: analyticsKeys.engagement(dateRange),
@@ -132,19 +106,10 @@ export const useEngagementAnalytics = (dateRange: string = '30d') => {
     },
     staleTime: 5 * 60 * 1000,
     refetchInterval: false,
-    retry: (failureCount, error) => {
-      if (error?.response?.status === 403 || error?.response?.status === 401) {
-        return false
-      }
-      if (!error?.response) {
-        return false
-      }
-      return failureCount < 2
-    }
+    ...defaultRetryConfig
   })
 }
 
-// Content Analytics Hook
 export const useContentAnalytics = (dateRange: string = '30d') => {
   return useQuery({
     queryKey: analyticsKeys.content(dateRange),
@@ -160,47 +125,10 @@ export const useContentAnalytics = (dateRange: string = '30d') => {
     },
     staleTime: 5 * 60 * 1000,
     refetchInterval: false,
-    retry: (failureCount, error) => {
-      if (error?.response?.status === 403 || error?.response?.status === 401) {
-        return false
-      }
-      if (!error?.response) {
-        return false
-      }
-      return failureCount < 2
-    }
+    ...defaultRetryConfig
   })
 }
 
-// Analytics Overview Hook
-export const useAnalyticsOverview = (dateRange: string = '30d') => {
-  return useQuery({
-    queryKey: analyticsKeys.overview(dateRange),
-    queryFn: async () => {
-      try {
-        const response = await analyticsApi.getOverview({ dateRange })
-        console.log('📊 Analytics Overview API Response:', response)
-        return response
-      } catch (error) {
-        console.error('📊 Analytics Overview API Error:', error)
-        throw error
-      }
-    },
-    staleTime: 5 * 60 * 1000,
-    refetchInterval: false,
-    retry: (failureCount, error) => {
-      if (error?.response?.status === 403 || error?.response?.status === 401) {
-        return false
-      }
-      if (!error?.response) {
-        return false
-      }
-      return failureCount < 2
-    }
-  })
-}
-
-// Posts Analytics Hook
 export const usePostsAnalytics = (params: PostsAnalyticsParams = {}) => {
   const paramsKey = JSON.stringify(params)
   
@@ -218,48 +146,10 @@ export const usePostsAnalytics = (params: PostsAnalyticsParams = {}) => {
     },
     staleTime: 5 * 60 * 1000,
     refetchInterval: false,
-    retry: (failureCount, error) => {
-      if (error?.response?.status === 403 || error?.response?.status === 401) {
-        return false
-      }
-      if (!error?.response) {
-        return false
-      }
-      return failureCount < 2
-    }
+    ...defaultRetryConfig
   })
 }
 
-// Platform Specific Analytics Hook
-export const usePlatformSpecificAnalytics = (platform: Platform, dateRange: string = '30d') => {
-  return useQuery({
-    queryKey: analyticsKeys.platformSpecific(platform, dateRange),
-    queryFn: async () => {
-      try {
-        const response = await analyticsApi.getPlatformSpecificAnalytics(platform, { dateRange })
-        console.log(`📊 ${platform} Specific Analytics API Response:`, response)
-        return response
-      } catch (error) {
-        console.error(`📊 ${platform} Specific Analytics API Error:`, error)
-        throw error
-      }
-    },
-    staleTime: 5 * 60 * 1000,
-    refetchInterval: false,
-    retry: (failureCount, error) => {
-      if (error?.response?.status === 403 || error?.response?.status === 401) {
-        return false
-      }
-      if (!error?.response) {
-        return false
-      }
-      return failureCount < 2
-    },
-    enabled: !!platform
-  })
-}
-
-// Content Insights Hook
 export const useContentInsights = (dateRange: string = '30d') => {
   return useQuery({
     queryKey: analyticsKeys.contentInsights(dateRange),
@@ -275,55 +165,302 @@ export const useContentInsights = (dateRange: string = '30d') => {
     },
     staleTime: 5 * 60 * 1000,
     refetchInterval: false,
-    retry: (failureCount, error) => {
-      if (error?.response?.status === 403 || error?.response?.status === 401) {
-        return false
-      }
-      if (!error?.response) {
-        return false
-      }
-      return failureCount < 2
-    }
+    ...defaultRetryConfig
   })
 }
 
-// Post-Specific Analytics Hook
-export const usePostSpecificAnalytics = (postId: string) => {
+export const useAnalyticsDashboard = (dateRange: string = '30d') => {
   return useQuery({
-    queryKey: analyticsKeys.postSpecific(postId),
+    queryKey: analyticsKeys.dashboard(dateRange),
     queryFn: async () => {
       try {
-        const response = await analyticsApi.getPostSpecificAnalytics(postId)
-        console.log('📊 Post-Specific Analytics API Response:', response)
+        const response = await analyticsApi.getDashboard({ dateRange })
+        console.log('📊 Dashboard Analytics Response:', response)
         return response
       } catch (error) {
-        console.error('📊 Post-Specific Analytics API Error:', error)
+        console.error('📊 Dashboard Analytics Error:', error)
         throw error
       }
     },
     staleTime: 5 * 60 * 1000,
     refetchInterval: false,
-    retry: (failureCount, error) => {
-      if (error?.response?.status === 403 || error?.response?.status === 401) {
-        return false
+    ...defaultRetryConfig
+  })
+}
+
+// Real API Hooks based on actual backend endpoints
+
+/**
+ * Main analytics overview hook - GET /api/v1/analytics/overview
+ */
+export const useAnalyticsOverview = (dateRange: string = '30d') => {
+  return useQuery({
+    queryKey: analyticsKeys.overview(dateRange),
+    queryFn: async () => {
+      try {
+        const response = await analyticsApi.getAnalyticsOverview(dateRange)
+        console.log('📊 Analytics Overview Response:', response)
+        return response
+      } catch (error) {
+        console.error('📊 Analytics Overview Error:', error)
+        throw error
       }
-      if (!error?.response) {
-        return false
-      }
-      return failureCount < 2
     },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: false,
+    ...defaultRetryConfig
+  })
+}
+
+/**
+ * Advanced analytics overview hook - POST /api/v1/analytics/overview
+ */
+export const useAnalyticsOverviewAdvanced = (request: DateRangeRequest) => {
+  const requestKey = JSON.stringify(request)
+  
+  return useQuery({
+    queryKey: analyticsKeys.overviewAdvanced(requestKey),
+    queryFn: async () => {
+      try {
+        const response = await analyticsApi.getAnalyticsOverviewAdvanced(request)
+        console.log('📊 Analytics Overview Advanced Response:', response)
+        return response
+      } catch (error) {
+        console.error('📊 Analytics Overview Advanced Error:', error)
+        throw error
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: false,
+    ...defaultRetryConfig
+  })
+}
+
+/**
+ * Platform overview hook - GET /api/v1/analytics/platform/{platform}/overview
+ */
+export const usePlatformOverview = (platform: Platform, dateRange: string = '30d') => {
+  const params = JSON.stringify({ dateRange })
+  
+  return useQuery({
+    queryKey: analyticsKeys.platformOverview(platform, params),
+    queryFn: async () => {
+      try {
+        const response = await analyticsApi.getPlatformOverview(platform, dateRange)
+        console.log(`📊 ${platform} Overview Response:`, response)
+        return response
+      } catch (error) {
+        console.error(`📊 ${platform} Overview Error:`, error)
+        throw error
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: false,
+    ...defaultRetryConfig,
+    enabled: !!platform
+  })
+}
+
+/**
+ * Advanced platform overview hook - POST /api/v1/analytics/platform/{platform}/overview
+ */
+export const usePlatformOverviewAdvanced = (platform: Platform, request: DateRangeRequest) => {
+  const requestKey = JSON.stringify(request)
+  
+  return useQuery({
+    queryKey: analyticsKeys.platformOverview(platform, requestKey),
+    queryFn: async () => {
+      try {
+        const response = await analyticsApi.getPlatformOverviewAdvanced(platform, request)
+        console.log(`📊 ${platform} Overview Advanced Response:`, response)
+        return response
+      } catch (error) {
+        console.error(`📊 ${platform} Overview Advanced Error:`, error)
+        throw error
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: false,
+    ...defaultRetryConfig,
+    enabled: !!platform
+  })
+}
+
+/**
+ * Post analytics overview hook - GET /api/v1/analytics/post/{postId}/overview
+ */
+export const usePostAnalyticsOverview = (postId: string) => {
+  return useQuery({
+    queryKey: analyticsKeys.postOverview(postId),
+    queryFn: async () => {
+      try {
+        const response = await analyticsApi.getPostAnalyticsOverview(postId)
+        console.log('📊 Post Analytics Overview Response:', response)
+        return response
+      } catch (error) {
+        console.error('📊 Post Analytics Overview Error:', error)
+        throw error
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: false,
+    ...defaultRetryConfig,
     enabled: !!postId
   })
 }
 
+/**
+ * Platform rankings hook (derived from overview)
+ */
+export const usePlatformRankings = (dateRange: string = '30d') => {
+  return useQuery({
+    queryKey: analyticsKeys.platformRankings(dateRange),
+    queryFn: async () => {
+      try {
+        const response = await analyticsApi.getPlatformRankings(dateRange)
+        console.log('📊 Platform Rankings Response:', response)
+        return response
+      } catch (error) {
+        console.error('📊 Platform Rankings Error:', error)
+        throw error
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: false,
+    ...defaultRetryConfig
+  })
+}
+
+/**
+ * Advanced platform rankings hook
+ */
+export const usePlatformRankingsAdvanced = (request: DateRangeRequest) => {
+  const requestKey = JSON.stringify(request)
+  
+  return useQuery({
+    queryKey: analyticsKeys.platformRankingsAdvanced(requestKey),
+    queryFn: async () => {
+      try {
+        const response = await analyticsApi.getPlatformRankingsAdvanced(request)
+        console.log('📊 Platform Rankings Advanced Response:', response)
+        return response
+      } catch (error) {
+        console.error('📊 Platform Rankings Advanced Error:', error)
+        throw error
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: false,
+    ...defaultRetryConfig
+  })
+}
+
+/**
+ * Top performing posts hook (derived from overview)
+ */
+export const useTopPerformingPosts = (dateRange: string = '30d') => {
+  const params = JSON.stringify({ dateRange })
+  
+  return useQuery({
+    queryKey: analyticsKeys.topPerformingPosts(params),
+    queryFn: async () => {
+      try {
+        const response = await analyticsApi.getTopPerformingPosts(dateRange)
+        console.log('📊 Top Performing Posts Response:', response)
+        return response
+      } catch (error) {
+        console.error('📊 Top Performing Posts Error:', error)
+        throw error
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: false,
+    ...defaultRetryConfig
+  })
+}
+
+/**
+ * Advanced top performing posts hook
+ */
+export const useTopPerformingPostsAdvanced = (request: DateRangeRequest) => {
+  const requestKey = JSON.stringify(request)
+  
+  return useQuery({
+    queryKey: analyticsKeys.topPerformingPosts(requestKey),
+    queryFn: async () => {
+      try {
+        const response = await analyticsApi.getTopPerformingPostsAdvanced(request)
+        console.log('📊 Top Performing Posts Advanced Response:', response)
+        return response
+      } catch (error) {
+        console.error('📊 Top Performing Posts Advanced Error:', error)
+        throw error
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: false,
+    ...defaultRetryConfig
+  })
+}
+
+// Legacy platform analytics hook
+export const usePlatformAnalytics = (platform: Platform, dateRange: string = '30d') => {
+  return useQuery({
+    queryKey: analyticsKeys.platform(platform, dateRange),
+    queryFn: async () => {
+      try {
+        const response = await analyticsApi.getPlatformAnalytics(platform, { dateRange })
+        console.log(`📊 ${platform} Analytics API Response:`, response)
+        return response
+      } catch (error) {
+        console.error(`📊 ${platform} Analytics API Error:`, error)
+        throw error
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: false,
+    ...defaultRetryConfig,
+    enabled: !!platform
+  })
+}
+
+// Legacy hook for post-specific analytics (for compatibility)
+export const usePostSpecificAnalytics = (postId: string) => {
+  return usePostAnalyticsOverview(postId)
+}
+
+// Export Hooks
+
+export const useExportAnalytics = () => {
+  return useMutation({
+    mutationFn: ({ format, request }: { format: 'JSON' | 'CSV' | 'EXCEL'; request: DateRangeRequest }) => 
+      analyticsApi.exportAnalytics(format, request),
+    onSuccess: (blob, variables) => {
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      const dateStr = variables.request.presetRange || 'custom'
+      link.download = `analytics_${dateStr}.${variables.format.toLowerCase()}`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      console.log('✅ Analytics export downloaded successfully')
+    },
+    onError: (error) => {
+      console.error('❌ Failed to export analytics:', error)
+    }
+  })
+}
+
 // Refresh Hooks
+
 export const useRefreshPostEngagements = () => {
   const queryClient = useQueryClient()
   
   return useMutation({
     mutationFn: (postId: string) => analyticsApi.refreshPostEngagements(postId),
     onSuccess: () => {
-      // Invalidate all analytics queries to refetch fresh data
       queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
       console.log('✅ Post engagements refreshed successfully')
     },
@@ -339,7 +476,6 @@ export const useRefreshPlatformEngagements = () => {
   return useMutation({
     mutationFn: (platform: Platform) => analyticsApi.refreshPlatformEngagements(platform),
     onSuccess: (_, platform) => {
-      // Invalidate platform-specific and overall analytics
       queryClient.invalidateQueries({ queryKey: ['analytics'] })
       console.log(`✅ ${platform} engagements refreshed successfully`)
     },
@@ -375,31 +511,6 @@ export const useRefreshAllEngagements = () => {
     },
     onError: (error) => {
       console.error('❌ Failed to refresh all engagements:', error)
-    }
-  })
-}
-
-// Analytics Dashboard Hook
-export const useAnalyticsDashboard = (dateRange: string = '30d') => {
-  return useQuery({
-    queryKey: analyticsKeys.dashboard(dateRange),
-    queryFn: async () => {
-      try {
-        const response = await analyticsApi.getDashboard({ dateRange })
-        console.log('📊 Dashboard Analytics Response:', response)
-        return response
-      } catch (error) {
-        console.error('📊 Dashboard Analytics Error:', error)
-        throw error
-      }
-    },
-    staleTime: 5 * 60 * 1000,
-    refetchInterval: false,
-    retry: (failureCount, error) => {
-      if (error?.response?.status === 403 || error?.response?.status === 401) {
-        return false
-      }
-      return failureCount < 2
     }
   })
 }

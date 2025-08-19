@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useSidebar } from "@/components/ui/sidebar"
+import { DateRangePicker, DateRange } from "@/components/ui/date-range-picker"
 import { 
   TrendingUp, 
   TrendingDown,
@@ -21,6 +22,7 @@ import { PageHeader } from "@/components/PageHeader"
 import { AnalyticsDashboard } from "@/components/AnalyticsDashboard"
 import { EnhancedAnalyticsDashboard } from "@/components/EnhancedAnalyticsDashboard"
 import { AdvancedAnalyticsDashboard } from "@/components/AdvancedAnalyticsDashboard"
+import { RealAnalyticsDashboard } from "@/components/RealAnalyticsDashboard"
 import { PostSpecificAnalyticsView } from "@/components/PostSpecificAnalyticsView"
 import { ContentDetailView } from "@/components/ContentDetailView"
 import { PlatformDetailView } from "@/components/PlatformDetailView"
@@ -30,10 +32,18 @@ import {
   useEngagementAnalytics,
   useContentAnalytics,
   useAnalyticsOverview,
+  useAnalyticsOverviewAdvanced,
   usePostsAnalytics,
   useContentInsights,
   useRefreshAllEngagements,
-  useAnalyticsDashboard
+  useAnalyticsDashboard,
+  usePlatformRankings,
+  usePlatformRankingsAdvanced,
+  useTopPerformingPosts,
+  useTopPerformingPostsAdvanced,
+  usePlatformOverview,
+  usePostAnalyticsOverview,
+  useExportAnalytics
 } from "@/hooks/useAnalytics"
 import { useNavigate } from "react-router-dom"
 import { useState } from "react"
@@ -131,17 +141,74 @@ const ErrorOverlay = ({ error, onClose }: { error: any, onClose: () => void }) =
 export default function Analytics() {
   const navigate = useNavigate();
   const [dateRange, setDateRange] = useState('30d');
+  const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>();
+  const [useAdvancedDateRange, setUseAdvancedDateRange] = useState(false);
   const [currentView, setCurrentView] = useState<AnalyticsView>('dashboard');
   const [useEnhanced, setUseEnhanced] = useState(false);
   const [selectedContent, setSelectedContent] = useState<SelectedContent | null>(null);
   const [selectedPlatform, setSelectedPlatform] = useState<SelectedPlatform | null>(null);
+
+  // Handle date range changes
+  const handlePresetDateRangeChange = (preset: string) => {
+    setDateRange(preset);
+    if (preset !== 'custom') {
+      setUseAdvancedDateRange(false);
+    } else {
+      setUseAdvancedDateRange(true);
+    }
+  };
+
+  const handleCustomDateRangeChange = (range: DateRange | undefined) => {
+    setCustomDateRange(range);
+  };
   
-  // Primary analytics data hook - use the comprehensive dashboard endpoint
+  // Prepare date range request for advanced endpoints
+  const getDateRangeRequest = () => {
+    if (useAdvancedDateRange && customDateRange?.from && customDateRange?.to) {
+      return {
+        startDate: customDateRange.from.toISOString(),
+        endDate: customDateRange.to.toISOString(),
+        customRange: true,
+        validRange: true
+      };
+    }
+    return { 
+      presetRange: dateRange,
+      validRange: true,
+      customRange: false
+    };
+  };
+
+  // Real API hooks based on actual backend endpoints
+  const { data: overviewDataSimple, isLoading: overviewSimpleLoading, error: overviewSimpleError, refetch: refetchOverviewSimple } = useAnalyticsOverview(useAdvancedDateRange ? '30d' : dateRange);
+  const { data: overviewDataAdvanced, isLoading: overviewAdvancedLoading, error: overviewAdvancedError, refetch: refetchOverviewAdvanced } = useAnalyticsOverviewAdvanced(getDateRangeRequest());
+  
+  const { data: platformRankingsDataSimple, isLoading: platformRankingsSimpleLoading, error: platformRankingsSimpleError } = usePlatformRankings(useAdvancedDateRange ? '30d' : dateRange);
+  const { data: platformRankingsDataAdvanced, isLoading: platformRankingsAdvancedLoading, error: platformRankingsAdvancedError } = usePlatformRankingsAdvanced(getDateRangeRequest());
+  
+  const { data: topPostsDataSimple, isLoading: topPostsSimpleLoading, error: topPostsSimpleError } = useTopPerformingPosts(useAdvancedDateRange ? '30d' : dateRange);
+  const { data: topPostsDataAdvanced, isLoading: topPostsAdvancedLoading, error: topPostsAdvancedError } = useTopPerformingPostsAdvanced(getDateRangeRequest());
+  
+  // Choose between simple and advanced data based on date range type
+  const overviewData = useAdvancedDateRange ? overviewDataAdvanced : overviewDataSimple;
+  const overviewLoading = useAdvancedDateRange ? overviewAdvancedLoading : overviewSimpleLoading;
+  const overviewError = useAdvancedDateRange ? overviewAdvancedError : overviewSimpleError;
+  const refetchOverview = useAdvancedDateRange ? refetchOverviewAdvanced : refetchOverviewSimple;
+  
+  const platformRankingsData = useAdvancedDateRange ? platformRankingsDataAdvanced : platformRankingsDataSimple;
+  const platformRankingsLoading = useAdvancedDateRange ? platformRankingsAdvancedLoading : platformRankingsSimpleLoading;
+  const platformRankingsError = useAdvancedDateRange ? platformRankingsAdvancedError : platformRankingsSimpleError;
+  
+  const topPostsData = useAdvancedDateRange ? topPostsDataAdvanced : topPostsDataSimple;
+  const topPostsLoading = useAdvancedDateRange ? topPostsAdvancedLoading : topPostsSimpleLoading;
+  const topPostsError = useAdvancedDateRange ? topPostsAdvancedError : topPostsSimpleError;
+  
+  // Export functionality
+  const exportAnalyticsMutation = useExportAnalytics();
+  
+  // Fallback hooks for compatibility
   const { data: dashboardData, isLoading: dashboardLoading, error: dashboardError, refetch: refetchDashboard } = useAnalyticsDashboard(dateRange);
-  
-  // Backup hooks for fallback (keep for compatibility)
   const { data: basicAnalyticsData, isLoading: basicLoading, error: basicError, refetch: refetchBasic } = useAnalytics(dateRange);
-  const { data: overviewData, isLoading: overviewLoading, error: overviewError, refetch: refetchOverview } = useAnalyticsOverview(dateRange);
   const { data: postsData, isLoading: postsLoading, error: postsError } = usePostsAnalytics({ dateRange, sortBy: 'engagement', order: 'DESC', size: 10 });
   const { data: insightsData, isLoading: insightsLoading, error: insightsError } = useContentInsights(dateRange);
   
@@ -150,23 +217,27 @@ export default function Analytics() {
   
   // Determine which data to show based on current view and settings
   const getActiveData = () => {
-    // Prioritize dashboard data which contains everything we need
-    const primaryData = dashboardData || overviewData || basicAnalyticsData;
-    const primaryLoading = dashboardLoading || overviewLoading || basicLoading;
-    const primaryError = dashboardError || overviewError || basicError;
-    const primaryRefetch = refetchDashboard || refetchOverview || refetchBasic;
+    // Prioritize new API data structure
+    const primaryData = overviewData || dashboardData || basicAnalyticsData;
+    const primaryLoading = overviewLoading || dashboardLoading || basicLoading;
+    const primaryError = overviewError || dashboardError || basicError;
+    const primaryRefetch = refetchOverview || refetchDashboard || refetchBasic;
     
     return { 
       data: primaryData, 
       loading: primaryLoading, 
       error: primaryError, 
       refetch: primaryRefetch,
-      dashboardData,
       overviewData,
+      platformRankingsData,
+      topPostsData,
+      dashboardData,
       postsData,
       insightsData,
-      dashboardLoading,
       overviewLoading,
+      platformRankingsLoading,
+      topPostsLoading,
+      dashboardLoading,
       postsLoading,
       insightsLoading
     };
@@ -197,14 +268,103 @@ export default function Analytics() {
   // Combine all analytics data for advanced dashboard
   const getCombinedAnalyticsData = () => {
     const { 
-      data: primaryData, 
+      data: primaryData,
+      overviewData,
+      platformRankingsData,
+      topPostsData,
       dashboardData,
-      overviewData, 
       postsData, 
       insightsData
     } = getActiveData();
 
-    // Use dashboard data if available (this has everything we need!)
+    // Use real API structure from /api/v1/analytics/overview
+    if (overviewData) {
+      return {
+        // Basic metrics from generalStats
+        totalPosts: overviewData.generalStats?.totalPosts || 0,
+        totalPublishedPosts: overviewData.generalStats?.publishedPosts || 0,
+        totalScheduledPosts: overviewData.generalStats?.scheduledPosts || 0,
+        totalEngagement: overviewData.generalStats?.totalEngagements || 0,
+        mostActiveplatform: overviewData.generalStats?.topPlatform || 'N/A',
+
+        // Performance data from performanceMetrics
+        performance: {
+          averageEngagementPerPost: overviewData.performanceMetrics?.overallEngagementRate || 0
+        },
+
+        // Publishing stats from generalStats
+        publishingStats: {
+          successRate: overviewData.generalStats?.publishingSuccessRate || 0,
+          successfulPublishes: overviewData.generalStats?.publishedPosts || 0,
+          mostSuccessfulPlatform: overviewData.generalStats?.topPlatform || 'N/A'
+        },
+
+        // Platform rankings from overview response or dedicated endpoint
+        platformRankings: overviewData.platformRankings || platformRankingsData?.rankings || [],
+
+        // Top posts from overview response or dedicated endpoint  
+        topPosts: overviewData.topPerformingPosts || topPostsData?.topPosts || [],
+
+        // Engagement analysis from overview
+        engagementAnalysis: overviewData.engagementBreakdown || {
+          totalLikes: 0,
+          totalComments: 0,
+          totalShares: 0,
+          totalViews: 0,
+          totalSaves: 0,
+          averageLikesPerPost: overviewData.performanceMetrics?.avgLikesPerPost || 0,
+          averageCommentsPerPost: overviewData.performanceMetrics?.avgCommentsPerPost || 0,
+          averageSharesPerPost: overviewData.performanceMetrics?.avgSharesPerPost || 0
+        },
+
+        // Posting time analysis from overview
+        postingTimeAnalysis: {
+          peakPostingDay: overviewData.bestTimeToPost?.bestDayOfWeek || 'N/A',
+          peakPostingHour: `${overviewData.bestTimeToPost?.bestHour || 0}:00`,
+          hourlyBreakdown: Object.entries(overviewData.postTimeAnalysis?.hourlyDistribution || {}).map(([hour, count]) => ({
+            hour: `${hour}:00`,
+            posts: count,
+            percentage: (count / (overviewData.generalStats?.totalPosts || 1)) * 100
+          })),
+          dailyBreakdown: Object.entries(overviewData.postTimeAnalysis?.dayOfWeekDistribution || {}).map(([day, count]) => ({
+            day: day.slice(0, 3),
+            posts: count,
+            percentage: (count / (overviewData.generalStats?.totalPosts || 1)) * 100
+          }))
+        },
+
+        // Time series data from overview
+        timeSeriesData: overviewData.engagementTimeSeries || [],
+
+        // Best time to post insights
+        bestTimeToPost: overviewData.bestTimeToPost || {
+          bestHour: 0,
+          bestDayOfWeek: 'Monday',
+          successRateAtBestTime: 0,
+          hourlySuccessRates: {},
+          dailySuccessRates: {}
+        },
+
+        // Performance metrics
+        performanceMetrics: overviewData.performanceMetrics || {
+          avgLikesPerPost: 0,
+          avgCommentsPerPost: 0,
+          avgSharesPerPost: 0,
+          avgViewsPerPost: 0,
+          avgSavesPerPost: 0,
+          overallEngagementRate: 0
+        },
+
+        // Scheduling analysis
+        schedulingAnalysis: {
+          schedulingRate: overviewData.postTimeAnalysis?.schedulingRate || 0,
+          currentlyScheduled: overviewData.generalStats?.scheduledPosts || 0,
+          monthlyTrends: []
+        }
+      };
+    }
+
+    // Use dashboard data if available (legacy fallback)
     if (dashboardData) {
       return {
         // Basic metrics from dashboard overview
@@ -418,11 +578,11 @@ export default function Analytics() {
       return <PlatformDetailView platform={selectedPlatform} />;
     }
     
-    // Always try to show advanced dashboard with available data or fallback data
+    // Always try to show real analytics dashboard with actual API data
     const combinedData = getCombinedAnalyticsData();
     if (combinedData) {
       return (
-        <AdvancedAnalyticsDashboard 
+        <RealAnalyticsDashboard 
           analyticsData={combinedData}
           onContentSelect={handleContentSelect}
           onPlatformSelect={handlePlatformSelect}
@@ -511,7 +671,16 @@ export default function Analytics() {
             </div>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            {/* Date Range Picker */}
+            <DateRangePicker
+              value={customDateRange}
+              onChange={handleCustomDateRangeChange}
+              presetValue={dateRange}
+              onPresetChange={handlePresetDateRangeChange}
+              disabled={isLoading}
+            />
+            
             <Button 
               variant="outline" 
               className="h-9 w-9 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors" 
@@ -535,8 +704,18 @@ export default function Analytics() {
               Sync
             </Button>
             
-            <Button variant="outline" className="hover-lift" size="sm" disabled={isLoading}>
-              <Download className="h-4 w-4 mr-2" />
+            <Button 
+              variant="outline" 
+              className="hover-lift" 
+              size="sm" 
+              onClick={() => exportAnalyticsMutation.mutate({ 
+                format: 'CSV', 
+                request: getDateRangeRequest()
+              })}
+              disabled={isLoading || exportAnalyticsMutation.isPending}
+              title="Export analytics data"
+            >
+              <Download className={`h-4 w-4 mr-2 ${exportAnalyticsMutation.isPending ? 'animate-spin' : ''}`} />
               Export
             </Button>
           </div>
