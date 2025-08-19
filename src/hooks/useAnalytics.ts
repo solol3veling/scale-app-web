@@ -5,14 +5,19 @@ import {
   EnhancedAnalyticsData, 
   PlatformAnalyticsData, 
   EngagementAnalyticsData,
-  ContentAnalyticsData,
   AnalyticsOverview,
   PostsAnalyticsData,
-  ContentInsights,
   PostSpecificAnalytics,
   Platform 
 } from '@/types/api'
-import { PostsAnalyticsParams, DateRangeRequest } from '@/services/api/analytics'
+import { DateRangeRequest } from '@/services/api/analytics'
+
+// Define PostsAnalyticsParams locally since it's not exported from API
+interface PostsAnalyticsParams {
+  dateRange?: string;
+  platform?: string;
+  limit?: number;
+}
 
 // Analytics query keys
 export const analyticsKeys = {
@@ -21,7 +26,6 @@ export const analyticsKeys = {
   enhanced: (dateRange: string) => [...analyticsKeys.all, 'enhanced', dateRange] as const,
   platform: (platform: Platform, dateRange: string) => [...analyticsKeys.all, 'platform', platform, dateRange] as const,
   engagement: (dateRange: string) => [...analyticsKeys.all, 'engagement', dateRange] as const,
-  content: (dateRange: string) => [...analyticsKeys.all, 'content', dateRange] as const,
   // Real API endpoints
   overview: (dateRange: string) => [...analyticsKeys.all, 'overview', dateRange] as const,
   overviewAdvanced: (request: string) => [...analyticsKeys.all, 'overview-advanced', request] as const,
@@ -35,8 +39,6 @@ export const analyticsKeys = {
   platformSpecific: (platform: Platform, dateRange: string) => [...analyticsKeys.all, 'platform-specific', platform, dateRange] as const,
   // Legacy
   postsAnalytics: (params: string) => [...analyticsKeys.all, 'posts', params] as const,
-  contentInsights: (dateRange: string) => [...analyticsKeys.all, 'content-insights', dateRange] as const,
-  dashboard: (dateRange: string) => [...analyticsKeys.all, 'dashboard', dateRange] as const,
 }
 
 const defaultRetryConfig = {
@@ -53,12 +55,12 @@ const defaultRetryConfig = {
 
 // Legacy Analytics Hooks (keeping for backward compatibility)
 
-export const useAnalytics = (dateRange: string = '30d') => {
+export const useAnalytics = (dateRange: string = '30d'): { data: AnalyticsOverview | undefined, isLoading: boolean, error: Error | null } => {
   return useQuery({
     queryKey: analyticsKeys.basic(dateRange),
     queryFn: async () => {
       try {
-        const response = await analyticsApi.getAnalytics({ dateRange })
+        const response = await analyticsApi.getAnalyticsOverview(dateRange)
         console.log('📊 Analytics API Response:', response)
         return response
       } catch (error) {
@@ -96,30 +98,11 @@ export const useEngagementAnalytics = (dateRange: string = '30d') => {
     queryKey: analyticsKeys.engagement(dateRange),
     queryFn: async () => {
       try {
-        const response = await analyticsApi.getEngagementAnalytics({ dateRange })
+        const response = await analyticsApi.getAnalyticsOverview(dateRange)
         console.log('📊 Engagement Analytics API Response:', response)
         return response
       } catch (error) {
         console.error('📊 Engagement Analytics API Error:', error)
-        throw error
-      }
-    },
-    staleTime: 5 * 60 * 1000,
-    refetchInterval: false,
-    ...defaultRetryConfig
-  })
-}
-
-export const useContentAnalytics = (dateRange: string = '30d') => {
-  return useQuery({
-    queryKey: analyticsKeys.content(dateRange),
-    queryFn: async () => {
-      try {
-        const response = await analyticsApi.getContentAnalytics({ dateRange })
-        console.log('📊 Content Analytics API Response:', response)
-        return response
-      } catch (error) {
-        console.error('📊 Content Analytics API Error:', error)
         throw error
       }
     },
@@ -141,44 +124,6 @@ export const usePostsAnalytics = (params: PostsAnalyticsParams = {}) => {
         return response
       } catch (error) {
         console.error('📊 Posts Analytics API Error:', error)
-        throw error
-      }
-    },
-    staleTime: 5 * 60 * 1000,
-    refetchInterval: false,
-    ...defaultRetryConfig
-  })
-}
-
-export const useContentInsights = (dateRange: string = '30d') => {
-  return useQuery({
-    queryKey: analyticsKeys.contentInsights(dateRange),
-    queryFn: async () => {
-      try {
-        const response = await analyticsApi.getContentInsights({ dateRange })
-        console.log('📊 Content Insights API Response:', response)
-        return response
-      } catch (error) {
-        console.error('📊 Content Insights API Error:', error)
-        throw error
-      }
-    },
-    staleTime: 5 * 60 * 1000,
-    refetchInterval: false,
-    ...defaultRetryConfig
-  })
-}
-
-export const useAnalyticsDashboard = (dateRange: string = '30d') => {
-  return useQuery({
-    queryKey: analyticsKeys.dashboard(dateRange),
-    queryFn: async () => {
-      try {
-        const response = await analyticsApi.getDashboard({ dateRange })
-        console.log('📊 Dashboard Analytics Response:', response)
-        return response
-      } catch (error) {
-        console.error('📊 Dashboard Analytics Error:', error)
         throw error
       }
     },
@@ -239,14 +184,14 @@ export const useAnalyticsOverviewAdvanced = (request: DateRangeRequest) => {
 /**
  * Platform overview hook - GET /api/v1/analytics/platform/{platform}/overview
  */
-export const usePlatformOverview = (platform: Platform, dateRange: string = '30d') => {
+export const usePlatformOverview = (platform: Platform | null, dateRange: string = '30d') => {
   const params = JSON.stringify({ dateRange })
   
   return useQuery({
-    queryKey: analyticsKeys.platformOverview(platform, params),
+    queryKey: analyticsKeys.platformOverview(platform!, params),
     queryFn: async () => {
       try {
-        const response = await analyticsApi.getPlatformOverview(platform, dateRange)
+        const response = await analyticsApi.getPlatformOverview(platform!, dateRange)
         console.log(`📊 ${platform} Overview Response:`, response)
         return response
       } catch (error) {
@@ -264,14 +209,14 @@ export const usePlatformOverview = (platform: Platform, dateRange: string = '30d
 /**
  * Advanced platform overview hook - POST /api/v1/analytics/platform/{platform}/overview
  */
-export const usePlatformOverviewAdvanced = (platform: Platform, request: DateRangeRequest) => {
+export const usePlatformOverviewAdvanced = (platform: Platform | null, request: DateRangeRequest) => {
   const requestKey = JSON.stringify(request)
   
   return useQuery({
-    queryKey: analyticsKeys.platformOverview(platform, requestKey),
+    queryKey: analyticsKeys.platformOverview(platform!, requestKey),
     queryFn: async () => {
       try {
-        const response = await analyticsApi.getPlatformOverviewAdvanced(platform, request)
+        const response = await analyticsApi.getPlatformOverviewAdvanced(platform!, request)
         console.log(`📊 ${platform} Overview Advanced Response:`, response)
         return response
       } catch (error) {

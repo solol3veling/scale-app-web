@@ -6,7 +6,8 @@ export enum Platform {
     TWITTER = 'TWITTER',
     INSTAGRAM = 'INSTAGRAM',
     LINKEDIN = 'LINKEDIN',
-    GOOGLE = 'GOOGLE'
+    PINTEREST = 'PINTEREST',
+    YOUTUBE = 'YOUTUBE'
 }
 
 export enum PostStatus {
@@ -272,35 +273,7 @@ export interface HashtagPerformance {
     engagementScore: number;
 }
 
-export interface ContentInsights {
-    mediaPerformance: {
-        imagePostsAvgEngagement: number;
-        videoPostsAvgEngagement: number;
-        mixedMediaAvgEngagement: number;
-        textOnlyAvgEngagement: number;
-        bestPerformingMediaType: string;
-        mediaVsTextEngagementRatio: number;
-    };
-    hashtagPerformance: {
-        avgEngagementWithHashtags: number;
-        avgEngagementWithoutHashtags: number;
-        optimalHashtagCount: number;
-        topPerformingHashtags: HashtagPerformance[];
-        hashtagEngagementMultiplier: number;
-    };
-    lengthPerformance: {
-        lengthRangeEngagement: Record<string, number>;
-        optimalContentLength: number;
-        shortVsLongEngagementRatio: number;
-    };
-    timingPerformance: {
-        hourEngagement: Record<string, number>;
-        dayEngagement: Record<string, number>;
-        bestPostingHour: string;
-        bestPostingDay: string;
-        timingEngagementVariance: number;
-    };
-}
+
 
 export interface TopPerformingPost {
     postId: string;
@@ -349,91 +322,11 @@ export interface EngagementAnalyticsData {
         engagementRate: number;
     }[];
     timeSeriesData: TimeSeriesData[];
-    contentInsights: ContentInsights;
     topPerformingPosts: TopPerformingPost[];
     trends: EngagementTrends;
 }
 
-// Content Analytics Types
-export interface ContentOverallMetrics {
-    totalPosts: number;
-    publishedPosts: number;
-    draftPosts: number;
-    scheduledPosts: number;
-    publishingSuccessRate: number;
-    avgContentLength: number;
-    totalPlatformPosts: number;
-    avgPostsPerDay: number;
-    totalHashtags: number;
-    totalMentions: number;
-}
 
-export interface ContentPlatformBreakdown {
-    platform: Platform;
-    totalPosts: number;
-    successfulPosts: number;
-    failedPosts: number;
-    successRate: number;
-    avgContentLength: number;
-    postsWithMedia: number;
-    totalHashtags: number;
-    mostUsedHashtag: string;
-}
-
-export interface ContentComposition {
-    postsWithImages: number;
-    postsWithVideos: number;
-    postsWithBoth: number;
-    textOnlyPosts: number;
-    mediaUsageRate: number;
-    mediaTypeDistribution: Record<string, number>;
-    avgHashtagsPerPost: number;
-    avgMentionsPerPost: number;
-    topHashtags: string[];
-    topMentions: string[];
-}
-
-export interface PublishingBehavior {
-    multiPlatformPosts: number;
-    multiPlatformRate: number;
-    immediatePublishPosts: number;
-    scheduledPublishPosts: number;
-    schedulingRate: number;
-    postingTimeDistribution: Record<string, number>;
-    postingDayDistribution: Record<string, number>;
-    avgSchedulingLeadTimeHours: number;
-    consistencyScore: number;
-}
-
-export interface TopContent {
-    postId: string;
-    contentPreview: string;
-    platformCount: number;
-    createdAt: string;
-    hashtagCount: number;
-    mentionCount: number;
-    hasMedia: boolean;
-    mediaTypes: string;
-    engagementData: {
-        totalLikes: number;
-        totalShares: number;
-        totalComments: number;
-        totalImpressions: number;
-        totalEngagement: number;
-        avgEngagementRate: number;
-        hasEngagementData: boolean;
-    };
-}
-
-export interface ContentAnalyticsData {
-    period: string;
-    overallMetrics: ContentOverallMetrics;
-    platformBreakdown: ContentPlatformBreakdown[];
-    publishingActivity: TimeSeriesData[];
-    contentComposition: ContentComposition;
-    publishingBehavior: PublishingBehavior;
-    topContent: TopContent[];
-}
 
 // Refresh Response Types
 export interface RefreshEngagementResponse {
@@ -628,53 +521,7 @@ export interface AnalyticsPost {
     scheduled: boolean;
 }
 
-// Content insights analytics
-export interface ContentInsights {
-    dateRange: string;
-    mediaTypePerformance: {
-        mediaType: string;
-        postCount: number;
-        averageEngagementRate: number;
-        totalEngagements: number;
-        shareOfContent: number;
-    }[];
-    topHashtags: {
-        hashtag: string;
-        usageCount: number;
-        averageEngagementRate: number;
-        totalEngagements: number;
-    }[];
-    hashtagEngagementMap: Record<string, number>;
-    bestPostingTimes: {
-        dayOfWeek: string;
-        timeOfDay: {
-            hour: number;
-            minute: number;
-            second: number;
-            nano: number;
-        };
-        averageEngagementRate: number;
-        postCount: number;
-    }[];
-    dayOfWeekPerformance: Record<string, number>;
-    hourOfDayPerformance: Record<string, number>;
-    characterCountAnalysis: {
-        lengthRanges: Record<string, number>;
-        optimalLength: number;
-        optimalEngagementRate: number;
-    };
-    hashtagCountVsEngagement: {
-        correlationCoefficient: number;
-        interpretation: string;
-        recommendation: string;
-    };
-    postFrequencyVsEngagement: {
-        correlationCoefficient: number;
-        interpretation: string;
-        recommendation: string;
-    };
-    recommendations: string[];
-}
+
 
 // Post-specific analytics
 export interface PostSpecificAnalytics {
@@ -891,7 +738,7 @@ export type ApiResponseAnalyticsData = ApiResponse<AnalyticsData>;
 export type ApiResponseEnhancedAnalyticsData = ApiResponse<EnhancedAnalyticsData>;
 export type ApiResponsePlatformAnalyticsData = ApiResponse<PlatformAnalyticsData>;
 export type ApiResponseEngagementAnalyticsData = ApiResponse<EngagementAnalyticsData>;
-export type ApiResponseContentAnalyticsData = ApiResponse<ContentAnalyticsData>;
+
 export type ApiResponseRefreshEngagement = ApiResponse<RefreshEngagementResponse>;
 export type ApiResponseRefreshGeneric = ApiResponse<Record<string, any>>;
 export type ApiResponseOverviewStats = ApiResponse<OverviewStats>;

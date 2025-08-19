@@ -29,6 +29,31 @@ export const analyticsApi = {
     return response.data;
   },
 
+  // Legacy compatibility methods that were missing
+  getEnhancedAnalytics: async (params: { dateRange: string }): Promise<any> => {
+    // Map to real overview endpoint
+    return analyticsApi.getAnalyticsOverview(params.dateRange);
+  },
+
+  getPlatformAnalytics: async (platform: Platform, params: { dateRange: string }): Promise<any> => {
+    // Map to real platform overview endpoint
+    return analyticsApi.getPlatformOverview(platform, params.dateRange);
+  },
+
+  getPostsAnalytics: async (params: any): Promise<any> => {
+    // Map to overview endpoint for posts data
+    const dateRange = params.dateRange || '30d';
+    const response = await analyticsApi.getAnalyticsOverview(dateRange);
+    return {
+      topPosts: response.topPerformingPosts || [],
+      analytics: {
+        totalAnalyzedPosts: response.generalStats?.publishedPosts || 0,
+        averageEngagementRate: response.performanceMetrics?.overallEngagementRate || 0,
+        topPerformingPlatform: response.generalStats?.topPlatform || null
+      }
+    };
+  },
+
   /**
    * POST /api/v1/analytics/overview - Advanced overview with custom date ranges
    */

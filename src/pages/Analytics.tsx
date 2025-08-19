@@ -19,49 +19,20 @@ import {
   RefreshCw
 } from "lucide-react"
 import { PageHeader } from "@/components/PageHeader"
-import { AnalyticsDashboard } from "@/components/AnalyticsDashboard"
-import { EnhancedAnalyticsDashboard } from "@/components/EnhancedAnalyticsDashboard"
-import { AdvancedAnalyticsDashboard } from "@/components/AdvancedAnalyticsDashboard"
-import { RealAnalyticsDashboard } from "@/components/RealAnalyticsDashboard"
+import { ComprehensiveAnalyticsDashboard } from "@/components/ComprehensiveAnalyticsDashboard"
 import { PostSpecificAnalyticsView } from "@/components/PostSpecificAnalyticsView"
-import { ContentDetailView } from "@/components/ContentDetailView"
-import { PlatformDetailView } from "@/components/PlatformDetailView"
+import { PlatformSpecificAnalyticsView } from "@/components/PlatformSpecificAnalyticsView"
 import { 
-  useAnalytics, 
-  useEnhancedAnalytics, 
-  useEngagementAnalytics,
-  useContentAnalytics,
   useAnalyticsOverview,
-  useAnalyticsOverviewAdvanced,
-  usePostsAnalytics,
-  useContentInsights,
   useRefreshAllEngagements,
-  useAnalyticsDashboard,
-  usePlatformRankings,
-  usePlatformRankingsAdvanced,
-  useTopPerformingPosts,
-  useTopPerformingPostsAdvanced,
-  usePlatformOverview,
-  usePostAnalyticsOverview,
   useExportAnalytics
 } from "@/hooks/useAnalytics"
 import { useNavigate } from "react-router-dom"
 import { useState } from "react"
+import { Platform } from "@/types/api"
 
-// Analytics view types
-type AnalyticsView = 'dashboard' | 'content-detail' | 'platform-detail' | 'post-specific'
-
-// Selected content/platform for drill-down views
-interface SelectedContent {
-  postId: string;
-  contentPreview: string;
-  data: any;
-}
-
-interface SelectedPlatform {
-  platform: string;
-  data: any;
-}
+// View types
+type AnalyticsView = 'overview' | 'platform' | 'post';
 
 // Helper function to extract meaningful error message
 const getErrorMessage = (error: any) => {
@@ -143,10 +114,9 @@ export default function Analytics() {
   const [dateRange, setDateRange] = useState('30d');
   const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>();
   const [useAdvancedDateRange, setUseAdvancedDateRange] = useState(false);
-  const [currentView, setCurrentView] = useState<AnalyticsView>('dashboard');
-  const [useEnhanced, setUseEnhanced] = useState(false);
-  const [selectedContent, setSelectedContent] = useState<SelectedContent | null>(null);
-  const [selectedPlatform, setSelectedPlatform] = useState<SelectedPlatform | null>(null);
+  const [currentView, setCurrentView] = useState<AnalyticsView>('overview');
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [selectedPlatform, setSelectedPlatform] = useState<Platform | null>(null);
 
   // Handle date range changes
   const handlePresetDateRangeChange = (preset: string) => {
@@ -161,8 +131,7 @@ export default function Analytics() {
   const handleCustomDateRangeChange = (range: DateRange | undefined) => {
     setCustomDateRange(range);
   };
-  
-  // Prepare date range request for advanced endpoints
+
   const getDateRangeRequest = () => {
     if (useAdvancedDateRange && customDateRange?.from && customDateRange?.to) {
       return {
@@ -179,440 +148,63 @@ export default function Analytics() {
     };
   };
 
-  // Real API hooks based on actual backend endpoints
-  const { data: overviewDataSimple, isLoading: overviewSimpleLoading, error: overviewSimpleError, refetch: refetchOverviewSimple } = useAnalyticsOverview(useAdvancedDateRange ? '30d' : dateRange);
-  const { data: overviewDataAdvanced, isLoading: overviewAdvancedLoading, error: overviewAdvancedError, refetch: refetchOverviewAdvanced } = useAnalyticsOverviewAdvanced(getDateRangeRequest());
-  
-  const { data: platformRankingsDataSimple, isLoading: platformRankingsSimpleLoading, error: platformRankingsSimpleError } = usePlatformRankings(useAdvancedDateRange ? '30d' : dateRange);
-  const { data: platformRankingsDataAdvanced, isLoading: platformRankingsAdvancedLoading, error: platformRankingsAdvancedError } = usePlatformRankingsAdvanced(getDateRangeRequest());
-  
-  const { data: topPostsDataSimple, isLoading: topPostsSimpleLoading, error: topPostsSimpleError } = useTopPerformingPosts(useAdvancedDateRange ? '30d' : dateRange);
-  const { data: topPostsDataAdvanced, isLoading: topPostsAdvancedLoading, error: topPostsAdvancedError } = useTopPerformingPostsAdvanced(getDateRangeRequest());
-  
-  // Choose between simple and advanced data based on date range type
-  const overviewData = useAdvancedDateRange ? overviewDataAdvanced : overviewDataSimple;
-  const overviewLoading = useAdvancedDateRange ? overviewAdvancedLoading : overviewSimpleLoading;
-  const overviewError = useAdvancedDateRange ? overviewAdvancedError : overviewSimpleError;
-  const refetchOverview = useAdvancedDateRange ? refetchOverviewAdvanced : refetchOverviewSimple;
-  
-  const platformRankingsData = useAdvancedDateRange ? platformRankingsDataAdvanced : platformRankingsDataSimple;
-  const platformRankingsLoading = useAdvancedDateRange ? platformRankingsAdvancedLoading : platformRankingsSimpleLoading;
-  const platformRankingsError = useAdvancedDateRange ? platformRankingsAdvancedError : platformRankingsSimpleError;
-  
-  const topPostsData = useAdvancedDateRange ? topPostsDataAdvanced : topPostsDataSimple;
-  const topPostsLoading = useAdvancedDateRange ? topPostsAdvancedLoading : topPostsSimpleLoading;
-  const topPostsError = useAdvancedDateRange ? topPostsAdvancedError : topPostsSimpleError;
-  
-  // Export functionality
+  const { data: overviewData, isLoading: overviewLoading, error: overviewError, refetch: refetchOverview } = useAnalyticsOverview(dateRange);
+
   const exportAnalyticsMutation = useExportAnalytics();
-  
-  // Fallback hooks for compatibility
-  const { data: dashboardData, isLoading: dashboardLoading, error: dashboardError, refetch: refetchDashboard } = useAnalyticsDashboard(dateRange);
-  const { data: basicAnalyticsData, isLoading: basicLoading, error: basicError, refetch: refetchBasic } = useAnalytics(dateRange);
-  const { data: postsData, isLoading: postsLoading, error: postsError } = usePostsAnalytics({ dateRange, sortBy: 'engagement', order: 'DESC', size: 10 });
-  const { data: insightsData, isLoading: insightsLoading, error: insightsError } = useContentInsights(dateRange);
-  
-  // Refresh mutation
   const refreshAllMutation = useRefreshAllEngagements();
-  
-  // Determine which data to show based on current view and settings
-  const getActiveData = () => {
-    // Prioritize new API data structure
-    const primaryData = overviewData || dashboardData || basicAnalyticsData;
-    const primaryLoading = overviewLoading || dashboardLoading || basicLoading;
-    const primaryError = overviewError || dashboardError || basicError;
-    const primaryRefetch = refetchOverview || refetchDashboard || refetchBasic;
-    
-    return { 
-      data: primaryData, 
-      loading: primaryLoading, 
-      error: primaryError, 
-      refetch: primaryRefetch,
-      overviewData,
-      platformRankingsData,
-      topPostsData,
-      dashboardData,
-      postsData,
-      insightsData,
-      overviewLoading,
-      platformRankingsLoading,
-      topPostsLoading,
-      dashboardLoading,
-      postsLoading,
-      insightsLoading
-    };
-  };
-  
-  const { data: analyticsApiData, loading: isLoading, error, refetch } = getActiveData();
 
-  // Handle content selection for drill-down
-  const handleContentSelect = (post: any) => {
-    setSelectedContent({
-      postId: post.id || post.postId,
-      contentPreview: post.content || post.contentPreview,
-      data: post
-    });
-    // Use post-specific view for detailed analytics
-    setCurrentView('post-specific');
+  const isLoading = overviewLoading;
+  const error = overviewError;
+
+  const handlePlatformClick = (platform: string) => {
+    setSelectedPlatform(platform as Platform);
+    setCurrentView('platform');
   };
 
-  // Handle platform selection for drill-down  
-  const handlePlatformSelect = (platform: string, platformData: any) => {
-    setSelectedPlatform({
-      platform,
-      data: platformData
-    });
-    setCurrentView('platform-detail');
+  const handlePostClick = (postId: string) => {
+    setSelectedPostId(postId);
+    setCurrentView('post');
   };
 
-  // Combine all analytics data for advanced dashboard
-  const getCombinedAnalyticsData = () => {
-    const { 
-      data: primaryData,
-      overviewData,
-      platformRankingsData,
-      topPostsData,
-      dashboardData,
-      postsData, 
-      insightsData
-    } = getActiveData();
-
-    // Use real API structure from /api/v1/analytics/overview
-    if (overviewData) {
-      return {
-        // Basic metrics from generalStats
-        totalPosts: overviewData.generalStats?.totalPosts || 0,
-        totalPublishedPosts: overviewData.generalStats?.publishedPosts || 0,
-        totalScheduledPosts: overviewData.generalStats?.scheduledPosts || 0,
-        totalEngagement: overviewData.generalStats?.totalEngagements || 0,
-        mostActiveplatform: overviewData.generalStats?.topPlatform || 'N/A',
-
-        // Performance data from performanceMetrics
-        performance: {
-          averageEngagementPerPost: overviewData.performanceMetrics?.overallEngagementRate || 0
-        },
-
-        // Publishing stats from generalStats
-        publishingStats: {
-          successRate: overviewData.generalStats?.publishingSuccessRate || 0,
-          successfulPublishes: overviewData.generalStats?.publishedPosts || 0,
-          mostSuccessfulPlatform: overviewData.generalStats?.topPlatform || 'N/A'
-        },
-
-        // Platform rankings from overview response or dedicated endpoint
-        platformRankings: overviewData.platformRankings || platformRankingsData?.rankings || [],
-
-        // Top posts from overview response or dedicated endpoint  
-        topPosts: overviewData.topPerformingPosts || topPostsData?.topPosts || [],
-
-        // Engagement analysis from overview
-        engagementAnalysis: overviewData.engagementBreakdown || {
-          totalLikes: 0,
-          totalComments: 0,
-          totalShares: 0,
-          totalViews: 0,
-          totalSaves: 0,
-          averageLikesPerPost: overviewData.performanceMetrics?.avgLikesPerPost || 0,
-          averageCommentsPerPost: overviewData.performanceMetrics?.avgCommentsPerPost || 0,
-          averageSharesPerPost: overviewData.performanceMetrics?.avgSharesPerPost || 0
-        },
-
-        // Posting time analysis from overview
-        postingTimeAnalysis: {
-          peakPostingDay: overviewData.bestTimeToPost?.bestDayOfWeek || 'N/A',
-          peakPostingHour: `${overviewData.bestTimeToPost?.bestHour || 0}:00`,
-          hourlyBreakdown: Object.entries(overviewData.postTimeAnalysis?.hourlyDistribution || {}).map(([hour, count]) => ({
-            hour: `${hour}:00`,
-            posts: count,
-            percentage: (count / (overviewData.generalStats?.totalPosts || 1)) * 100
-          })),
-          dailyBreakdown: Object.entries(overviewData.postTimeAnalysis?.dayOfWeekDistribution || {}).map(([day, count]) => ({
-            day: day.slice(0, 3),
-            posts: count,
-            percentage: (count / (overviewData.generalStats?.totalPosts || 1)) * 100
-          }))
-        },
-
-        // Time series data from overview
-        timeSeriesData: overviewData.engagementTimeSeries || [],
-
-        // Best time to post insights
-        bestTimeToPost: overviewData.bestTimeToPost || {
-          bestHour: 0,
-          bestDayOfWeek: 'Monday',
-          successRateAtBestTime: 0,
-          hourlySuccessRates: {},
-          dailySuccessRates: {}
-        },
-
-        // Performance metrics
-        performanceMetrics: overviewData.performanceMetrics || {
-          avgLikesPerPost: 0,
-          avgCommentsPerPost: 0,
-          avgSharesPerPost: 0,
-          avgViewsPerPost: 0,
-          avgSavesPerPost: 0,
-          overallEngagementRate: 0
-        },
-
-        // Scheduling analysis
-        schedulingAnalysis: {
-          schedulingRate: overviewData.postTimeAnalysis?.schedulingRate || 0,
-          currentlyScheduled: overviewData.generalStats?.scheduledPosts || 0,
-          monthlyTrends: []
-        }
-      };
-    }
-
-    // Use dashboard data if available (legacy fallback)
-    if (dashboardData) {
-      return {
-        // Basic metrics from dashboard overview
-        totalPosts: dashboardData.overview?.totalPosts || 0,
-        totalPublishedPosts: dashboardData.overview?.totalPublishedPosts || 0,
-        totalScheduledPosts: dashboardData.overview?.totalScheduledPosts || 0,
-        totalEngagement: dashboardData.overview?.totalEngagement || 0,
-        mostActiveplatform: dashboardData.overview?.mostActiveplatform || 'N/A',
-
-        // Performance data
-        performance: {
-          averageEngagementPerPost: dashboardData.overview?.averageEngagementPerPost || 0
-        },
-
-        // Publishing stats
-        publishingStats: {
-          successRate: dashboardData.overview?.publishingSuccessRate || 0,
-          successfulPublishes: dashboardData.overview?.successfulPublishes || 0,
-          mostSuccessfulPlatform: dashboardData.overview?.mostActiveplatform || 'N/A'
-        },
-
-        // Platform rankings (direct from API)
-        platformRankings: dashboardData.platformRankings || [],
-
-        // Top posts (direct from API)
-        topPosts: dashboardData.topPosts || [],
-
-        // Engagement analysis (direct from API)
-        engagementAnalysis: dashboardData.engagementAnalysis || {
-          totalLikes: 0,
-          totalComments: 0,
-          totalShares: 0,
-          totalViews: 0,
-          totalSaves: 0,
-          averageLikesPerPost: 0,
-          averageCommentsPerPost: 0,
-          averageSharesPerPost: 0
-        },
-
-        // Posting time analysis (direct from API with backend-calculated percentages!)
-        postingTimeAnalysis: dashboardData.postingTimeAnalysis || {
-          peakPostingDay: 'N/A',
-          peakPostingHour: 'N/A',
-          hourlyBreakdown: [],
-          dailyBreakdown: []
-        },
-
-        // Time series data (direct from API)
-        timeSeriesData: dashboardData.timeSeriesData || [],
-
-        // Scheduling analysis (direct from API)
-        schedulingAnalysis: dashboardData.schedulingAnalysis || {
-          schedulingRate: 0,
-          currentlyScheduled: 0,
-          monthlyTrends: []
-        }
-      };
-    }
-
-    // Fallback to other data sources if dashboard data is not available
-    {
-      // Calculate basic metrics from available data
-      const totalPosts = insightsData?.mediaTypePerformance?.reduce((sum, type) => sum + type.postCount, 0) || 
-                        postsData?.totalPosts || 
-                        overviewData?.totalPosts || 
-                        0;
-
-      // Create platform rankings from media type data if available
-      const platformRankings = insightsData?.mediaTypePerformance?.map((mediaType, index) => ({
-        platform: mediaType.mediaType.toUpperCase(),
-        totalPosts: mediaType.postCount,
-        engagement: mediaType.totalEngagements,
-        reach: mediaType.totalEngagements * 2, // Estimate reach
-        successRate: mediaType.averageEngagementRate * 100
-      })) || [
-        // Fallback sample data for demonstration
-        { platform: 'FACEBOOK', totalPosts: 25, engagement: 1250, reach: 2500, successRate: 92.5 },
-        { platform: 'INSTAGRAM', totalPosts: 32, engagement: 1680, reach: 3360, successRate: 88.2 },
-        { platform: 'TWITTER', totalPosts: 18, engagement: 756, reach: 1512, successRate: 85.7 },
-        { platform: 'LINKEDIN', totalPosts: 12, engagement: 480, reach: 960, successRate: 95.1 }
-      ];
-
-      // Create hourly/daily breakdown from insights data or sample data
-      const hourlyBreakdown = Object.entries(insightsData?.hourOfDayPerformance || {}).map(([hour, count]) => ({
-        hour: `${parseInt(hour)}:00`, // Charts expect formatted hour string
-        posts: typeof count === 'number' ? count : 0, // Charts expect "posts" field
-        percentage: typeof count === 'number' ? (count / totalPosts) * 100 : 0
-      })) || [
-        { hour: '8:00', posts: 5, percentage: 12.5 },
-        { hour: '9:00', posts: 8, percentage: 20 },
-        { hour: '10:00', posts: 12, percentage: 30 },
-        { hour: '11:00', posts: 7, percentage: 17.5 },
-        { hour: '12:00', posts: 4, percentage: 10 },
-        { hour: '13:00', posts: 6, percentage: 15 },
-        { hour: '14:00', posts: 3, percentage: 7.5 },
-        { hour: '15:00', posts: 2, percentage: 5 }
-      ];
-
-      const dailyBreakdown = Object.entries(insightsData?.dayOfWeekPerformance || {}).map(([day, count]) => ({
-        day: day.slice(0, 3), // Charts expect "day" field, not "dayOfWeek"
-        posts: typeof count === 'number' ? count : 0, // Charts expect "posts" field
-        percentage: typeof count === 'number' ? (count / totalPosts) * 100 : 0
-      })) || [
-        { day: 'Mon', posts: 15, percentage: 18.75 },
-        { day: 'Tue', posts: 12, percentage: 15 },
-        { day: 'Wed', posts: 18, percentage: 22.5 },
-        { day: 'Thu', posts: 14, percentage: 17.5 },
-        { day: 'Fri', posts: 10, percentage: 12.5 },
-        { day: 'Sat', posts: 6, percentage: 7.5 },
-        { day: 'Sun', posts: 5, percentage: 6.25 }
-      ];
-
-      return {
-        // Basic metrics
-        totalPosts,
-        totalPublishedPosts: totalPosts,
-        totalScheduledPosts: 0,
-        totalEngagement: insightsData?.mediaTypePerformance?.reduce((sum, type) => sum + type.totalEngagements, 0) || 2500,
-        mostActiveplatform: platformRankings[0]?.platform || 'INSTAGRAM',
-
-        // Performance data
-        performance: {
-          averageEngagementPerPost: insightsData?.mediaTypePerformance?.reduce((sum, type) => sum + type.averageEngagementRate, 0) / (insightsData?.mediaTypePerformance?.length || 1) || 0
-        },
-
-        // Publishing stats
-        publishingStats: {
-          successRate: 92.5,
-          successfulPublishes: totalPosts,
-          mostSuccessfulPlatform: platformRankings[0]?.platform || 'INSTAGRAM'
-        },
-
-        // Platform rankings
-        platformRankings,
-
-        // Top posts - use sample data if posts not available
-        topPosts: postsData?.posts?.slice(0, 10) || [],
-
-        // Engagement analysis
-        engagementAnalysis: {
-          totalLikes: 1200,
-          totalComments: 380,
-          totalShares: 145,
-          totalViews: 8500,
-          totalSaves: 275,
-          averageLikesPerPost: 1200 / totalPosts,
-          averageCommentsPerPost: 380 / totalPosts,
-          averageSharesPerPost: 145 / totalPosts
-        },
-
-        // Posting time analysis
-        postingTimeAnalysis: {
-          peakPostingDay: 'WEDNESDAY',
-          peakPostingHour: '10:00',
-          hourlyBreakdown,
-          dailyBreakdown
-        },
-
-        // Time series data for trends - sample data
-        timeSeriesData: [
-          { date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), engagement: 850, reach: 1700, posts: 8 },
-          { date: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString(), engagement: 920, reach: 1840, posts: 10 },
-          { date: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(), engagement: 1100, reach: 2200, posts: 12 },
-          { date: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), engagement: 980, reach: 1960, posts: 9 },
-          { date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), engagement: 1250, reach: 2500, posts: 14 },
-          { date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), engagement: 1180, reach: 2360, posts: 11 }
-        ],
-
-        // Scheduling analysis
-        schedulingAnalysis: {
-          schedulingRate: 85.5,
-          currentlyScheduled: 0,
-          monthlyTrends: [
-            { month: 'Jan', scheduledCount: 45, publishedCount: 42, conversionRate: 93.3 },
-            { month: 'Feb', scheduledCount: 38, publishedCount: 35, conversionRate: 92.1 },
-            { month: 'Mar', scheduledCount: 52, publishedCount: 48, conversionRate: 92.3 }
-          ]
-        }
-      };
-    }
+  const handleBackToOverview = () => {
+    setCurrentView('overview');
+    setSelectedPostId(null);
+    setSelectedPlatform(null);
   };
 
-  // Render the appropriate analytics component
   const renderAnalyticsContent = () => {
-    const { 
-      data: primaryData, 
-      overviewData, 
-      postsData, 
-      insightsData, 
-      engagementData, 
-      contentData 
-    } = getActiveData();
-    
-    if (currentView === 'post-specific' && selectedContent) {
+    if (currentView === 'post' && selectedPostId) {
       return (
         <PostSpecificAnalyticsView 
-          postId={selectedContent.postId} 
-          onBack={() => {
-            setCurrentView('dashboard');
-            setSelectedContent(null);
-          }}
+          postId={selectedPostId}
+          onBack={handleBackToOverview}
         />
       );
     }
     
-    if (currentView === 'content-detail' && selectedContent) {
-      return <ContentDetailView content={selectedContent} />;
-    }
-    
-    if (currentView === 'platform-detail' && selectedPlatform) {
-      return <PlatformDetailView platform={selectedPlatform} />;
-    }
-    
-    // Always try to show real analytics dashboard with actual API data
-    const combinedData = getCombinedAnalyticsData();
-    if (combinedData) {
+    if (currentView === 'platform' && selectedPlatform) {
       return (
-        <RealAnalyticsDashboard 
-          analyticsData={combinedData}
-          onContentSelect={handleContentSelect}
-          onPlatformSelect={handlePlatformSelect}
+        <PlatformSpecificAnalyticsView 
+          platform={selectedPlatform}
+          onBack={handleBackToOverview}
         />
       );
     }
-
-    // Enhanced dashboard for overview data
+    
     if (overviewData) {
       return (
-        <EnhancedAnalyticsDashboard 
-          overviewData={overviewData}
-          postsData={postsData}
-          insightsData={insightsData}
-          onContentSelect={handleContentSelect}
-          onPlatformSelect={handlePlatformSelect}
+        <ComprehensiveAnalyticsDashboard 
+          analyticsData={overviewData}
+          onPlatformClick={handlePlatformClick}
+          onPostClick={handlePostClick}
         />
       );
     }
     
-    // Fallback to legacy dashboard
     return (
-      <AnalyticsDashboard 
-        primaryData={primaryData}
-        engagementData={engagementData}
-        contentData={contentData}
-        isEnhanced={useEnhanced}
-        onContentSelect={handleContentSelect}
-        onPlatformSelect={handlePlatformSelect}
-      />
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">No analytics data available</p>
+      </div>
     );
   };
 
@@ -629,46 +221,22 @@ export default function Analytics() {
       {/* Header */}
       <PageHeader>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            {/* Back button for drill-down views */}
-            {(currentView === 'content-detail' || currentView === 'platform-detail' || currentView === 'post-specific') && (
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => {
-                  setCurrentView('dashboard');
-                  setSelectedContent(null);
-                  setSelectedPlatform(null);
-                }}
-                className="flex items-center gap-2"
-              >
-                <X className="h-4 w-4" />
-                Back
-              </Button>
-            )}
-            
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">
-                {currentView === 'post-specific' && selectedContent ? 
-                  'Post Analytics' :
-                  currentView === 'content-detail' && selectedContent ? 
-                  'Content Analytics' : 
-                  currentView === 'platform-detail' && selectedPlatform ?
-                  `${selectedPlatform.platform} Analytics` :
-                  'Analytics Dashboard'
-                }
-              </h1>
-              <p className="text-muted-foreground text-sm">
-                {currentView === 'post-specific' ? 
-                  'Comprehensive analytics with charts and detailed metrics' :
-                  currentView === 'content-detail' ? 
-                  'Detailed performance metrics for this post' :
-                  currentView === 'platform-detail' ?
-                  'Platform-specific performance insights' :
-                  'Track your social media performance and engagement with comprehensive visualizations'
-                }
-              </p>
-            </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">
+              {currentView === 'post' 
+                ? 'Post Analytics' 
+                : currentView === 'platform' && selectedPlatform
+                ? `${selectedPlatform} Analytics`
+                : 'Analytics Dashboard'}
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              {currentView === 'post' 
+                ? 'Comprehensive post performance analysis and insights'
+                : currentView === 'platform' && selectedPlatform
+                ? `Detailed analytics and insights for ${selectedPlatform} platform`
+                : 'Track your social media performance and engagement with comprehensive visualizations'
+              }
+            </p>
           </div>
           
           <div className="flex gap-2 items-center">
@@ -685,7 +253,7 @@ export default function Analytics() {
               variant="outline" 
               className="h-9 w-9 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors" 
               size="sm" 
-              onClick={() => refetch()} 
+              onClick={() => refetchOverview()} 
               disabled={isLoading}
               title="Refresh analytics"
             >
@@ -738,10 +306,6 @@ export default function Analytics() {
                 </CardContent>
               </Card>
             ))}
-          </div>
-        ) : !getActiveData().data ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No analytics data available</p>
           </div>
         ) : (
           renderAnalyticsContent()
