@@ -383,28 +383,28 @@ export function ComprehensiveAnalyticsDashboard({
           </CardHeader>
           <CardContent>
             <div className="grid gap-4">
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div>
-                  <p className="font-medium">Best Day</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">Best Day</p>
                   <p className="text-sm text-muted-foreground">{safeData.bestTimeToPost?.bestDayOfWeek || 'N/A'}</p>
                 </div>
-                <Calendar className="h-5 w-5 text-blue-600" />
+                <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div>
-                  <p className="font-medium">Best Hour</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">Best Hour</p>
                   <p className="text-sm text-muted-foreground">{safeData.bestTimeToPost?.bestHour || 0}:00</p>
                 </div>
-                <Clock className="h-5 w-5 text-green-600" />
+                <Clock className="h-5 w-5 text-green-600 dark:text-green-400" />
               </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div>
-                  <p className="font-medium">Success Rate</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">Success Rate</p>
                   <p className="text-sm text-muted-foreground">
                     {formatPercentage(safeData.bestTimeToPost?.successRateAtBestTime || 0)}
                   </p>
                 </div>
-                <TrendingUp className="h-5 w-5 text-purple-600" />
+                <TrendingUp className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               </div>
             </div>
           </CardContent>
