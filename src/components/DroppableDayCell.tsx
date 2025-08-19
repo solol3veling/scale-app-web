@@ -64,7 +64,7 @@ export function DroppableDayCell({
   return (
     <div
       ref={drop}
-      className={`relative min-h-[120px] p-2 border-b border-r border-gray-200 dark:border-gray-700 ${
+      className={`relative min-h-[80px] sm:min-h-[100px] md:min-h-[120px] p-1 sm:p-2 border-b border-r border-gray-200 dark:border-gray-700 ${
         !calendarDay.isCurrentMonth 
           ? 'bg-gray-50/50 dark:bg-gray-800/50 text-gray-400 dark:text-gray-600' 
           : 'bg-white dark:bg-gray-900'
@@ -75,9 +75,9 @@ export function DroppableDayCell({
       } transition-colors duration-200`}
     >
       {/* Day number */}
-      <div className={`text-sm font-medium mb-2 ${
+      <div className={`text-xs sm:text-sm font-medium mb-1 sm:mb-2 ${
         isTodayCell 
-          ? 'w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs' 
+          ? 'w-5 h-5 sm:w-6 sm:h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs' 
           : calendarDay.isCurrentMonth 
             ? 'text-gray-900 dark:text-gray-100' 
             : 'text-gray-400 dark:text-gray-600'
@@ -86,8 +86,8 @@ export function DroppableDayCell({
       </div>
       
       {/* Posts for this day */}
-      <div className="space-y-1">
-        {dayPosts.slice(0, 3).map((post) => (
+      <div className="space-y-0.5 sm:space-y-1">
+        {dayPosts.slice(0, 2).map((post) => (
           <DraggablePost
             key={post.id}
             post={post}
@@ -99,12 +99,12 @@ export function DroppableDayCell({
         ))}
         
         {/* Show more indicator - clickable */}
-        {dayPosts.length > 3 && (
+        {dayPosts.length > 2 && (
           <button
             onClick={() => onDayExpand(calendarDay.date, dayPosts)}
-            className="w-full text-[10px] text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-center py-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+            className="w-full text-[9px] sm:text-[10px] text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-center py-0.5 sm:py-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
           >
-            +{dayPosts.length - 3} more posts
+            +{dayPosts.length - 2} more
           </button>
         )}
       </div>
@@ -116,7 +116,7 @@ export function DroppableDayCell({
             ? 'border-green-400 bg-green-50/20 dark:bg-green-900/10' 
             : 'border-red-400 bg-red-50/20 dark:bg-red-900/10'
         }`}>
-          <div className={`flex items-center justify-center h-full text-sm font-medium ${
+          <div className={`flex items-center justify-center h-full text-xs sm:text-sm font-medium ${
             canDrop ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
           }`}>
             {canDrop ? (

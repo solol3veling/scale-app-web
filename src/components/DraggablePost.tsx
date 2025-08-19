@@ -91,17 +91,17 @@ export function DraggablePost({ post, onClick, onLongPress, isSelected, getPlatf
   const getStatusIcon = (status: PostStatus) => {
     switch (status) {
       case PostStatus.DRAFT: 
-        return <Edit3 className="h-3 w-3" />
+        return <Edit3 className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
       case PostStatus.SCHEDULED: 
-        return <Clock className="h-3 w-3" />
+        return <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
       case PostStatus.PUBLISHING: 
-        return <Clock className="h-3 w-3 animate-spin" />
+        return <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 animate-spin" />
       case PostStatus.PUBLISHED: 
-        return <CheckCircle className="h-3 w-3" />
+        return <CheckCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
       case PostStatus.FAILED: 
-        return <AlertCircle className="h-3 w-3" />
+        return <AlertCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
       default: 
-        return <Edit3 className="h-3 w-3" />
+        return <Edit3 className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
     }
   }
 
@@ -119,7 +119,7 @@ export function DraggablePost({ post, onClick, onLongPress, isSelected, getPlatf
   return (
     <div
       ref={canDrag && !isSelected ? drag : undefined}
-      className={`group relative p-1.5 rounded text-xs transition-all duration-200 ${
+      className={`group relative p-1 sm:p-1.5 rounded text-xs transition-all duration-200 ${
         isSelected 
           ? 'bg-blue-100 dark:bg-blue-900/30 border-2 border-blue-500 shadow-lg scale-105' 
           : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border-2 border-transparent'
@@ -150,16 +150,16 @@ export function DraggablePost({ post, onClick, onLongPress, isSelected, getPlatf
     >
       {/* Selection indicator */}
       {isSelected && (
-        <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-          <Check className="w-3 h-3 text-white" />
+        <div className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-4 h-4 sm:w-5 sm:h-5 bg-blue-500 rounded-full flex items-center justify-center">
+          <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" />
         </div>
       )}
-      <div className="flex items-center gap-1 mb-1">
+      <div className="flex items-center gap-0.5 sm:gap-1 mb-0.5 sm:mb-1">
         {getStatusIcon(post.status)}
-        <span className="text-[10px] font-medium text-gray-600 dark:text-gray-400">
+        <span className="text-[9px] sm:text-[10px] font-medium text-gray-600 dark:text-gray-400">
           {getStatusText(post.status)}
         </span>
-        <span className="text-[10px] text-gray-500 dark:text-gray-500 ml-auto">
+        <span className="text-[9px] sm:text-[10px] text-gray-500 dark:text-gray-500 ml-auto">
           {post.displayDate 
             ? format(new Date(post.displayDate), 'HH:mm')
             : post.scheduledFor 
@@ -169,21 +169,21 @@ export function DraggablePost({ post, onClick, onLongPress, isSelected, getPlatf
         </span>
       </div>
       
-      <div className="text-xs text-gray-700 dark:text-gray-300 leading-tight mb-1">
-        {post.content.length > 30 ? `${post.content.substring(0, 30)}...` : post.content}
+      <div className="text-[10px] sm:text-xs text-gray-700 dark:text-gray-300 leading-tight mb-0.5 sm:mb-1">
+        {post.content.length > 25 ? `${post.content.substring(0, 25)}...` : post.content}
       </div>
       
       {/* Platform indicators */}
-      <div className="flex items-center gap-1">
-        {post.accounts.slice(0, 4).map(account => (
+      <div className="flex items-center gap-0.5 sm:gap-1">
+        {post.accounts.slice(0, 3).map(account => (
           <div
             key={account.id}
-            className={`w-2 h-2 rounded-full ${getPlatformColor(account.platform)}`}
+            className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${getPlatformColor(account.platform)}`}
             title={account.platform}
           />
         ))}
-        {post.accounts.length > 4 && (
-          <span className="text-[9px] text-gray-500 dark:text-gray-400">+{post.accounts.length - 4}</span>
+        {post.accounts.length > 3 && (
+          <span className="text-[8px] sm:text-[9px] text-gray-500 dark:text-gray-400">+{post.accounts.length - 3}</span>
         )}
       </div>
     </div>

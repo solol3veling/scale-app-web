@@ -106,15 +106,28 @@ export function ScheduleConfirmationModal({
             </div>
             <div className="flex items-center gap-2 mt-2">
               <span className="text-xs text-gray-500">Current status:</span>
-              <span className={`text-xs px-2 py-1 rounded ${
-                post.status === PostStatus.DRAFT ? 'bg-gray-100 text-gray-700' :
-                post.status === PostStatus.SCHEDULED ? 'bg-blue-100 text-blue-700' :
-                post.status === PostStatus.PUBLISHING ? 'bg-yellow-100 text-yellow-700' :
-                post.status === PostStatus.PUBLISHED ? 'bg-green-100 text-green-700' :
-                'bg-red-100 text-red-700'
+              <div className={`inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-medium border ${
+                post.status === PostStatus.DRAFT ? 
+                  'bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600' :
+                post.status === PostStatus.SCHEDULED ? 
+                  'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700 shadow-sm' :
+                post.status === PostStatus.PUBLISHING ? 
+                  'bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/30 dark:to-yellow-900/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700' :
+                post.status === PostStatus.PUBLISHED ? 
+                  'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-700' :
+                  'bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/30 dark:to-rose-900/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-700'
               }`}>
-                {post.status}
-              </span>
+                {post.status === PostStatus.DRAFT && <div className="w-1.5 h-1.5 rounded-full bg-gray-500" />}
+                {post.status === PostStatus.SCHEDULED && <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />}
+                {post.status === PostStatus.PUBLISHING && <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-spin" />}
+                {post.status === PostStatus.PUBLISHED && <div className="w-1.5 h-1.5 rounded-full bg-green-500" />}
+                {(post.status !== PostStatus.DRAFT && post.status !== PostStatus.SCHEDULED && 
+                  post.status !== PostStatus.PUBLISHING && post.status !== PostStatus.PUBLISHED) && 
+                  <div className="w-1.5 h-1.5 rounded-full bg-red-500" />}
+                <span className="capitalize">
+                  {post.status.toLowerCase()}
+                </span>
+              </div>
             </div>
           </div>
 
