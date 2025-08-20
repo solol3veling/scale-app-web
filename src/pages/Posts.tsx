@@ -112,7 +112,7 @@ function PostsHeader({
   
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Posts</h1>
           <p className="text-muted-foreground text-sm">
@@ -123,7 +123,7 @@ function PostsHeader({
           </p>
         </div>
         
-        <div className="flex items-center gap-1 sm:gap-2 min-w-0">
+        <div className="flex items-center gap-2 sm:min-w-0">
           {selectedPostIds.size > 0 ? (
             <>
               <Button 
@@ -169,7 +169,7 @@ function PostsHeader({
         </div>
       </div>
 
-      <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+      <div className="flex items-center gap-2 flex-wrap">
         <div className="flex-1 relative min-w-[120px] sm:min-w-[150px]">
           {selectedPostIds.size > 0 ? (
             <div className="flex items-center gap-2 h-10 px-3 bg-background/50 backdrop-blur-sm border border-border/50 rounded-md">

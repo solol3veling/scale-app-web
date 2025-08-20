@@ -693,7 +693,7 @@ export function Calendar() {
                 {/* Header with filter tabs */}
                 <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
                     {/* Filter tabs */}
-                    <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 gap-3 sm:gap-0">
                         {/* Desktop: Tabs */}
                         <div className="hidden sm:flex items-center gap-1">
                             <button
@@ -845,7 +845,7 @@ export function Calendar() {
                     </div>
 
                     {/* Calendar navigation */}
-                    <div className="flex items-center justify-between px-3 sm:px-6 py-2 sm:py-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-2 sm:py-4 gap-2 sm:gap-0">
                         <h1 className="text-lg sm:text-2xl font-semibold text-gray-900 dark:text-gray-100">
                             {MONTHS[month]} {year}
                         </h1>

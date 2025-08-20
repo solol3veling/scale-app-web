@@ -566,7 +566,7 @@ export default function Overview() {
     <div className="space-y-0">
       {/* Header */}
       <PageHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Dashboard Overview</h1>
             <p className="text-muted-foreground text-sm">Welcome back! Here's what's happening with your social media.</p>
