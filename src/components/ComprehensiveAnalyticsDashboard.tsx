@@ -160,8 +160,18 @@ interface ComprehensiveAnalyticsDashboardProps {
   onPostClick: (postId: string) => void;
 }
 
-// Modern dashboard color palette
+// Modern dashboard color palette - actual color values for indicators
 const PLATFORM_COLORS = {
+  FACEBOOK: '#3b82f6', // blue-500
+  INSTAGRAM: '#ec4899', // pink-500
+  TWITTER: '#06b6d4', // cyan-500
+  LINKEDIN: '#8b5cf6', // violet-500
+  YOUTUBE: '#ef4444', // red-500
+  PINTEREST: '#f59e0b'  // amber-500
+};
+
+// Chart colors using CSS variables for theme integration
+const CHART_COLORS = {
   FACEBOOK: 'hsl(var(--chart-1))',
   INSTAGRAM: 'hsl(var(--chart-2))',
   TWITTER: 'hsl(var(--chart-3))',
@@ -236,9 +246,10 @@ export function ComprehensiveAnalyticsDashboard({
     date: new Date(item.timestamp).toLocaleDateString(),
   })) || [];
 
-  const platformData = safeData.platformRankings?.map(platform => ({
+  const platformData = safeData.platformRankings?.map((platform, index) => ({
     ...platform,
-    color: PLATFORM_COLORS[platform.platform as keyof typeof PLATFORM_COLORS] || '#8884d8'
+    color: PLATFORM_COLORS[platform.platform as keyof typeof PLATFORM_COLORS] || '#3b82f6',
+    chartColor: CHART_COLORS[platform.platform as keyof typeof CHART_COLORS] || ENGAGEMENT_COLORS[index % ENGAGEMENT_COLORS.length]
   })) || [];
 
   const engagementBreakdownData = [
