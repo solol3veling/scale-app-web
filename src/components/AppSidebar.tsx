@@ -6,9 +6,9 @@ import {
     Users,
     Settings as SettingsIcon,
     LogOut,
-    Home,
+    LayoutDashboard,
     ChevronRight,
-    Library,
+    FileText,
     Plus,
     PanelLeft,
     Calendar
@@ -36,8 +36,8 @@ import { useProfile } from "@/hooks/useProfile"
 import { useToast } from "@/hooks/use-toast"
 
 const menuItems = [
-    { title: "Overview", url: "/", icon: Home },
-    { title: "Posts", url: "/posts", icon: Library },
+    { title: "Overview", url: "/", icon: LayoutDashboard },
+    { title: "Posts", url: "/posts", icon: FileText },
     { title: "Calendar", url: "/calendar", icon: Calendar },
     { title: "Analytics", url: "/analytics", icon: TrendingUp },
     { title: "Accounts", url: "/accounts", icon: Users },
