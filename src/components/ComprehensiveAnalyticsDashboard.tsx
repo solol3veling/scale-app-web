@@ -160,16 +160,43 @@ interface ComprehensiveAnalyticsDashboardProps {
   onPostClick: (postId: string) => void;
 }
 
+// Modern dashboard color palette
 const PLATFORM_COLORS = {
-  FACEBOOK: '#1877f2',
-  INSTAGRAM: '#e4405f',
-  TWITTER: '#1da1f2',
-  LINKEDIN: '#0077b5',
-  YOUTUBE: '#ff0000',
-  PINTEREST: '#bd081c'
+  FACEBOOK: 'hsl(var(--chart-1))',
+  INSTAGRAM: 'hsl(var(--chart-2))',
+  TWITTER: 'hsl(var(--chart-3))',
+  LINKEDIN: 'hsl(var(--chart-4))',
+  YOUTUBE: 'hsl(var(--chart-5))',
+  PINTEREST: 'hsl(var(--chart-1))'
 };
 
-const ENGAGEMENT_COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1'];
+const ENGAGEMENT_COLORS = [
+  'hsl(var(--chart-1))',
+  'hsl(var(--chart-2))', 
+  'hsl(var(--chart-3))',
+  'hsl(var(--chart-4))',
+  'hsl(var(--chart-5))'
+];
+
+// Chart styling configuration
+const chartConfig = {
+  grid: {
+    stroke: 'hsl(var(--border))',
+    strokeDasharray: '2 2',
+    strokeOpacity: 0.3
+  },
+  axis: {
+    tick: { 
+      fill: 'hsl(var(--muted-foreground))',
+      fontSize: 12,
+      fontFamily: 'inherit'
+    },
+    axisLine: { 
+      stroke: 'hsl(var(--border))',
+      strokeOpacity: 0.3
+    }
+  }
+};
 
 export function ComprehensiveAnalyticsDashboard({ 
   analyticsData, 
@@ -292,37 +319,51 @@ export function ComprehensiveAnalyticsDashboard({
       {/* Charts Row 1: Engagement Time Series & Platform Rankings */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Engagement Time Series */}
-        <Card className="hover-lift">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
+        <Card className="hover-lift border-0 shadow-sm bg-card">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-card-foreground">
+              <TrendingUp className="h-5 w-5 text-muted-foreground" />
               Engagement Over Time
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             {timeSeriesData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={timeSeriesData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Area 
-                    type="monotone" 
-                    dataKey="engagements" 
-                    stroke="#8884d8" 
-                    fill="#8884d8" 
-                    fillOpacity={0.3}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="postsPublished" 
-                    stroke="#82ca9d" 
-                    fill="#82ca9d" 
-                    fillOpacity={0.3}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              <div className="w-full h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={timeSeriesData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <CartesianGrid {...chartConfig.grid} />
+                    <XAxis 
+                      dataKey="date" 
+                      {...chartConfig.axis}
+                      tickMargin={8}
+                    />
+                    <YAxis 
+                      {...chartConfig.axis}
+                      tickMargin={8}
+                      width={60}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Area 
+                      type="monotone" 
+                      dataKey="engagements" 
+                      stroke="hsl(var(--chart-1))" 
+                      fill="hsl(var(--chart-1))" 
+                      fillOpacity={0.1}
+                      strokeWidth={2}
+                      name="Engagements"
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="postsPublished" 
+                      stroke="hsl(var(--chart-2))" 
+                      fill="hsl(var(--chart-2))" 
+                      fillOpacity={0.1}
+                      strokeWidth={2}
+                      name="Posts Published"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             ) : (
               <div className="h-[300px] flex items-center justify-center text-muted-foreground">
                 No time series data available
@@ -332,26 +373,46 @@ export function ComprehensiveAnalyticsDashboard({
         </Card>
 
         {/* Platform Rankings */}
-        <Card className="hover-lift">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
+        <Card className="hover-lift border-0 shadow-sm bg-card">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-card-foreground">
+              <BarChart3 className="h-5 w-5 text-muted-foreground" />
               Platform Performance
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             {platformData.length > 0 ? (
               <>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={platformData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="platform" />
-                    <YAxis />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="totalEngagements" fill="#8884d8" />
-                    <Bar dataKey="successRate" fill="#82ca9d" />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div className="w-full h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={platformData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                      <CartesianGrid {...chartConfig.grid} />
+                      <XAxis 
+                        dataKey="platform" 
+                        {...chartConfig.axis}
+                        tickMargin={8}
+                      />
+                      <YAxis 
+                        {...chartConfig.axis}
+                        tickMargin={8}
+                        width={60}
+                      />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Bar 
+                        dataKey="totalEngagements" 
+                        fill="hsl(var(--chart-1))" 
+                        radius={[2, 2, 0, 0]}
+                        name="Total Engagements"
+                      />
+                      <Bar 
+                        dataKey="successRate" 
+                        fill="hsl(var(--chart-2))" 
+                        radius={[2, 2, 0, 0]}
+                        name="Success Rate"
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
                 <div className="mt-4 space-y-2">
                   {platformData.map((platform, index) => (
                     <div key={index} className="flex items-center justify-between">
@@ -359,7 +420,7 @@ export function ComprehensiveAnalyticsDashboard({
                         variant="ghost"
                         size="sm"
                         onClick={() => onPlatformClick(platform.platform)}
-                        className="flex items-center gap-2 hover:bg-gray-100"
+                        className="flex items-center gap-2 hover:bg-muted/50 transition-colors"
                       >
                         <div 
                           className="w-3 h-3 rounded-full" 
@@ -387,34 +448,38 @@ export function ComprehensiveAnalyticsDashboard({
       {/* Charts Row 2: Engagement Breakdown & Best Time Analysis */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Engagement Breakdown Pie Chart */}
-        <Card className="hover-lift">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <PieChart className="h-5 w-5" />
+        <Card className="hover-lift border-0 shadow-sm bg-card">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-card-foreground">
+              <PieChart className="h-5 w-5 text-muted-foreground" />
               Engagement Breakdown
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             {engagementBreakdownData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <RechartsPieChart>
-                  <Pie
-                    data={engagementBreakdownData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {engagementBreakdownData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<CustomPieTooltip />} />
-                </RechartsPieChart>
-              </ResponsiveContainer>
+              <div className="w-full h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RechartsPieChart margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+                    <Pie
+                      data={engagementBreakdownData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="value"
+                      stroke="hsl(var(--background))"
+                      strokeWidth={2}
+                    >
+                      {engagementBreakdownData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<CustomPieTooltip />} />
+                  </RechartsPieChart>
+                </ResponsiveContainer>
+              </div>
             ) : (
               <div className="h-[300px] flex items-center justify-center text-muted-foreground">
                 No engagement data available
@@ -424,10 +489,10 @@ export function ComprehensiveAnalyticsDashboard({
         </Card>
 
         {/* Best Time to Post */}
-        <Card className="hover-lift">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
+        <Card className="hover-lift border-0 shadow-sm bg-card">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-card-foreground">
+              <Clock className="h-5 w-5 text-muted-foreground" />
               Best Time to Post
             </CardTitle>
           </CardHeader>
@@ -464,21 +529,36 @@ export function ComprehensiveAnalyticsDashboard({
       {/* Posting Time Analysis */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Hourly Distribution */}
-        <Card className="hover-lift">
-          <CardHeader>
-            <CardTitle>Hourly Posting Distribution</CardTitle>
+        <Card className="hover-lift border-0 shadow-sm bg-card">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-card-foreground">Hourly Posting Distribution</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             {hourlyData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={hourlyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="hour" />
-                  <YAxis />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="posts" fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="w-full h-[250px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={hourlyData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <CartesianGrid {...chartConfig.grid} />
+                    <XAxis 
+                      dataKey="hour" 
+                      {...chartConfig.axis}
+                      tickMargin={8}
+                    />
+                    <YAxis 
+                      {...chartConfig.axis}
+                      tickMargin={8}
+                      width={60}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar 
+                      dataKey="posts" 
+                      fill="hsl(var(--chart-1))" 
+                      radius={[2, 2, 0, 0]}
+                      name="Posts"
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             ) : (
               <div className="h-[250px] flex items-center justify-center text-muted-foreground">
                 No hourly data available
@@ -488,21 +568,36 @@ export function ComprehensiveAnalyticsDashboard({
         </Card>
 
         {/* Daily Distribution */}
-        <Card className="hover-lift">
-          <CardHeader>
-            <CardTitle>Daily Posting Distribution</CardTitle>
+        <Card className="hover-lift border-0 shadow-sm bg-card">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-card-foreground">Daily Posting Distribution</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             {dailyData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={dailyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="day" />
-                  <YAxis />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="posts" fill="#82ca9d" />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="w-full h-[250px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={dailyData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <CartesianGrid {...chartConfig.grid} />
+                    <XAxis 
+                      dataKey="day" 
+                      {...chartConfig.axis}
+                      tickMargin={8}
+                    />
+                    <YAxis 
+                      {...chartConfig.axis}
+                      tickMargin={8}
+                      width={60}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar 
+                      dataKey="posts" 
+                      fill="hsl(var(--chart-2))" 
+                      radius={[2, 2, 0, 0]}
+                      name="Posts"
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             ) : (
               <div className="h-[250px] flex items-center justify-center text-muted-foreground">
                 No daily data available
