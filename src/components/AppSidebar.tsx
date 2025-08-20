@@ -110,8 +110,8 @@ export function AppSidebar() {
                                 to="/make-post"
                                 className="flex items-center justify-center w-full h-10 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
                             >
-                                <div className="w-6 h-6 bg-gray-800 rounded-full flex items-center justify-center">
-                                    <Plus className="h-4 w-4 text-white" />
+                                <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center">
+                                    <Plus className="h-5 w-5 text-white" />
                                 </div>
                             </NavLink>
                         </TooltipTrigger>
@@ -147,9 +147,9 @@ export function AppSidebar() {
                                                 <SidebarMenuButton asChild>
                                                     <NavLink
                                                         to={item.url}
-                                                        className={`${getNavClass(item.url)} flex items-center justify-center rounded-lg p-2 transition-all hover-lift`}
+                                                        className={`${getNavClass(item.url)} flex items-center justify-center rounded-lg p-3 transition-all hover-lift`}
                                                     >
-                                                        <item.icon className="h-5 w-5 flex-shrink-0" />
+                                                        <item.icon className="h-7 w-7 flex-shrink-0" />
                                                     </NavLink>
                                                 </SidebarMenuButton>
                                             </TooltipTrigger>
@@ -224,7 +224,7 @@ export function AppSidebar() {
                                 onClick={handleLogout}
                                 className="w-full justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                             >
-                                <LogOut className="h-4 w-4" />
+                                <LogOut className="h-5 w-5" />
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent side="right">
