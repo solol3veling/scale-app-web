@@ -220,7 +220,7 @@ export default function Analytics() {
 
       {/* Header */}
       <PageHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
               {currentView === 'post' 
@@ -239,53 +239,58 @@ export default function Analytics() {
             </p>
           </div>
           
-          <div className="flex gap-2 items-center">
-            {/* Date Range Picker */}
-            <DateRangePicker
-              value={customDateRange}
-              onChange={handleCustomDateRangeChange}
-              presetValue={dateRange}
-              onPresetChange={handlePresetDateRangeChange}
-              disabled={isLoading}
-            />
+          <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+            {/* Date Range Picker - Full width on mobile */}
+            <div className="w-full sm:w-auto">
+              <DateRangePicker
+                value={customDateRange}
+                onChange={handleCustomDateRangeChange}
+                presetValue={dateRange}
+                onPresetChange={handlePresetDateRangeChange}
+                disabled={isLoading}
+              />
+            </div>
             
-            <Button 
-              variant="outline" 
-              className="h-9 w-9 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors" 
-              size="sm" 
-              onClick={() => refetchOverview()} 
-              disabled={isLoading}
-              title="Refresh analytics"
-            >
-              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              className="hover-lift" 
-              size="sm" 
-              onClick={() => refreshAllMutation.mutate()}
-              disabled={isLoading || refreshAllMutation.isPending}
-              title="Refresh all engagement data"
-            >
-              <RefreshCw className={`h-4 w-4 mr-2 ${refreshAllMutation.isPending ? 'animate-spin' : ''}`} />
-              Sync
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              className="hover-lift" 
-              size="sm" 
-              onClick={() => exportAnalyticsMutation.mutate({ 
-                format: 'CSV', 
-                request: getDateRangeRequest()
-              })}
-              disabled={isLoading || exportAnalyticsMutation.isPending}
-              title="Export analytics data"
-            >
-              <Download className={`h-4 w-4 mr-2 ${exportAnalyticsMutation.isPending ? 'animate-spin' : ''}`} />
-              Export
-            </Button>
+            {/* Action Buttons - Row on mobile, inline on larger screens */}
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button 
+                variant="outline" 
+                className="h-9 w-9 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors flex-shrink-0" 
+                size="sm" 
+                onClick={() => refetchOverview()} 
+                disabled={isLoading}
+                title="Refresh analytics"
+              >
+                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="hover-lift flex-1 sm:flex-initial" 
+                size="sm" 
+                onClick={() => refreshAllMutation.mutate()}
+                disabled={isLoading || refreshAllMutation.isPending}
+                title="Refresh all engagement data"
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${refreshAllMutation.isPending ? 'animate-spin' : ''}`} />
+                Sync
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="hover-lift flex-1 sm:flex-initial" 
+                size="sm" 
+                onClick={() => exportAnalyticsMutation.mutate({ 
+                  format: 'CSV', 
+                  request: getDateRangeRequest()
+                })}
+                disabled={isLoading || exportAnalyticsMutation.isPending}
+                title="Export analytics data"
+              >
+                <Download className={`h-4 w-4 mr-2 ${exportAnalyticsMutation.isPending ? 'animate-spin' : ''}`} />
+                Export
+              </Button>
+            </div>
           </div>
         </div>
       </PageHeader>

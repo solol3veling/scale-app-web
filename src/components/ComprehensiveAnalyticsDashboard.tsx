@@ -34,6 +34,56 @@ import {
   AreaChart
 } from 'recharts'
 
+// Custom Tooltip Components
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-background/95 backdrop-blur-sm border border-border rounded-lg shadow-lg p-3 min-w-[200px]">
+        <p className="text-sm font-medium text-foreground mb-2">{label}</p>
+        {payload.map((entry: any, index: number) => (
+          <div key={index} className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <div 
+                className="w-3 h-3 rounded-full" 
+                style={{ backgroundColor: entry.color }}
+              />
+              <span className="text-sm text-muted-foreground">{entry.name}:</span>
+            </div>
+            <span className="text-sm font-semibold text-foreground">
+              {typeof entry.value === 'number' ? entry.value.toLocaleString() : entry.value}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
+const CustomPieTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0];
+    return (
+      <div className="bg-background/95 backdrop-blur-sm border border-border rounded-lg shadow-lg p-3 min-w-[180px]">
+        <div className="flex items-center gap-2 mb-1">
+          <div 
+            className="w-3 h-3 rounded-full" 
+            style={{ backgroundColor: data.color }}
+          />
+          <span className="text-sm font-medium text-foreground">{data.name}</span>
+        </div>
+        <div className="text-sm text-muted-foreground">
+          Value: <span className="font-semibold text-foreground">{data.value.toLocaleString()}</span>
+        </div>
+        <div className="text-sm text-muted-foreground">
+          Percentage: <span className="font-semibold text-foreground">{(data.payload.percent * 100).toFixed(1)}%</span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 // Real API Response Interface based on actual endpoints
 interface AnalyticsOverviewData {
   generalStats?: {
@@ -256,7 +306,7 @@ export function ComprehensiveAnalyticsDashboard({
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" />
                   <YAxis />
-                  <Tooltip />
+                  <Tooltip content={<CustomTooltip />} />
                   <Area 
                     type="monotone" 
                     dataKey="engagements" 
@@ -297,7 +347,7 @@ export function ComprehensiveAnalyticsDashboard({
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="platform" />
                     <YAxis />
-                    <Tooltip />
+                    <Tooltip content={<CustomTooltip />} />
                     <Bar dataKey="totalEngagements" fill="#8884d8" />
                     <Bar dataKey="successRate" fill="#82ca9d" />
                   </BarChart>
@@ -362,7 +412,7 @@ export function ComprehensiveAnalyticsDashboard({
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip content={<CustomPieTooltip />} />
                 </RechartsPieChart>
               </ResponsiveContainer>
             ) : (
@@ -425,7 +475,7 @@ export function ComprehensiveAnalyticsDashboard({
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="hour" />
                   <YAxis />
-                  <Tooltip />
+                  <Tooltip content={<CustomTooltip />} />
                   <Bar dataKey="posts" fill="#8884d8" />
                 </BarChart>
               </ResponsiveContainer>
@@ -449,7 +499,7 @@ export function ComprehensiveAnalyticsDashboard({
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="day" />
                   <YAxis />
-                  <Tooltip />
+                  <Tooltip content={<CustomTooltip />} />
                   <Bar dataKey="posts" fill="#82ca9d" />
                 </BarChart>
               </ResponsiveContainer>
