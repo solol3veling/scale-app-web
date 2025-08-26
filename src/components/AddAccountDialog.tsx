@@ -75,7 +75,7 @@ export function AddAccountDialog({ onAccountAdded, open, onOpenChange, defaultPl
                 const response = await oauthApi.initializeOAuth2(
                     platform.toUpperCase(),
                     accountName,
-                    window.location.origin + '/oauth-callback'
+                    `${import.meta.env.VITE_APP_URL || window.location.origin}/oauth-callback`
                 )
                 redirectUri = response.authorizationUrl || response.redirectUri
             }
