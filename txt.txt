@@ -1,9 +1,0 @@
-
-- let url base read from env (done)
-- working dockerfile with nginx server running it
-- track on github
-
-- pipeline to push (lint, and remove console logs)
-- preview for multiple socialmedias working
-- notifications dropdown, but on mobile view (should be a sheet and cover the whole page )
-- tooltip for analytics page not working
