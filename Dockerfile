@@ -11,8 +11,8 @@ RUN apk add --no-cache python3 make g++
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies with production optimizations
-RUN npm ci --only=production --no-audit --no-fund && \
+# Install dependencies
+RUN npm ci --no-audit --no-fund && \
     npm cache clean --force
 
 # Copy source code
@@ -35,38 +35,30 @@ ENV VITE_SUPABASE_AUTH_TOKEN_KEY=$VITE_SUPABASE_AUTH_TOKEN_KEY
 # Build the application
 RUN npm run build
 
-# Stage 2: Production stage with Nginx
-FROM nginx:1.25-alpine AS production
+# Stage 2: Production stage with Node.js server
+FROM node:20-alpine AS production
 
 # Install security updates
 RUN apk upgrade --no-cache
 
-# Remove default nginx config
-RUN rm /etc/nginx/conf.d/default.conf
+# Set working directory
+WORKDIR /app
 
-# Copy custom nginx configuration
-COPY nginx/nginx.conf /etc/nginx/nginx.conf
-COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+# Install serve package globally
+RUN npm install -g serve
 
 # Copy built assets from builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/dist ./dist
 
-# Create nginx user for security
-RUN addgroup -g 1001 -S nginx-app && \
-    adduser -S nginx-app -u 1001
+# Create non-root user for security
+RUN addgroup -g 1001 -S appuser && \
+    adduser -S appuser -u 1001 -G appuser
 
 # Set proper permissions
-RUN chown -R nginx-app:nginx-app /usr/share/nginx/html && \
-    chown -R nginx-app:nginx-app /var/cache/nginx && \
-    chown -R nginx-app:nginx-app /var/log/nginx && \
-    chown -R nginx-app:nginx-app /etc/nginx/conf.d
-
-# Create pid directory
-RUN mkdir -p /var/run/nginx && \
-    chown -R nginx-app:nginx-app /var/run/nginx
+RUN chown -R appuser:appuser /app
 
 # Switch to non-root user
-USER nginx-app
+USER appuser
 
 # Expose port
 EXPOSE 5173
@@ -75,5 +67,5 @@ EXPOSE 5173
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:5173/ || exit 1
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start the server
+CMD ["serve", "-s", "dist", "-l", "5173"]
