@@ -1,0 +1,30 @@
+services:
+  frontend:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.prod
+    image: elitekaycy/project:scalestash.io.web.latest
+    container_name: frontend-prod
+    ports:
+      - "5173:5173"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5173/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`dev.app.scalestash.com`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.services.frontend.loadbalancer.server.port=5173"
+      - "traefik.http.routers.frontend-secure.rule=Host(`dev.app.scalestash.com`)"
+      - "traefik.http.routers.frontend-secure.entrypoints=websecure"
+      - "traefik.http.routers.frontend-secure.tls.certresolver=myresolver"
+      - "traefik.http.routers.frontend.middlewares=redirect-to-https"
+    networks:
+      - web
+
+networks:
+  web:
+    external: true

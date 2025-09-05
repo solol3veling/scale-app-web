@@ -91,7 +91,7 @@ export function AppSidebar() {
                 <div className="flex items-center justify-between">
                     {!collapsed && (
                         <div className="w-12 h-12 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 cursor-pointer">
-                            <img src="/logo.svg" alt="Logo" className="w-7 h-7" />
+                            <img src="/favicon-s-white.png" alt="Logo" className="w-7 h-7" />
                         </div>
                     )}
                     {/* Only show trigger on desktop - mobile has it in the top bar */}

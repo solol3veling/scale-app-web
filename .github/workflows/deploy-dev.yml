@@ -1,11 +1,11 @@
-name: Deploy to Dev
+name: Build and Push to Docker Hub
 
 on:
   push:
     branches: [ dev ]
 
 jobs:
-  build-and-deploy:
+  build-and-push:
     runs-on: ubuntu-latest
     
     steps:
@@ -25,33 +25,6 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
+        file: ./deploy/Dockerfile.prod
         push: true
-        tags: ${{ secrets.DOCKERHUB_USERNAME }}/project:scalestash.io.web.latest
-        
-    - name: Deploy to server
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USERNAME }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        port: 22
-        script: |
-          # Login to DockerHub for private repo access
-          echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-          
-          # Pull latest image
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/project:scalestash.io.web.latest
-          
-          # Stop and remove existing container
-          docker stop scalestash-web || true
-          docker rm scalestash-web || true
-          
-          # Run new container
-          docker run -d \
-            --name scalestash-web \
-            -p 5173:5173 \
-            --restart unless-stopped \
-            ${{ secrets.DOCKERHUB_USERNAME }}/project:scalestash.io.web.latest 
-          
-          docker image prune -f
-          docker container prune -f
+        tags: elitekaycy/project:scalestash.io.web.latest
