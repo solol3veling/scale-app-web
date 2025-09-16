@@ -42,7 +42,7 @@ export const TwitterPreview: FC<TwitterPreviewProps> = ({ postContent, uploadedM
 
           {/* Engagement Bar */}
           <div className="flex items-center justify-between mt-3 text-gray-500 dark:text-gray-400 text-xs">
-            <div className="flex items-center space-x-1 cursor-pointer hover:text-blue-400">
+            <div className="flex items-center space-x-1 cursor-pointer hover:text-gray-600 dark:hover:text-gray-300">
               <MessageCircle className="h-4 w-4" />
               <span>0</span>
             </div>
@@ -54,7 +54,7 @@ export const TwitterPreview: FC<TwitterPreviewProps> = ({ postContent, uploadedM
               <Heart className="h-4 w-4" />
               <span>0</span>
             </div>
-            <div className="flex items-center space-x-1 cursor-pointer hover:text-blue-400">
+            <div className="flex items-center space-x-1 cursor-pointer hover:text-gray-600 dark:hover:text-gray-300">
               <Share className="h-4 w-4" />
             </div>
           </div>

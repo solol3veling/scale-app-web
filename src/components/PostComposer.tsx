@@ -556,7 +556,7 @@ export function PostComposer({
                   size="sm"
                   className={cn(
                     "h-8 px-2 text-muted-foreground hover:text-foreground hover:bg-muted/50",
-                    isScheduled && "text-blue-500 bg-blue-50 hover:bg-blue-100"
+                    isScheduled && "text-foreground bg-accent hover:bg-accent/80"
                   )}
                   onClick={() => setOpenModal('schedule')}
                   title="Schedule post"
@@ -573,8 +573,9 @@ export function PostComposer({
                   </span>
                 )}
                 <Button
+                  variant="default"
                   size="sm"
-                  className="gradient-primary hover-scale h-8 px-4"
+                  className="hover-scale h-8 px-4"
                   disabled={!postContent.trim() || isAnyUploading || createPost.isPending}
                   onClick={handlePublish}
                 >

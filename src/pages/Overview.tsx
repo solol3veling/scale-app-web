@@ -192,10 +192,10 @@ function ConnectedAccountsSection() {
                 Connect your social media accounts to start managing your posts and analytics.
               </p>
             </div>
-            <Button 
-              variant="default" 
-              size="sm" 
-              className="mt-4 gradient-primary hover-scale" 
+            <Button
+              variant="default"
+              size="sm"
+              className="mt-4 hover-scale"
               onClick={() => window.location.href = '/accounts'}
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -267,12 +267,12 @@ function ConnectedAccountsSection() {
           <Button 
             variant="ghost" 
             size="sm" 
-            className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-all duration-200 border border-transparent hover:border-blue-200/50 dark:hover:border-blue-800/50 group"
+            className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-all duration-200 border border-transparent hover:border-gray-200/50 dark:hover:border-gray-700/50 group"
             onClick={() => window.location.href = '/accounts'}
           >
             <div className="flex items-center w-full">
-              <div className="p-1.5 rounded-lg bg-blue-100/50 dark:bg-blue-900/30 group-hover:bg-blue-200/70 dark:group-hover:bg-blue-800/40 transition-colors duration-200 mr-3">
-                <Plus className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+              <div className="p-1.5 rounded-lg bg-gray-100/50 dark:bg-gray-800/50 group-hover:bg-gray-200/70 dark:group-hover:bg-gray-700/70 transition-colors duration-200 mr-3">
+                <Plus className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
               </div>
               <span className="font-medium">Add Another Account</span>
             </div>
@@ -384,10 +384,10 @@ function RecentPostsSection() {
                 Start creating posts to see your recent activity here.
               </p>
             </div>
-            <Button 
-              variant="default" 
-              size="sm" 
-              className="mt-4 gradient-primary hover-scale" 
+            <Button
+              variant="default"
+              size="sm"
+              className="mt-4 hover-scale"
               onClick={() => window.location.href = '/make-post'}
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -571,8 +571,9 @@ export default function Overview() {
             <h1 className="text-2xl font-bold tracking-tight">Dashboard Overview</h1>
             <p className="text-muted-foreground text-sm">Welcome back! Here's what's happening with your social media.</p>
           </div>
-          <Button 
-            className="gradient-primary hover-scale"
+          <Button
+            variant="default"
+            className="hover-scale"
             onClick={() => navigate('/make-post')}
             size="sm"
           >
@@ -601,8 +602,9 @@ export default function Overview() {
               <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button 
-                className="w-full justify-start gradient-primary hover-scale"
+              <Button
+                variant="default"
+                className="w-full justify-start hover-scale"
                 onClick={() => navigate('/make-post')}
               >
                 <Share2 className="h-4 w-4 mr-2" />

@@ -902,7 +902,7 @@ export function Calendar() {
                                 size="sm"
                                 onClick={() => setCurrentDate(new Date())}
                                 disabled={isLoading}
-                                className="hidden sm:block mr-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:shadow-md"
+                                className="hidden sm:block mr-2 px-4 py-1.5 font-medium rounded-lg shadow-sm transition-all duration-200 hover:shadow-md"
                             >
                                 Today
                             </Button>

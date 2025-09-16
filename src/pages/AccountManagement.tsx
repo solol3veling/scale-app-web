@@ -61,7 +61,7 @@ export default function AccountManagement() {
               >
                 <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
               </Button>
-              <Button className="gradient-primary hover-scale" onClick={() => setSearchParams({ action: 'add' })}>
+              <Button variant="default" className="hover-scale" onClick={() => setSearchParams({ action: 'add' })}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Account
               </Button>

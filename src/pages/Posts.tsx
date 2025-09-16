@@ -156,9 +156,10 @@ function PostsHeader({
               >
                 <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               </Button>
-              <Button 
-                onClick={() => navigate('/make-post')} 
-                className="gap-2 gradient-primary hover-scale whitespace-nowrap"
+              <Button
+                variant="default"
+                onClick={() => navigate('/make-post')}
+                className="gap-2 hover-scale whitespace-nowrap"
                 size="sm"
               >
                 <Plus className="h-4 w-4" />
@@ -639,9 +640,10 @@ function PostsContent({
             </p>
           </div>
           <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
-            <Button 
-              onClick={() => navigate('/make-post')} 
-              className="gap-2 gradient-primary hover-scale"
+            <Button
+              variant="default"
+              onClick={() => navigate('/make-post')}
+              className="gap-2 hover-scale"
             >
               <Plus className="h-4 w-4" />
               {searchTerm || statusFilter !== 'all' ? "Create New Post" : "Create Your First Post"}
@@ -944,8 +946,8 @@ function PostsContent({
                   size="sm"
                   onClick={() => setCurrentPage(pageIndex)}
                   className={`w-10 h-10 p-0 ${
-                    currentPage === pageIndex 
-                      ? "gradient-primary" 
+                    currentPage === pageIndex
+                      ? "bg-primary text-primary-foreground"
                       : "bg-background/50 backdrop-blur-sm border-border/50 hover:bg-background/80"
                   }`}
                 >

@@ -202,24 +202,24 @@ export default function Settings() {
 
         {/* Profile Tab */}
         <TabsContent value="profile" className="space-y-6">
-          <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+          <Card className="shadow-lg border-0 bg-card card-interactive">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <CardTitle className="flex items-center gap-2 text-card-foreground">
+                <User className="h-5 w-5 text-primary" />
                 Profile Information
               </CardTitle>
               <CardDescription>Your account information from Supabase authentication</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center gap-6">
-                <Avatar className="h-20 w-20 ring-4 ring-blue-100 dark:ring-blue-900">
+                <Avatar className="h-20 w-20 ring-4 ring-primary/20 avatar-glow cursor-pointer">
                   <AvatarImage src={user?.user_metadata?.avatar_url} />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xl">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xl font-bold">
                     {user?.email?.charAt(0).toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="space-y-1">
-                  <h3 className="text-xl font-semibold">{user?.user_metadata?.full_name || 'User'}</h3>
+                  <h3 className="text-xl font-semibold text-card-foreground">{user?.user_metadata?.full_name || 'User'}</h3>
                   <p className="text-muted-foreground">{user?.email}</p>
                   <Badge variant="outline" className="gap-1">
                     <Mail className="h-3 w-3" />
@@ -232,9 +232,9 @@ export default function Settings() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-3">
-                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Email Address</Label>
-                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <p className="font-medium text-gray-900 dark:text-gray-100">{user?.email}</p>
+                  <Label className="text-sm font-medium text-card-foreground">Email Address</Label>
+                  <div className="p-3 bg-muted rounded-lg border">
+                    <p className="font-medium text-card-foreground">{user?.email}</p>
                     <p className="text-xs text-muted-foreground mt-1">
                       Managed by Supabase authentication
                     </p>
@@ -242,9 +242,9 @@ export default function Settings() {
                 </div>
 
                 <div className="space-y-3">
-                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Account Created</Label>
-                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <p className="font-medium text-gray-900 dark:text-gray-100">
+                  <Label className="text-sm font-medium text-card-foreground">Account Created</Label>
+                  <div className="p-3 bg-muted rounded-lg border">
+                    <p className="font-medium text-card-foreground">
                       {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -254,9 +254,9 @@ export default function Settings() {
                 </div>
 
                 <div className="space-y-3">
-                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">User ID</Label>
-                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <p className="font-mono text-sm text-gray-900 dark:text-gray-100">{user?.id}</p>
+                  <Label className="text-sm font-medium text-card-foreground">User ID</Label>
+                  <div className="p-3 bg-muted rounded-lg border">
+                    <p className="font-mono text-sm text-card-foreground">{user?.id}</p>
                     <p className="text-xs text-muted-foreground mt-1">
                       Unique identifier
                     </p>
@@ -264,9 +264,9 @@ export default function Settings() {
                 </div>
 
                 <div className="space-y-3">
-                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Last Sign In</Label>
-                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <p className="font-medium text-gray-900 dark:text-gray-100">
+                  <Label className="text-sm font-medium text-card-foreground">Last Sign In</Label>
+                  <div className="p-3 bg-muted rounded-lg border">
+                    <p className="font-medium text-card-foreground">
                       {user?.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString() : 'Unknown'}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -279,7 +279,7 @@ export default function Settings() {
               <Separator />
 
               <div className="flex gap-3">
-                <Button variant="outline" onClick={() => signOut()} className="hover:bg-red-50 dark:hover:bg-red-950 hover:border-red-200 dark:hover:border-red-800">
+                <Button variant="outline" onClick={() => signOut()} className="hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive">
                   Sign Out
                 </Button>
               </div>
@@ -403,7 +403,7 @@ export default function Settings() {
                       variant="outline"
                       onClick={handleUpdatePaymentMethod}
                       disabled={updatePaymentMethod.isPending}
-                      className="border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950"
+                      className="border-border text-foreground hover:bg-accent hover:text-accent-foreground"
                     >
                       {updatePaymentMethod.isPending ? (
                         <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -653,7 +653,7 @@ export default function Settings() {
                   <div className="font-medium text-gray-900 dark:text-gray-100">Export Data</div>
                   <div className="text-sm text-muted-foreground">Download all your posts, analytics, and account data</div>
                 </div>
-                <Button variant="outline" className="hover:bg-blue-50 dark:hover:bg-blue-950 hover:border-blue-200 dark:hover:border-blue-800">
+                <Button variant="outline" className="hover:bg-accent hover:text-accent-foreground hover:border-border">
                   <Download className="h-4 w-4 mr-2" />
                   Export
                 </Button>

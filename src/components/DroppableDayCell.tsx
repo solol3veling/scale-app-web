@@ -102,7 +102,7 @@ export function DroppableDayCell({
         {dayPosts.length > 2 && (
           <button
             onClick={() => onDayExpand(calendarDay.date, dayPosts)}
-            className="w-full text-[9px] sm:text-[10px] text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-center py-0.5 sm:py-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+            className="w-full text-[9px] sm:text-[10px] text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-center py-0.5 sm:py-1 hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors"
           >
             +{dayPosts.length - 2} more
           </button>

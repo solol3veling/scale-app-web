@@ -254,7 +254,7 @@ export function AddAccountDialog({ onAccountAdded, open, onOpenChange, defaultPl
                         Cancel
                     </Button>
                     <Button
-                        className="gradient-primary"
+                        variant="default"
                         onClick={handleConnectAccount}
                         disabled={isConnecting || !platform || !accountName}
                     >

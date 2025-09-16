@@ -69,10 +69,10 @@ export default function Auth() {
       <div className="w-full max-w-sm space-y-8">
         <div className="text-center space-y-6">
           <div className="w-16 h-16 mx-auto">
-            <img 
-              src={logoImage} 
-              alt="Logo" 
-              className="w-full h-full object-contain"
+            <img
+              src={logoImage}
+              alt="Logo"
+              className="w-full h-full object-cover rounded-xl"
             />
           </div>
           <div>
