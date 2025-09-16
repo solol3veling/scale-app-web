@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ErrorState } from "@/components/ErrorState"
 import { format } from "date-fns"
 import {
@@ -83,25 +84,23 @@ function StatsSection() {
     {
       title: "Total Posts",
       value: formatNumber(overviewStats.totalPosts)
-    },
-    {
-      title: "Active Accounts",
-      value: overviewStats.activeAccounts.toString()
     }
   ] : []
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {statsCards.map((stat, index) => (
-        <Card key={index} className="p-6">
-          <div className="space-y-2">
+        <Card key={index} className="p-6 h-full">
+          <div className="flex flex-col justify-between h-full">
             <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-            <p className="text-3xl font-bold text-foreground">{stat.value}</p>
+            <p className="text-3xl font-bold text-foreground mt-auto">{stat.value}</p>
           </div>
         </Card>
       ))}
       {/* Connected Accounts Card */}
       <ConnectedAccountsCard />
+      {/* Quick Actions Card */}
+      <QuickActionsCard />
     </div>
   )
 }
@@ -112,10 +111,10 @@ function ConnectedAccountsCard() {
 
   if (isLoading) {
     return (
-      <Card className="p-6">
-        <div className="space-y-2">
+      <Card className="p-6 h-full">
+        <div className="flex flex-col justify-between h-full">
           <p className="text-sm font-medium text-muted-foreground">Connected Accounts</p>
-          <p className="text-3xl font-bold text-foreground">...</p>
+          <p className="text-3xl font-bold text-foreground mt-auto">...</p>
         </div>
       </Card>
     )
@@ -123,10 +122,10 @@ function ConnectedAccountsCard() {
 
   if (error) {
     return (
-      <Card className="p-6">
-        <div className="space-y-2">
+      <Card className="p-6 h-full">
+        <div className="flex flex-col justify-between h-full">
           <p className="text-sm font-medium text-muted-foreground">Connected Accounts</p>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mt-auto">
             <p className="text-3xl font-bold text-foreground">Error</p>
             <Button
               variant="ghost"
@@ -144,10 +143,10 @@ function ConnectedAccountsCard() {
 
   if (!accounts || accounts.length === 0) {
     return (
-      <Card className="p-6 cursor-pointer" onClick={() => window.location.href = '/accounts'}>
-        <div className="space-y-2">
+      <Card className="p-6 h-full cursor-pointer" onClick={() => window.location.href = '/accounts'}>
+        <div className="flex flex-col justify-between h-full">
           <p className="text-sm font-medium text-muted-foreground">Connected Accounts</p>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mt-auto">
             <p className="text-3xl font-bold text-foreground">0</p>
             <Button
               variant="ghost"
@@ -168,10 +167,10 @@ function ConnectedAccountsCard() {
   }
 
   return (
-    <Card className="p-6 cursor-pointer" onClick={() => window.location.href = '/accounts'}>
-      <div className="space-y-2">
+    <Card className="p-6 h-full cursor-pointer" onClick={() => window.location.href = '/accounts'}>
+      <div className="flex flex-col justify-between h-full">
         <p className="text-sm font-medium text-muted-foreground">Connected Accounts</p>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-auto">
           <p className="text-3xl font-bold text-foreground">{accounts.length}</p>
           <div className="flex items-center">
             {/* Stacked avatars */}
@@ -207,6 +206,48 @@ function ConnectedAccountsCard() {
               </Button>
             </div>
           </div>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+// Component for quick actions card in stats row
+function QuickActionsCard() {
+  const navigate = useNavigate()
+
+  return (
+    <Card className="p-6 h-full">
+      <div className="flex flex-col h-full">
+        <p className="text-sm font-medium text-muted-foreground mb-4">Quick Actions</p>
+        <div className="flex flex-col justify-center flex-1 space-y-2">
+          <Button
+            variant="default"
+            size="sm"
+            className="w-full justify-start text-xs h-8"
+            onClick={() => navigate('/make-post')}
+          >
+            <Share2 className="h-3 w-3 mr-2" />
+            Create Post
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start text-xs h-8"
+            onClick={() => navigate('/accounts')}
+          >
+            <Users className="h-3 w-3 mr-2" />
+            Add Account
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start text-xs h-8"
+            onClick={() => navigate('/analytics')}
+          >
+            <TrendingUp className="h-3 w-3 mr-2" />
+            View Analytics
+          </Button>
         </div>
       </div>
     </Card>
@@ -261,21 +302,58 @@ function RecentPostsSection() {
 
   if (isLoading) {
     return (
-      <Card className="shadow-medium">
-        <CardHeader>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <CardTitle>Recent Posts</CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => window.location.href = '/posts'}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            View All
+          </Button>
         </CardHeader>
-        <CardContent className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="flex items-start gap-3">
-              <div className="h-8 w-8 bg-gray-200 animate-pulse rounded-full"></div>
-              <div className="flex-1 space-y-2">
-                <div className="h-4 w-20 bg-gray-200 animate-pulse rounded"></div>
-                <div className="h-4 w-full bg-gray-200 animate-pulse rounded"></div>
-                <div className="h-4 w-3/4 bg-gray-200 animate-pulse rounded"></div>
-              </div>
-            </div>
-          ))}
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Content</TableHead>
+                <TableHead>Platforms</TableHead>
+                <TableHead>Media</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead className="w-12"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {[1, 2, 3].map((i) => (
+                <TableRow key={i}>
+                  <TableCell>
+                    <div className="h-4 w-48 bg-gray-200 animate-pulse rounded"></div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex -space-x-1">
+                      <div className="h-4 w-4 bg-gray-200 animate-pulse rounded-full"></div>
+                      <div className="h-4 w-4 bg-gray-200 animate-pulse rounded-full"></div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="h-4 w-8 bg-gray-200 animate-pulse rounded"></div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="h-4 w-16 bg-gray-200 animate-pulse rounded"></div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="h-4 w-20 bg-gray-200 animate-pulse rounded"></div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="h-4 w-4 bg-gray-200 animate-pulse rounded"></div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     )
@@ -283,9 +361,17 @@ function RecentPostsSection() {
 
   if (error) {
     return (
-      <Card className="shadow-medium">
-        <CardHeader>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <CardTitle>Recent Posts</CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => window.location.href = '/posts'}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            View All
+          </Button>
         </CardHeader>
         <CardContent>
           <ErrorState
@@ -301,9 +387,17 @@ function RecentPostsSection() {
 
   if (!recentPosts || recentPosts.length === 0) {
     return (
-      <Card className="shadow-medium">
-        <CardHeader>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <CardTitle>Recent Posts</CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => window.location.href = '/posts'}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            View All
+          </Button>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
@@ -330,11 +424,11 @@ function RecentPostsSection() {
   }
 
   return (
-    <Card className="shadow-medium">
+    <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <CardTitle>Recent Posts</CardTitle>
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           size="sm"
           onClick={() => window.location.href = '/posts'}
           className="text-muted-foreground hover:text-foreground"
@@ -342,55 +436,58 @@ function RecentPostsSection() {
           View All
         </Button>
       </CardHeader>
-      <CardContent className="space-y-3">
-        {recentPosts.slice(0, 5).map((post: any) => (
-          <div 
-            key={post.id} 
-            className="flex items-center gap-3 p-3 rounded-xl bg-gray-50/50 dark:bg-gray-800/30 border border-gray-200/50 dark:border-gray-700/50 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer group"
-            onClick={() => openModal(post.id)}
-          >
-            {/* Content */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between mb-1">
-                {/* Left side - Content preview and platforms */}
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <p className="text-sm font-medium text-foreground truncate max-w-[200px]">
-                    {post.content?.length > 40 ? `${post.content.substring(0, 40)}...` : post.content}
-                  </p>
-                  
-                  {/* Platform icons with overlap */}
-                  <div className="flex items-center flex-shrink-0">
-                    <div className="flex -space-x-1">
-                      {post.accounts?.slice(0, 3).map((account: any, index: number) => (
-                        <div 
-                          key={account.id} 
-                          className="relative flex-shrink-0 border border-white dark:border-gray-900 rounded-full"
-                          style={{ zIndex: 3 - index }}
-                        >
-                          {getSocialPlatformIcon(account.platform, "h-4 w-4")}
-                        </div>
-                      ))}
-                      {post.accounts?.length > 3 && (
-                        <div 
-                          className="relative flex items-center justify-center w-4 h-4 text-xs font-medium text-muted-foreground bg-gray-200 dark:bg-gray-700 border border-white dark:border-gray-900 rounded-full"
-                          style={{ zIndex: 0 }}
-                        >
-                          +{post.accounts.length - 3}
-                        </div>
-                      )}
-                    </div>
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Content</TableHead>
+              <TableHead>Platforms</TableHead>
+              <TableHead>Media</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead className="w-12"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {recentPosts.slice(0, 5).map((post: any) => (
+              <TableRow
+                key={post.id}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => openModal(post.id)}
+              >
+                <TableCell className="font-medium">
+                  <span className="text-sm truncate max-w-[300px] block">
+                    {post.content?.length > 60 ? `${post.content.substring(0, 60)}...` : post.content}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <div className="flex -space-x-1">
+                    {post.accounts?.slice(0, 3).map((account: any, index: number) => (
+                      <div
+                        key={account.id}
+                        className="relative flex-shrink-0 border border-white dark:border-gray-900 rounded-full"
+                        style={{ zIndex: 3 - index }}
+                      >
+                        {getSocialPlatformIcon(account.platform, "h-4 w-4")}
+                      </div>
+                    ))}
+                    {post.accounts?.length > 3 && (
+                      <div
+                        className="relative flex items-center justify-center w-4 h-4 text-xs font-medium text-muted-foreground bg-gray-200 dark:bg-gray-700 border border-white dark:border-gray-900 rounded-full"
+                        style={{ zIndex: 0 }}
+                      >
+                        +{post.accounts.length - 3}
+                      </div>
+                    )}
                   </div>
-                </div>
-
-                {/* Right side - Status, media, and date */}
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  {/* Media indicators */}
+                </TableCell>
+                <TableCell>
                   {post.media && post.media.length > 0 && (
                     <div className="flex items-center gap-1">
                       {post.media.filter((m: any) => m.type === 'image').length > 0 && (
                         <div className="flex items-center gap-0.5">
                           <div className="w-2 h-2 rounded-sm bg-blue-500"></div>
-                          <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                          <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">
                             {post.media.filter((m: any) => m.type === 'image').length}
                           </span>
                         </div>
@@ -398,31 +495,31 @@ function RecentPostsSection() {
                       {post.media.filter((m: any) => m.type === 'video').length > 0 && (
                         <div className="flex items-center gap-0.5">
                           <div className="w-2 h-2 rounded-sm bg-purple-500"></div>
-                          <span className="text-xs text-purple-600 dark:text-purple-400 font-medium">
+                          <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">
                             {post.media.filter((m: any) => m.type === 'video').length}
                           </span>
                         </div>
                       )}
                     </div>
                   )}
-
-                  {/* Status badge */}
+                </TableCell>
+                <TableCell>
                   {getStatusBadge(post.status)}
-
-                  {/* Date */}
+                </TableCell>
+                <TableCell>
                   <span className="text-xs text-muted-foreground font-medium">
                     {post.status === 'SCHEDULED' && post.scheduledFor
                       ? format(new Date(post.scheduledFor), 'MMM dd, HH:mm')
                       : formatRelativeTime(post.createdAt)}
                   </span>
-
-                  {/* Actions dropdown */}
+                </TableCell>
+                <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="sm"
-                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-200 dark:hover:bg-gray-700"
+                        className="h-6 w-6 p-0 hover:bg-gray-200 dark:hover:bg-gray-700"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <MoreHorizontal className="h-3 w-3" />
@@ -433,7 +530,7 @@ function RecentPostsSection() {
                         <Eye className="h-4 w-4 mr-2" />
                         View Details
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={(e) => { e.stopPropagation(); setDeleteDialog({ open: true, postId: post.id }); }}
                         className="text-destructive focus:text-destructive"
                       >
@@ -442,11 +539,11 @@ function RecentPostsSection() {
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
 
         {/* Post Details Modal */}
         {selectedPostId && (
@@ -467,14 +564,14 @@ function RecentPostsSection() {
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setDeleteDialog({ open: false, postId: null })}
               >
                 Cancel
               </Button>
-              <Button 
-                variant="destructive" 
+              <Button
+                variant="destructive"
                 onClick={() => deleteDialog.postId && handleDelete(deleteDialog.postId)}
                 disabled={deletePost.isPending}
               >
@@ -518,48 +615,8 @@ export default function Overview() {
         {/* Stats Cards - Isolated Error Handling */}
         <StatsSection />
 
-        {/* Recent Activity */}
-        <div className="grid gap-6 lg:grid-cols-3">
-        {/* Recent Posts - Isolated Error Handling */}
-        <div className="lg:col-span-2">
-          <RecentPostsSection />
-        </div>
-
-        {/* Quick Actions */}
-        <div className="space-y-6">
-          <Card className="shadow-medium">
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button
-                variant="default"
-                className="w-full justify-start hover-scale"
-                onClick={() => navigate('/make-post')}
-              >
-                <Share2 className="h-4 w-4 mr-2" />
-                Create New Post
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start hover-lift"
-                onClick={() => navigate('/accounts')}
-              >
-                <Users className="h-4 w-4 mr-2" />
-                Add Account
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start hover-lift"
-                onClick={() => navigate('/analytics')}
-              >
-                <TrendingUp className="h-4 w-4 mr-2" />
-                View Analytics
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-        </div>
+        {/* Recent Posts - Full Width */}
+        <RecentPostsSection />
       </div>
     </div>
   )
