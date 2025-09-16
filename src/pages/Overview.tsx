@@ -6,11 +6,11 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { ErrorState } from "@/components/ErrorState"
 import { format } from "date-fns"
-import { 
-  TrendingUp, 
-  Users, 
-  MessageSquare, 
-  Share2, 
+import {
+  TrendingUp,
+  Users,
+  MessageSquare,
+  Share2,
   Eye,
   Heart,
   MoreHorizontal,
@@ -20,6 +20,7 @@ import {
   Clock,
   Plus,
   Loader2,
+  RefreshCw,
 } from "lucide-react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { useOverview, useRecentActivity } from "@/hooks/api/useOverview"
@@ -81,204 +82,133 @@ function StatsSection() {
   const statsCards = overviewStats ? [
     {
       title: "Total Posts",
-      value: formatNumber(overviewStats.totalPosts),
-      visual: <PostsSVG />,
-      icon: MessageSquare,
-      color: "text-blue-600"
-    },
-    {
-      title: "Total Reach",
-      value: formatNumber(overviewStats.totalReach),
-      visual: <ReachSVG />,
-      icon: Eye,
-      color: "text-green-600"
-    },
-    {
-      title: "Engagement",
-      value: formatNumber(overviewStats.totalEngagement),
-      visual: <EngagementSVG />,
-      icon: Heart,
-      color: "text-pink-600"
+      value: formatNumber(overviewStats.totalPosts)
     },
     {
       title: "Active Accounts",
-      value: overviewStats.activeAccounts.toString(),
-      visual: <AccountsSVG />,
-      icon: Users,
-      color: "text-purple-600"
+      value: overviewStats.activeAccounts.toString()
     }
   ] : []
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {statsCards.map((stat, index) => (
-        <Card key={index} className="hover-lift gradient-card border-0 shadow-soft">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {stat.title}
-            </CardTitle>
-            <stat.icon className={`h-5 w-5 ${stat.color}`} />
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="flex items-end justify-between">
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <div className="flex items-center">
-                {stat.visual}
-              </div>
-            </div>
-          </CardContent>
+        <Card key={index} className="p-6">
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+            <p className="text-3xl font-bold text-foreground">{stat.value}</p>
+          </div>
         </Card>
       ))}
+      {/* Connected Accounts Card */}
+      <ConnectedAccountsCard />
     </div>
   )
 }
 
-// Component for connected accounts with isolated error handling  
-function ConnectedAccountsSection() {
+// Component for connected accounts card in stats row
+function ConnectedAccountsCard() {
   const { data: accounts, isLoading, error, refetch } = useSocialAccounts()
 
   if (isLoading) {
     return (
-      <Card className="shadow-medium">
-        <CardHeader>
-          <CardTitle>Connected Accounts</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="flex items-center gap-3">
-              <div className="h-8 w-8 bg-gray-200 animate-pulse rounded-full"></div>
-              <div className="flex-1">
-                <div className="h-4 w-20 bg-gray-200 animate-pulse rounded mb-1"></div>
-                <div className="h-3 w-16 bg-gray-200 animate-pulse rounded"></div>
-              </div>
-              <div className="h-5 w-12 bg-gray-200 animate-pulse rounded"></div>
-            </div>
-          ))}
-        </CardContent>
+      <Card className="p-6">
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-muted-foreground">Connected Accounts</p>
+          <p className="text-3xl font-bold text-foreground">...</p>
+        </div>
       </Card>
     )
   }
 
   if (error) {
     return (
-      <Card className="shadow-medium">
-        <CardHeader>
-          <CardTitle>Connected Accounts</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ErrorState
-            title="Failed to load accounts"
-            description={getErrorMessage(error, "Unable to fetch your connected social media accounts.")}
-            onRetry={refetch}
-            size="sm"
-          />
-        </CardContent>
+      <Card className="p-6">
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-muted-foreground">Connected Accounts</p>
+          <div className="flex items-center justify-between">
+            <p className="text-3xl font-bold text-foreground">Error</p>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={refetch}
+              className="h-8 w-8 p-0"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       </Card>
     )
   }
 
   if (!accounts || accounts.length === 0) {
     return (
-      <Card className="shadow-medium">
-        <CardHeader>
-          <CardTitle>Connected Accounts</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <EmptyStateSVG />
-            <div className="mt-4 space-y-2">
-              <h3 className="text-sm font-medium text-foreground">No accounts connected</h3>
-              <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                Connect your social media accounts to start managing your posts and analytics.
-              </p>
-            </div>
+      <Card className="p-6 cursor-pointer" onClick={() => window.location.href = '/accounts'}>
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-muted-foreground">Connected Accounts</p>
+          <div className="flex items-center justify-between">
+            <p className="text-3xl font-bold text-foreground">0</p>
             <Button
-              variant="default"
+              variant="ghost"
               size="sm"
-              className="mt-4 hover-scale"
-              onClick={() => window.location.href = '/accounts'}
+              onClick={(e) => {
+                e.stopPropagation()
+                window.location.href = '/accounts'
+              }}
+              className="h-8 w-8 p-0 rounded-full"
+              title="Connect account"
             >
-              <Plus className="h-4 w-4 mr-2" />
-              Connect Account
+              <Plus className="h-4 w-4" />
             </Button>
           </div>
-        </CardContent>
+        </div>
       </Card>
     )
   }
 
   return (
-    <Card className="shadow-medium">
-      <CardHeader>
-        <CardTitle>Connected Accounts</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3 p-5">
-        {accounts.slice(0, 2).map((account) => {
-          const platformInfo = getPlatformInfo(account.platform)
-          return (
-            <div 
-              key={account.id} 
-              className="group flex items-center gap-3 p-3 rounded-xl bg-transparent hover:bg-gray-50/80 dark:hover:bg-gray-800/50 transition-all duration-200 cursor-pointer border border-transparent hover:border-gray-200/50 dark:hover:border-gray-700/50 hover:shadow-sm"
-              onClick={() => window.location.href = '/accounts'}
-            >
-              <Avatar className="h-9 w-9 flex-shrink-0 transition-transform duration-200 group-hover:scale-105">
-                <AvatarFallback className={`${platformInfo.className} transition-colors duration-200`}>
-                  {platformInfo.initials}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate transition-colors duration-200 group-hover:text-foreground">
-                  {account.handle ? `@${account.handle}` : account.displayName || 'Unknown Account'}
-                </p>
-                <p className="text-xs text-muted-foreground transition-colors duration-200 group-hover:text-muted-foreground/80">
-                  {platformInfo.name}
-                </p>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {getAccountStatusBadge(account)}
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+    <Card className="p-6 cursor-pointer" onClick={() => window.location.href = '/accounts'}>
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-muted-foreground">Connected Accounts</p>
+        <div className="flex items-center justify-between">
+          <p className="text-3xl font-bold text-foreground">{accounts.length}</p>
+          <div className="flex items-center">
+            {/* Stacked avatars */}
+            <div className="flex -space-x-2">
+              {accounts.slice(0, 3).map((account) => {
+                const platformInfo = getPlatformInfo(account.platform)
+                return (
+                  <Avatar key={account.id} className="h-8 w-8 border-2 border-white dark:border-gray-900">
+                    <AvatarImage src={account.avatar_url || undefined} />
+                    <AvatarFallback className={`${platformInfo.className} text-xs`}>
+                      {platformInfo.initials}
+                    </AvatarFallback>
+                  </Avatar>
+                )
+              })}
+              {accounts.length > 3 && (
+                <div className="h-8 w-8 rounded-full border-2 border-white dark:border-gray-900 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">+{accounts.length - 3}</span>
                 </div>
-              </div>
-              
-              {/* Hover overlay effect */}
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+              )}
+              {/* Always show add button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  window.location.href = '/accounts'
+                }}
+                className="h-8 w-8 p-0 rounded-full ml-1"
+                title="Add account"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
             </div>
-          )
-        })}
-
-        {/* View More Button - only show if more than 2 accounts */}
-        {accounts.length > 2 && (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="w-full justify-center text-muted-foreground hover:text-foreground hover:bg-gray-50/80 dark:hover:bg-gray-800/50 transition-all duration-200 border border-transparent hover:border-gray-200/50 dark:hover:border-gray-700/50 group py-2"
-            onClick={() => window.location.href = '/accounts'}
-          >
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              <span className="font-medium">View {accounts.length - 2} more account{accounts.length - 2 !== 1 ? 's' : ''}</span>
-            </div>
-          </Button>
-        )}
-        
-        {/* Add Account Button */}
-        <div className="pt-4 mt-4 border-t border-gray-200/50 dark:border-gray-700/50">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-all duration-200 border border-transparent hover:border-gray-200/50 dark:hover:border-gray-700/50 group"
-            onClick={() => window.location.href = '/accounts'}
-          >
-            <div className="flex items-center w-full">
-              <div className="p-1.5 rounded-lg bg-gray-100/50 dark:bg-gray-800/50 group-hover:bg-gray-200/70 dark:group-hover:bg-gray-700/70 transition-colors duration-200 mr-3">
-                <Plus className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
-              </div>
-              <span className="font-medium">Add Another Account</span>
-            </div>
-          </Button>
+          </div>
         </div>
-      </CardContent>
+      </div>
     </Card>
   )
 }
@@ -628,9 +558,6 @@ export default function Overview() {
               </Button>
             </CardContent>
           </Card>
-
-          {/* Connected Accounts - Isolated Error Handling */}
-          <ConnectedAccountsSection />
         </div>
         </div>
       </div>
