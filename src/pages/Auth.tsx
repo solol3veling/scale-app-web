@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import logoImage from "@/assets/logo.png";
+import scalestashLogo from "@/assets/scalestash-logo.png";
 
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
@@ -66,29 +66,33 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-sm space-y-8">
-        <div className="text-center space-y-6">
-          <div className="w-16 h-16 mx-auto">
+      <div className="w-full max-w-md space-y-8">
+        <div className="text-center space-y-8">
+          {/* Logo */}
+          <div className="flex justify-center">
             <img
-              src={logoImage}
-              alt="Logo"
-              className="w-full h-full object-cover rounded-xl"
+              src={scalestashLogo}
+              alt="Scalestash"
+              className="h-12 w-auto"
             />
           </div>
-          <div>
-            <h1 className="text-2xl font-normal text-foreground mb-2">
-              Sign in to your account
+
+          {/* Heading */}
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold text-foreground">
+              Welcome to Scalestash
             </h1>
-            <p className="text-muted-foreground text-sm">
-              Welcome back! Please sign in to continue.
+            <p className="text-muted-foreground">
+              Manage and scale your social media presence across all platforms
             </p>
           </div>
         </div>
 
+        {/* Sign in button */}
         <div className="space-y-4">
           <Button
-            variant="outline"
-            className="w-full h-12 text-base font-medium border border-border hover:bg-accent transition-colors"
+            variant="default"
+            className="w-full h-12 text-base font-medium"
             onClick={handleGoogleAuth}
             disabled={isLoading}
           >
@@ -120,11 +124,12 @@ export default function Auth() {
           </Button>
         </div>
 
+        {/* Footer */}
         <div className="text-center text-xs text-muted-foreground">
           By continuing, you agree to our{" "}
-          <button className="text-primary hover:underline">Terms</button>
+          <button className="text-foreground hover:underline">Terms of Service</button>
           {" "}and{" "}
-          <button className="text-primary hover:underline">Privacy Policy</button>
+          <button className="text-foreground hover:underline">Privacy Policy</button>
         </div>
       </div>
     </div>

@@ -14,6 +14,7 @@ import {
     Calendar
 } from "lucide-react"
 import { NavLink, useLocation, useNavigate } from "react-router-dom"
+import scalestashLogo from "@/assets/scalestash-logo.png"
 
 import {
     Sidebar,
@@ -90,8 +91,8 @@ export function AppSidebar() {
             <SidebarHeader className="p-4">
                 <div className="flex items-center justify-between">
                     {!collapsed && (
-                        <div className="w-12 h-12 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 cursor-pointer">
-                            <img src="/favicon-s-white.png" alt="Logo" className="w-7 h-7 rounded-md" />
+                        <div className="flex items-center justify-center cursor-pointer">
+                            <img src={scalestashLogo} alt="Scalestash" className="h-8 w-auto" />
                         </div>
                     )}
                     {/* Only show trigger on desktop - mobile has it in the top bar */}
