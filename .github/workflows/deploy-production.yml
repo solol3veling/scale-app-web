@@ -71,6 +71,7 @@ jobs:
           # Run new container
           docker run -d \
             --name scalestash-web \
+            --network traefik_network \
             -p 5173:80 \
             --restart unless-stopped \
             ${{ secrets.DOCKERHUB_USERNAME }}/project:scalestash.io.web.latest
