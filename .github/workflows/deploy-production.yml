@@ -33,10 +33,10 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
         build-args: |
-          VITE_API_BASE_URL=http://scalestash-api:8000
+          VITE_API_BASE_URL=http://scalestash-api
           VITE_CLOUDINARY_CLOUD_NAME=dnuyuq1sd
           VITE_CLOUDINARY_API_URL=https://api.cloudinary.com/v1_1
-          VITE_BACKEND_BASE_URL=http://scalestash-api:8000
+          VITE_BACKEND_BASE_URL=http://scalestash-api
           VITE_SUPABASE_URL=https://bhdbjtlzfoyzslhzkplu.supabase.co
           VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_SUPABASE_AUTH_TOKEN_KEY=sb-bhdbjtlzfoyzslhzkplu-auth-token
