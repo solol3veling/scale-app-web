@@ -826,11 +826,11 @@ function PostsContent({
     };
 
     return (
-      <article 
-        className={`group bg-white dark:bg-gray-900 rounded-2xl border transition-all duration-200 hover:shadow-lg overflow-hidden w-full flex flex-col relative cursor-pointer ${
-          isSelected 
-            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-lg' 
-            : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+      <article
+        className={`group bg-card rounded-2xl border transition-all duration-200 hover:shadow-lg overflow-hidden w-full flex flex-col relative cursor-pointer ${
+          isSelected
+            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-lg'
+            : 'border-border hover:border-gray-300 dark:hover:border-gray-700'
         } ${
           isLongPressing ? 'scale-95' : ''
         }`}
