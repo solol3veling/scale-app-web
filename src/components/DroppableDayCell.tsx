@@ -64,11 +64,11 @@ export function DroppableDayCell({
   return (
     <div
       ref={drop}
-      className={`relative min-h-[80px] sm:min-h-[100px] md:min-h-[120px] p-1 sm:p-2 border-b border-r border-gray-200 dark:border-gray-700 ${
-        !calendarDay.isCurrentMonth 
-          ? 'bg-gray-50/50 dark:bg-gray-800/50 text-gray-400 dark:text-gray-600' 
-          : 'bg-white dark:bg-gray-900'
-      } ${isTodayCell ? 'bg-blue-50/30 dark:bg-blue-900/20' : ''} ${
+      className={`relative min-h-[80px] sm:min-h-[100px] md:min-h-[120px] p-1 sm:p-2 border-b border-r border-border ${
+        !calendarDay.isCurrentMonth
+          ? 'bg-muted/50 text-gray-400 dark:text-gray-600'
+          : 'bg-card'
+      } ${isTodayCell ? 'bg-accent/50' : ''} ${
         isOver && canDrop ? 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-600' : ''
       } ${
         isOver && !canDrop ? 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-600' : ''
@@ -76,10 +76,10 @@ export function DroppableDayCell({
     >
       {/* Day number */}
       <div className={`text-xs sm:text-sm font-medium mb-1 sm:mb-2 ${
-        isTodayCell 
-          ? 'w-5 h-5 sm:w-6 sm:h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs' 
-          : calendarDay.isCurrentMonth 
-            ? 'text-gray-900 dark:text-gray-100' 
+        isTodayCell
+          ? 'w-5 h-5 sm:w-6 sm:h-6 bg-foreground text-background rounded-full flex items-center justify-center text-xs'
+          : calendarDay.isCurrentMonth
+            ? 'text-foreground'
             : 'text-gray-400 dark:text-gray-600'
       }`}>
         {calendarDay.day}

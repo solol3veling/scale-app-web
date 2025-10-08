@@ -652,7 +652,7 @@ export function Calendar() {
 
         // Show monthly calendar grid
         return (
-            <div className="h-full bg-white dark:bg-gray-900">
+            <div className="h-full bg-card">
                 {/* Calendar grid */}
                 <div key={`${year}-${month}`} className="grid grid-cols-7 h-full">
                     {/* Week header */}
@@ -691,7 +691,7 @@ export function Calendar() {
         <DndProvider backend={HTML5Backend}>
             <div className="flex flex-col h-full">
                 {/* Header with filter tabs */}
-                <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+                <div className="bg-card border-b border-border">
                     {/* Filter tabs */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 gap-3 sm:gap-0">
                         {/* Desktop: Tabs */}
