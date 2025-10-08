@@ -692,95 +692,42 @@ export function Calendar() {
             <div className="flex flex-col h-full">
                 {/* Header with filter tabs */}
                 <div className="bg-card border-b border-border">
-                    {/* Filter tabs */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 gap-3 sm:gap-0">
-                        {/* Desktop: Tabs */}
-                        <div className="hidden sm:flex items-center gap-1">
-                            <button
-                                onClick={() => setStatusFilter("all")}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${statusFilter === "all"
-                                    ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                                    }`}
-                            >
-                                <CalendarIcon className="h-4 w-4" />
-                                Calendar
-                            </button>
-
-                            <button
-                                onClick={() => setStatusFilter("scheduled")}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${statusFilter === "scheduled"
-                                    ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                                    }`}
-                            >
-                                <Clock className="h-4 w-4" />
-                                Scheduled ({postCounts.scheduled})
-                            </button>
-
-                            <button
-                                onClick={() => setStatusFilter("drafts")}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${statusFilter === "drafts"
-                                    ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                                    }`}
-                            >
-                                <Edit3 className="h-4 w-4" />
-                                Drafts ({postCounts.drafts})
-                            </button>
-
-                            <button
-                                onClick={() => setStatusFilter("posted")}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${statusFilter === "posted"
-                                    ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                                    }`}
-                            >
-                                <CheckCircle className="h-4 w-4" />
-                                Posted ({postCounts?.posted})
-                            </button>
-                        </div>
-
-                        {/* Mobile: Dropdown */}
-                        <div className="sm:hidden">
-                            <Select value={statusFilter} onValueChange={(value: StatusFilterType) => setStatusFilter(value)}>
-                                <SelectTrigger className="w-40 bg-background/50 backdrop-blur-sm border-border/50 h-9">
-                                    <div className="flex items-center gap-1.5">
-                                        {React.createElement(currentFilterInfo.icon, { className: "h-3.5 w-3.5" })}
-                                        <span className="text-sm">
-                                            {currentFilterInfo.label}
-                                            {currentFilterInfo.count !== null && ` (${currentFilterInfo.count})`}
-                                        </span>
+                    {/* Filter dropdown */}
+                    <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800">
+                        <Select value={statusFilter} onValueChange={(value: StatusFilterType) => setStatusFilter(value)}>
+                            <SelectTrigger className="w-[180px]">
+                                <div className="flex items-center gap-2">
+                                    {React.createElement(currentFilterInfo.icon, { className: "h-4 w-4" })}
+                                    <span>{currentFilterInfo.label}</span>
+                                </div>
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">
+                                    <div className="flex items-center gap-2">
+                                        <CalendarIcon className="h-4 w-4" />
+                                        Calendar
                                     </div>
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">
-                                        <div className="flex items-center gap-2">
-                                            <CalendarIcon className="h-4 w-4" />
-                                            Calendar
-                                        </div>
-                                    </SelectItem>
-                                    <SelectItem value="scheduled">
-                                        <div className="flex items-center gap-2">
-                                            <Clock className="h-4 w-4" />
-                                            Scheduled ({postCounts.scheduled})
-                                        </div>
-                                    </SelectItem>
-                                    <SelectItem value="drafts">
-                                        <div className="flex items-center gap-2">
-                                            <Edit3 className="h-4 w-4" />
-                                            Drafts ({postCounts.drafts})
-                                        </div>
-                                    </SelectItem>
-                                    <SelectItem value="posted">
-                                        <div className="flex items-center gap-2">
-                                            <CheckCircle className="h-4 w-4" />
-                                            Posted ({postCounts.posted})
-                                        </div>
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
+                                </SelectItem>
+                                <SelectItem value="scheduled">
+                                    <div className="flex items-center gap-2">
+                                        <Clock className="h-4 w-4" />
+                                        Scheduled
+                                    </div>
+                                </SelectItem>
+                                <SelectItem value="drafts">
+                                    <div className="flex items-center gap-2">
+                                        <Edit3 className="h-4 w-4" />
+                                        Drafts
+                                    </div>
+                                </SelectItem>
+                                <SelectItem value="posted">
+                                    <div className="flex items-center gap-2">
+                                        <CheckCircle className="h-4 w-4" />
+                                        Posted
+                                    </div>
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
 
                         <div className="flex items-center gap-2">
                             {error && (
