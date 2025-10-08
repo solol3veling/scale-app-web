@@ -348,8 +348,8 @@ export function PostComposer({
 
       {/* Main Post Content Card - floating when expanded */}
       <Card className={cn(
-        "shadow-medium border bg-muted/30 backdrop-blur-sm transition-all duration-300 relative group",
-        isExpanded && "fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-[95vw] max-w-5xl bg-white dark:bg-gray-900"
+        "shadow-medium border bg-card backdrop-blur-sm transition-all duration-300 relative group",
+        isExpanded && "fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-[95vw] max-w-5xl bg-card"
       )}>
         {/* Floating Expand Button - only show on hover when not expanded */}
         {!isExpanded && (
@@ -357,7 +357,7 @@ export function PostComposer({
             variant="ghost"
             size="sm"
             onClick={() => setIsExpanded(true)}
-            className="absolute top-2 right-2 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md z-10"
+            className="absolute top-2 right-2 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-accent rounded-md z-10"
             title="Expand composer"
           >
             <Expand className="h-3.5 w-3.5" />
@@ -370,7 +370,7 @@ export function PostComposer({
             variant="ghost"
             size="sm"
             onClick={() => setIsExpanded(false)}
-            className="absolute top-2 right-2 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md z-10"
+            className="absolute top-2 right-2 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-accent rounded-md z-10"
             title="Collapse composer"
           >
             <X className="h-3.5 w-3.5" />
