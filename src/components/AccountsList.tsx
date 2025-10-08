@@ -14,9 +14,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { 
-  Trash2, 
-  Edit3, 
+import {
+  Trash2,
+  Edit3,
   ExternalLink,
   CheckCircle,
   AlertCircle,
@@ -24,7 +24,10 @@ import {
   Settings as SettingsIcon,
   Loader2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ChevronDown,
+  CheckCheck,
+  ChevronsRight
 } from "lucide-react"
 import { useSocialAccountsPaginated } from "@/hooks/useAccounts"
 import { getPlatformConfig } from "@/utils/platform"
@@ -262,78 +265,85 @@ export function AccountsList({ searchTerm, selectedPlatform, action, accountId, 
       <div className="space-y-6">
         <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
           {accounts.map((account) => (
-        <Card key={account.id} className="shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02] flex flex-col h-full border border-gray-200 dark:border-gray-700 p-3">
-          <CardHeader className="pb-2 px-0 pt-0 flex flex-row items-center justify-between">
-            <div className="flex items-center gap-3 min-w-0 flex-1">
-              <Avatar className="h-10 w-10 flex-shrink-0">
+        <Card key={account.id} className="group relative transition-all duration-200 flex flex-col h-full p-4 hover:shadow-md">
+          <CardHeader className="pb-0 px-0 pt-0 flex-1">
+            <div className="flex items-center gap-3 min-w-0">
+              <Avatar className="h-12 w-12 flex-shrink-0">
                 <AvatarImage src={account?.profileImage} />
-                <AvatarFallback className={`${getPlatformConfig(account?.platform).color} text-white`}>
+                <AvatarFallback className="bg-muted">
                   {(() => {
                     const PlatformIcon = getPlatformConfig(account?.platform).icon
-                    return <PlatformIcon className="w-5 h-5" />
+                    return <PlatformIcon className="w-6 h-6 text-muted-foreground" />
                   })()}
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
-                <h3 className="font-semibold text-base leading-tight">{account?.displayName}</h3>
+                <div className="flex items-center gap-1.5">
+                  <h3 className="font-semibold text-base leading-tight text-foreground">{account?.displayName}</h3>
+                  {account?.isConnected && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="h-5 w-5 rounded flex items-center justify-center hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors cursor-pointer">
+                          <CheckCheck className="h-4 w-4 text-green-600 dark:text-green-400" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Connected</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                </div>
                 <p className="text-sm text-muted-foreground truncate">{account?.handle}</p>
               </div>
             </div>
-            <div className="flex-shrink-0">
-              {getStatusBadge(account?.status, account?.isConnected)}
-            </div>
           </CardHeader>
-          <div className="flex-1 px-0 pb-0 flex flex-col justify-between">
-            <div className="flex justify-between items-center gap-1 pt-3 border-t mt-auto">
-              <div className="flex items-center gap-2">
-                {(() => {
-                  const platformConfig = getPlatformConfig(account?.platform)
-                  const PlatformIcon = platformConfig.icon
-                  return (
-                    <>
-                      <div className={`p-1 rounded-md ${platformConfig.bgColor}`}>
-                        <PlatformIcon className={`w-3 h-3 ${platformConfig.textColor}`} />
-                      </div>
-                      <span className={`text-xs font-medium truncate ${platformConfig.textColor}`}>
-                        {platformConfig.name}
-                      </span>
-                    </>
-                  )
-                })()}
-              </div>
-              <div className="flex gap-1">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-7 w-7 hover:scale-105 transition-transform"
-                      onClick={() => handleViewSettings(account)}
-                    >
-                      <SettingsIcon className="h-3 w-3" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Account settings</p>
-                  </TooltipContent>
-                </Tooltip>
+          <div className="px-0 pb-0 flex items-center justify-between mt-3">
+            <div className="flex items-center gap-2">
+              {(() => {
+                const platformConfig = getPlatformConfig(account?.platform)
+                const PlatformIcon = platformConfig.icon
+                return (
+                  <>
+                    <PlatformIcon className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-xs font-medium text-muted-foreground">
+                      {platformConfig.name}
+                    </span>
+                  </>
+                )
+              })()}
+            </div>
+            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => handleViewSettings(account)}
+                  >
+                    <ChevronsRight className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Expand</p>
+                </TooltipContent>
+              </Tooltip>
 
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10 hover:scale-105 transition-transform"
-                      onClick={() => handleDeleteClick(account.id)}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Remove account</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => handleDeleteClick(account.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Remove account</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
         </Card>
