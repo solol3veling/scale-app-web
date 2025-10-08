@@ -371,42 +371,41 @@ export function PostDetailsModal({ isOpen, onClose, postId }: PostDetailsModalPr
 
                 {/* Extend Post Form */}
                 {showExtendForm && (
-                  <div>
-                    <Separator />
+                  <div className="mt-4">
+                    <Separator className="mb-4" />
                     <div className="space-y-4">
-                      <h4 className="font-medium text-sm">Extend to Additional Accounts</h4>
-                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
+                      <h4 className="font-medium text-sm text-foreground">Select Additional Accounts</h4>
+                      <div className="grid grid-cols-2 gap-3">
                         {availableAccounts.map((account) => {
                           const isSelected = selectedAccountIds.includes(account.id)
 
                           return (
                             <div
                               key={account.id}
-                              className={`relative flex flex-col items-center p-2 rounded-lg transition-all duration-200 hover:bg-accent/50`}
+                              className={`relative flex items-center gap-3 p-3 rounded-lg border transition-all duration-200 cursor-pointer ${
+                                isSelected ? "border-primary bg-primary/10" : "border-border hover:bg-accent/50"
+                              }`}
+                              onClick={() => {
+                                if (isSelected) {
+                                  setSelectedAccountIds(selectedAccountIds.filter(id => id !== account.id))
+                                } else {
+                                  setSelectedAccountIds([...selectedAccountIds, account.id])
+                                }
+                              }}
                             >
-                              <div className="relative">
-                                <Avatar
-                                  className={`h-14 w-14 border-4 cursor-pointer transition-all duration-200 active:scale-95 active:shadow-inner
-                                    ${isSelected ? "border-primary" : "border-transparent hover:border-muted"}
-                                  `}
-                                  onClick={() => {
-                                    if (isSelected) {
-                                      setSelectedAccountIds(selectedAccountIds.filter(id => id !== account.id))
-                                    } else {
-                                      setSelectedAccountIds([...selectedAccountIds, account.id])
-                                    }
-                                  }}
-                                >
-                                  <AvatarImage src={account.profileImage} alt={`${account.handle}'s avatar`} />
-                                  <AvatarFallback>{account.handle ? account.handle[0].toUpperCase() : '?'}</AvatarFallback>
-                                </Avatar>
-                                {isSelected && (
-                                  <div className="absolute bottom-0 right-0 bg-primary rounded-full p-1">
-                                    <CheckCircle className="h-4 w-4 text-primary-foreground" />
-                                  </div>
-                                )}
+                              <Avatar className="h-10 w-10 flex-shrink-0">
+                                <AvatarImage src={account.profileImage} alt={`${account.handle}'s avatar`} />
+                                <AvatarFallback className="bg-muted">
+                                  {account.handle ? account.handle[0].toUpperCase() : '?'}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">{account.handle}</p>
+                                <p className="text-xs text-muted-foreground truncate">{account.platform}</p>
                               </div>
-                              <p className="text-sm mt-2 text-center font-medium truncate w-full px-1">{account.handle}</p>
+                              {isSelected && (
+                                <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
+                              )}
                             </div>
                           )
                         })}
