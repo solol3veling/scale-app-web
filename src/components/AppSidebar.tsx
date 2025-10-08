@@ -90,11 +90,9 @@ export function AppSidebar() {
                 collapsible="icon" style={{ width: collapsed ? "60px" : "200px" }}>
             <SidebarHeader className="p-4">
                 <div className="flex items-center justify-between">
-                    {!collapsed && (
-                        <div className="flex items-center justify-center cursor-pointer">
-                            <img src={scalestashLogo} alt="Scalestash" className="h-8 w-auto" />
-                        </div>
-                    )}
+                    <div className="flex items-center justify-center cursor-pointer">
+                        <img src={scalestashLogo} alt="Scalestash" className={collapsed ? "h-6 w-auto" : "h-8 w-auto"} />
+                    </div>
                     {/* Only show trigger on desktop - mobile has it in the top bar */}
                     {!isMobile && (
                         <SidebarTrigger className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 rounded-lg p-2" />
