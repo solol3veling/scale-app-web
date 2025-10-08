@@ -694,40 +694,53 @@ export function Calendar() {
                 <div className="bg-card border-b border-border">
                     {/* Filter dropdown */}
                     <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800">
-                        <Select value={statusFilter} onValueChange={(value: StatusFilterType) => setStatusFilter(value)}>
-                            <SelectTrigger className="w-[180px]">
-                                <div className="flex items-center gap-2">
-                                    {React.createElement(currentFilterInfo.icon, { className: "h-4 w-4" })}
-                                    <span>{currentFilterInfo.label}</span>
-                                </div>
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">
+                        <div className="flex items-center gap-2">
+                            <Select value={statusFilter} onValueChange={(value: StatusFilterType) => setStatusFilter(value)}>
+                                <SelectTrigger className="w-[180px]">
                                     <div className="flex items-center gap-2">
-                                        <CalendarIcon className="h-4 w-4" />
-                                        Calendar
+                                        {React.createElement(currentFilterInfo.icon, { className: "h-4 w-4" })}
+                                        <span>{currentFilterInfo.label}</span>
                                     </div>
-                                </SelectItem>
-                                <SelectItem value="scheduled">
-                                    <div className="flex items-center gap-2">
-                                        <Clock className="h-4 w-4" />
-                                        Scheduled
-                                    </div>
-                                </SelectItem>
-                                <SelectItem value="drafts">
-                                    <div className="flex items-center gap-2">
-                                        <Edit3 className="h-4 w-4" />
-                                        Drafts
-                                    </div>
-                                </SelectItem>
-                                <SelectItem value="posted">
-                                    <div className="flex items-center gap-2">
-                                        <CheckCircle className="h-4 w-4" />
-                                        Posted
-                                    </div>
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">
+                                        <div className="flex items-center gap-2">
+                                            <CalendarIcon className="h-4 w-4" />
+                                            Calendar
+                                        </div>
+                                    </SelectItem>
+                                    <SelectItem value="scheduled">
+                                        <div className="flex items-center gap-2">
+                                            <Clock className="h-4 w-4" />
+                                            Scheduled
+                                        </div>
+                                    </SelectItem>
+                                    <SelectItem value="drafts">
+                                        <div className="flex items-center gap-2">
+                                            <Edit3 className="h-4 w-4" />
+                                            Drafts
+                                        </div>
+                                    </SelectItem>
+                                    <SelectItem value="posted">
+                                        <div className="flex items-center gap-2">
+                                            <CheckCircle className="h-4 w-4" />
+                                            Posted
+                                        </div>
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => refetch()}
+                                disabled={isLoading || isRefetching}
+                                className="h-9 w-9 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                                title="Refresh calendar"
+                            >
+                                <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
+                            </Button>
+                        </div>
 
                         <div className="flex items-center gap-2">
                             {error && (
@@ -803,8 +816,8 @@ export function Calendar() {
 
                     {/* Calendar navigation */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-2 sm:py-4 gap-2 sm:gap-0">
-                        <h1 className="text-lg sm:text-2xl font-semibold text-gray-900 dark:text-gray-100">
-                            {MONTHS[month]} {year}
+                        <h1 className="text-lg sm:text-2xl font-semibold text-foreground">
+                            {format(currentDate, "MMMM yyyy")}
                         </h1>
 
                         <div className="flex items-center gap-0.5 sm:gap-1">
@@ -841,28 +854,6 @@ export function Calendar() {
                                     />
                                 </PopoverContent>
                             </Popover>
-
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => refetch()}
-                                disabled={isLoading || isRefetching}
-                                className="h-8 w-8 sm:h-9 sm:w-9 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors mr-1 sm:mr-2"
-                                title="Refresh calendar"
-                            >
-                                <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 ${isRefetching ? 'animate-spin' : ''}`} />
-                            </Button>
-
-                            {/* Today button - hidden on mobile */}
-                            <Button
-                                variant="default"
-                                size="sm"
-                                onClick={() => setCurrentDate(new Date())}
-                                disabled={isLoading}
-                                className="hidden sm:block mr-2 px-4 py-1.5 font-medium rounded-lg shadow-sm transition-all duration-200 hover:shadow-md"
-                            >
-                                Today
-                            </Button>
 
                             <Button
                                 variant="ghost"
