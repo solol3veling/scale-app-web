@@ -276,54 +276,32 @@ export function ComprehensiveAnalyticsDashboard({
     <div className="space-y-6">
       {/* Overview Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="hover-lift gradient-card border-0 shadow-soft">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Posts</CardTitle>
-            <MessageSquare className="h-5 w-5 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatNumber(safeData.generalStats?.totalPosts || 0)}</div>
-            <p className="text-xs text-muted-foreground">
-              {safeData.generalStats?.publishedPosts || 0} published, {safeData.generalStats?.scheduledPosts || 0} scheduled
-            </p>
-          </CardContent>
+        <Card className="p-6 h-full">
+          <div className="flex flex-col justify-between h-full">
+            <p className="text-sm font-medium text-muted-foreground">Total Posts</p>
+            <p className="text-3xl font-bold text-foreground mt-auto">{formatNumber(safeData.generalStats?.totalPosts || 0)}</p>
+          </div>
         </Card>
 
-        <Card className="hover-lift gradient-card border-0 shadow-soft">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Engagement</CardTitle>
-            <Heart className="h-5 w-5 text-pink-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatNumber(safeData.generalStats?.totalEngagements || 0)}</div>
-            <p className="text-xs text-muted-foreground">
-              {formatPercentage(safeData.performanceMetrics?.overallEngagementRate || 0)} engagement rate
-            </p>
-          </CardContent>
+        <Card className="p-6 h-full">
+          <div className="flex flex-col justify-between h-full">
+            <p className="text-sm font-medium text-muted-foreground">Total Engagement</p>
+            <p className="text-3xl font-bold text-foreground mt-auto">{formatNumber(safeData.generalStats?.totalEngagements || 0)}</p>
+          </div>
         </Card>
 
-        <Card className="hover-lift gradient-card border-0 shadow-soft">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Success Rate</CardTitle>
-            <TrendingUp className="h-5 w-5 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatPercentage(safeData.generalStats?.publishingSuccessRate || 0)}</div>
-            <p className="text-xs text-muted-foreground">Publishing success rate</p>
-          </CardContent>
+        <Card className="p-6 h-full">
+          <div className="flex flex-col justify-between h-full">
+            <p className="text-sm font-medium text-muted-foreground">Success Rate</p>
+            <p className="text-3xl font-bold text-foreground mt-auto">{formatPercentage(safeData.generalStats?.publishingSuccessRate || 0)}</p>
+          </div>
         </Card>
 
-        <Card className="hover-lift gradient-card border-0 shadow-soft">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Top Platform</CardTitle>
-            <BarChart3 className="h-5 w-5 text-purple-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{safeData.generalStats?.topPlatform || 'N/A'}</div>
-            <p className="text-xs text-muted-foreground">
-              {safeData.generalStats?.topPlatformPosts || 0} posts
-            </p>
-          </CardContent>
+        <Card className="p-6 h-full">
+          <div className="flex flex-col justify-between h-full">
+            <p className="text-sm font-medium text-muted-foreground">Top Platform</p>
+            <p className="text-3xl font-bold text-foreground mt-auto">{safeData.generalStats?.topPlatform || 'N/A'}</p>
+          </div>
         </Card>
       </div>
 
@@ -500,37 +478,37 @@ export function ComprehensiveAnalyticsDashboard({
         </Card>
 
         {/* Best Time to Post */}
-        <Card className="hover-lift border-0 shadow-sm bg-card">
+        <Card className="bg-card">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-card-foreground">
-              <Clock className="h-5 w-5 text-muted-foreground" />
+              <Clock className="h-5 w-5 text-foreground" />
               Best Time to Post
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4">
-              <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                 <div>
-                  <p className="font-medium text-gray-900 dark:text-gray-100">Best Day</p>
+                  <p className="font-medium text-foreground">Best Day</p>
                   <p className="text-sm text-muted-foreground">{safeData.bestTimeToPost?.bestDayOfWeek || 'N/A'}</p>
                 </div>
-                <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <Calendar className="h-5 w-5 text-foreground" />
               </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                 <div>
-                  <p className="font-medium text-gray-900 dark:text-gray-100">Best Hour</p>
+                  <p className="font-medium text-foreground">Best Hour</p>
                   <p className="text-sm text-muted-foreground">{safeData.bestTimeToPost?.bestHour || 0}:00</p>
                 </div>
-                <Clock className="h-5 w-5 text-green-600 dark:text-green-400" />
+                <Clock className="h-5 w-5 text-foreground" />
               </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                 <div>
-                  <p className="font-medium text-gray-900 dark:text-gray-100">Success Rate</p>
+                  <p className="font-medium text-foreground">Success Rate</p>
                   <p className="text-sm text-muted-foreground">
                     {formatPercentage(safeData.bestTimeToPost?.successRateAtBestTime || 0)}
                   </p>
                 </div>
-                <TrendingUp className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                <TrendingUp className="h-5 w-5 text-foreground" />
               </div>
             </div>
           </CardContent>
@@ -670,38 +648,38 @@ export function ComprehensiveAnalyticsDashboard({
       </Card>
 
       {/* Performance Metrics Summary */}
-      <Card className="hover-lift">
+      <Card className="bg-card">
         <CardHeader>
-          <CardTitle>Average Performance Metrics</CardTitle>
+          <CardTitle className="text-card-foreground">Average Performance Metrics</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-5">
             <div className="text-center">
-              <div className="text-2xl font-bold text-pink-600">
+              <div className="text-2xl font-bold text-foreground">
                 {formatNumber(safeData.performanceMetrics?.avgLikesPerPost || 0)}
               </div>
               <p className="text-sm text-muted-foreground">Avg Likes/Post</p>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-foreground">
                 {formatNumber(safeData.performanceMetrics?.avgCommentsPerPost || 0)}
               </div>
               <p className="text-sm text-muted-foreground">Avg Comments/Post</p>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-foreground">
                 {formatNumber(safeData.performanceMetrics?.avgSharesPerPost || 0)}
               </div>
               <p className="text-sm text-muted-foreground">Avg Shares/Post</p>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">
+              <div className="text-2xl font-bold text-foreground">
                 {formatNumber(safeData.performanceMetrics?.avgViewsPerPost || 0)}
               </div>
               <p className="text-sm text-muted-foreground">Avg Views/Post</p>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">
+              <div className="text-2xl font-bold text-foreground">
                 {formatNumber(safeData.performanceMetrics?.avgSavesPerPost || 0)}
               </div>
               <p className="text-sm text-muted-foreground">Avg Saves/Post</p>

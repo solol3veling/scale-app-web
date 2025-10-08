@@ -254,15 +254,16 @@ export default function Analytics() {
             
             {/* Action Buttons - Row on mobile, inline on larger screens */}
             <div className="flex gap-2 w-full sm:w-auto">
-              <Button 
-                variant="outline" 
-                className="h-9 w-9 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors flex-shrink-0" 
-                size="sm" 
-                onClick={() => refetchOverview()} 
+              <Button
+                variant="outline"
+                className="hover-lift flex-1 sm:flex-initial"
+                size="sm"
+                onClick={() => refetchOverview()}
                 disabled={isLoading}
                 title="Refresh analytics"
               >
-                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                Refresh
               </Button>
               
               <Button 
