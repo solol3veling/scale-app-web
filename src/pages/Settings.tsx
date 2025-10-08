@@ -306,25 +306,25 @@ export default function Settings() {
           ) : (
             <>
               {/* Current Plan Overview */}
-              <Card className="border border-slate-200 dark:border-slate-700 dark:bg-slate-900">
+              <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg text-slate-900 dark:text-slate-100">
-                    <CreditCard className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                  <CardTitle className="flex items-center gap-2 text-lg text-card-foreground">
+                    <CreditCard className="h-5 w-5 text-muted-foreground" />
                     Current Plan
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-muted border border-border">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-lg bg-background border border-border flex items-center justify-center">
                         {(() => {
                           const IconComponent = getPlanIcon(getCurrentPlan());
-                          return <IconComponent className="h-5 w-5 text-slate-600 dark:text-slate-400" />;
+                          return <IconComponent className="h-5 w-5 text-muted-foreground" />;
                         })()}
                       </div>
                       <div>
-                        <div className="font-semibold text-lg text-slate-900 dark:text-slate-100">{getCurrentPlan()}</div>
-                        <div className="text-sm text-slate-600 dark:text-slate-400">
+                        <div className="font-semibold text-lg text-foreground">{getCurrentPlan()}</div>
+                        <div className="text-sm text-muted-foreground">
                           {getCurrentPlanData() ? (
                             `${formatPrice(getCurrentPlanData()!.price, getCurrentPlanData()!.currency)}${getCurrentPlanData()!.price !== 0 ? '/month' : ''}`
                           ) : (
@@ -335,7 +335,7 @@ export default function Settings() {
                     </div>
                     <div className="text-right space-y-1">
                       {getStatusBadge(getCurrentStatus())}
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                      <p className="text-xs text-muted-foreground">
                         {billing?.updatedAt ? new Date(billing.updatedAt).toLocaleDateString() : 'Active'}
                       </p>
                     </div>
@@ -345,41 +345,41 @@ export default function Settings() {
               </Card>
 
               {/* Billing Information */}
-              <Card className="border border-slate-200 dark:border-slate-700 dark:bg-slate-900">
+              <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg text-slate-900 dark:text-slate-100">Billing Details</CardTitle>
-                  <CardDescription className="text-slate-600 dark:text-slate-400">Account and payment information</CardDescription>
+                  <CardTitle className="text-lg text-card-foreground">Billing Details</CardTitle>
+                  <CardDescription className="text-muted-foreground">Account and payment information</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className="p-3 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
-                      <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">Email</Label>
-                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100 mt-1">{billing?.email || 'Not set'}</p>
+                    <div className="p-3 rounded-md border border-border bg-muted">
+                      <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Email</Label>
+                      <p className="text-sm font-medium text-foreground mt-1">{billing?.email || 'Not set'}</p>
                     </div>
-                    
-                    <div className="p-3 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
-                      <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">Status</Label>
-                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100 mt-1">{getCurrentStatus()}</p>
+
+                    <div className="p-3 rounded-md border border-border bg-muted">
+                      <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Status</Label>
+                      <p className="text-sm font-medium text-foreground mt-1">{getCurrentStatus()}</p>
                     </div>
-                    
-                    <div className="p-3 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
-                      <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">Created</Label>
-                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100 mt-1">
+
+                    <div className="p-3 rounded-md border border-border bg-muted">
+                      <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created</Label>
+                      <p className="text-sm font-medium text-foreground mt-1">
                         {billing?.createdAt ? new Date(billing.createdAt).toLocaleDateString() : 'Unknown'}
                       </p>
                     </div>
                     
-                    <div className="p-3 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
-                      <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">Updated</Label>
-                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100 mt-1">
+                    <div className="p-3 rounded-md border border-border bg-muted">
+                      <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Updated</Label>
+                      <p className="text-sm font-medium text-foreground mt-1">
                         {billing?.updatedAt ? new Date(billing.updatedAt).toLocaleDateString() : 'Unknown'}
                       </p>
                     </div>
                     
                     {billing?.subscriptionEndDate && (
-                      <div className="p-3 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
-                        <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">Subscription Ends</Label>
-                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100 mt-1">
+                      <div className="p-3 rounded-md border border-border bg-muted">
+                        <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Subscription Ends</Label>
+                        <p className="text-sm font-medium text-foreground mt-1">
                           {new Date(billing.subscriptionEndDate).toLocaleDateString()}
                         </p>
                       </div>
@@ -391,10 +391,10 @@ export default function Settings() {
               </Card>
 
               {/* Billing Actions */}
-              <Card className="border border-slate-200 dark:border-slate-700 dark:bg-slate-900">
+              <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg text-slate-900 dark:text-slate-100">Billing Actions</CardTitle>
-                  <CardDescription className="text-slate-600 dark:text-slate-400">Manage your subscription and payment methods</CardDescription>
+                  <CardTitle className="text-lg text-card-foreground">Billing Actions</CardTitle>
+                  <CardDescription className="text-muted-foreground">Manage your subscription and payment methods</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex gap-3 flex-wrap">
@@ -419,7 +419,6 @@ export default function Settings() {
                         variant="outline"
                         onClick={handleSubscriptionManagement}
                         disabled={subscriptionManagement.isPending}
-                        className="border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
                       >
                         {subscriptionManagement.isPending ? (
                           <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -516,7 +515,6 @@ export default function Settings() {
                     <Button
                       onClick={handleUpgrade}
                       disabled={upgradePlan.isPending}
-                      className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-white"
                     >
                       {upgradePlan.isPending ? (
                         <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -528,16 +526,16 @@ export default function Settings() {
               </Card>
 
               {/* Plan Options */}
-              <Card className="border border-slate-200 dark:border-slate-700 dark:bg-slate-900">
+              <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg text-slate-900 dark:text-slate-100">Available Plans</CardTitle>
-                  <CardDescription className="text-slate-600 dark:text-slate-400">Choose the plan that fits your needs</CardDescription>
+                  <CardTitle className="text-lg text-card-foreground">Available Plans</CardTitle>
+                  <CardDescription className="text-muted-foreground">Choose the plan that fits your needs</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {plansLoading ? (
                     <div className="flex items-center justify-center h-64">
-                      <Loader2 className="h-8 w-8 animate-spin text-slate-500" />
-                      <span className="ml-2 text-slate-600 dark:text-slate-400">Loading plans...</span>
+                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                      <span className="ml-2 text-muted-foreground">Loading plans...</span>
                     </div>
                   ) : plansError ? (
                     <div className="flex items-center justify-center h-64">
@@ -552,56 +550,56 @@ export default function Settings() {
                         const features = getPlanFeatures(plan);
                         
                         return (
-                          <Card 
-                            key={plan.type} 
+                          <Card
+                            key={plan.type}
                             className={`relative transition-all duration-200 ${
-                              isCurrentPlan 
-                                ? 'border-2 border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800' 
-                                : 'border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-sm dark:bg-slate-900'
+                              isCurrentPlan
+                                ? 'border-2 border-primary bg-muted'
+                                : 'hover:shadow-sm'
                             }`}
                           >
                             {isCurrentPlan && (
                               <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 z-10">
-                                <Badge className="bg-slate-600 dark:bg-slate-500 text-white text-xs">Current</Badge>
+                                <Badge className="bg-foreground text-background text-xs">Current</Badge>
                               </div>
                             )}
-                            
+
                             <CardHeader className="text-center pb-4">
                               <div className="flex items-center justify-center mb-2">
-                                <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center">
-                                  <IconComponent className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                                <div className="w-10 h-10 rounded-lg bg-muted border border-border flex items-center justify-center">
+                                  <IconComponent className="h-5 w-5 text-muted-foreground" />
                                 </div>
                               </div>
-                              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                              <CardTitle className="text-lg font-semibold text-card-foreground">
                                 {plan.type}
                               </CardTitle>
-                              <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                              <div className="text-2xl font-bold text-foreground">
                                 {formatPrice(plan.price, plan.currency)}
                                 {plan.price !== 0 && (
-                                  <span className="text-sm font-normal text-slate-600 dark:text-slate-400">/month</span>
+                                  <span className="text-sm font-normal text-muted-foreground">/month</span>
                                 )}
                               </div>
                               {plan.description && (
-                                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{plan.description}</p>
+                                <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>
                               )}
                             </CardHeader>
-                            
+
                             <CardContent className="space-y-3 pt-0">
                               <div className="space-y-2">
                                 {features.map((feature, index) => (
                                   <div key={index} className="flex items-start gap-2 text-sm">
-                                    <CheckCircle2 className="h-4 w-4 text-slate-500 mt-0.5 flex-shrink-0" />
-                                    <span className="text-slate-700 dark:text-slate-300">{feature}</span>
+                                    <CheckCircle2 className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                    <span className="text-foreground">{feature}</span>
                                   </div>
                                 ))}
                               </div>
-                              
+
                               {!isCurrentPlan && (
                                 <div className="pt-3">
                                   {plan.type === PlanType.FREE ? (
-                                    <Button 
+                                    <Button
                                       variant="outline"
-                                      className="w-full border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                                      className="w-full"
                                       onClick={handleCancelSubscription}
                                       disabled={cancelSubscription.isPending}
                                     >
@@ -611,8 +609,8 @@ export default function Settings() {
                                       Switch to Free
                                     </Button>
                                   ) : (
-                                    <Button 
-                                      className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-white"
+                                    <Button
+                                      className="w-full"
                                       onClick={() => handleUpgrade()}
                                       disabled={upgradePlan.isPending}
                                     >
@@ -639,28 +637,28 @@ export default function Settings() {
 
         {/* Privacy Tab */}
         <TabsContent value="privacy" className="space-y-6">
-          <Card className="shadow-lg border-0 dark:bg-gray-900">
+          <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-green-600 dark:text-green-400" />
+              <CardTitle className="flex items-center gap-2 text-card-foreground">
+                <Shield className="h-5 w-5 text-foreground" />
                 Privacy & Security
               </CardTitle>
               <CardDescription>Your data protection and privacy controls</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between p-4 rounded-lg border border-border">
                 <div className="space-y-1">
-                  <div className="font-medium text-gray-900 dark:text-gray-100">Export Data</div>
+                  <div className="font-medium text-foreground">Export Data</div>
                   <div className="text-sm text-muted-foreground">Download all your posts, analytics, and account data</div>
                 </div>
-                <Button variant="outline" className="hover:bg-accent hover:text-accent-foreground hover:border-border">
+                <Button variant="outline">
                   <Download className="h-4 w-4 mr-2" />
                   Export
                 </Button>
               </div>
-              
+
               <Separator />
-              
+
               <div className="flex items-center justify-between p-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950">
                 <div className="space-y-1">
                   <div className="font-medium text-red-800 dark:text-red-200">Delete Account</div>
