@@ -105,138 +105,83 @@ export function AccountModal({ account, isOpen, onClose, mode, onSave }: Account
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[800px] lg:max-w-[900px] max-h-[95vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Avatar className="h-12 w-12">
-                <AvatarImage src={account.profileImage} />
-                <AvatarFallback className={`${platformConfig.color} text-white`}>
-                  <PlatformIcon className="w-6 h-6" />
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <DialogTitle className="text-xl">{account.displayName}</DialogTitle>
-                <DialogDescription className="text-base">
-                  {account.handle} • {platformConfig.name}
-                </DialogDescription>
-              </div>
+          <div className="flex items-center gap-3">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={account.profileImage} />
+              <AvatarFallback className="bg-muted">
+                <PlatformIcon className="w-5 h-5 text-muted-foreground" />
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <DialogTitle className="text-lg">{account.displayName}</DialogTitle>
+              <DialogDescription className="text-sm truncate">
+                {account.handle} • {platformConfig.name}
+              </DialogDescription>
             </div>
-            <div className="flex items-center gap-2">
-              {getStatusDisplay()}
-            </div>
+            {account.isConnected && (
+              <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 text-xs">
+                Connected
+              </Badge>
+            )}
           </div>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Platform Info */}
-          <div className="flex items-center gap-4 p-4 rounded-lg border bg-muted/50">
-            <div className={`p-2 rounded-md ${platformConfig.bgColor}`}>
-              <PlatformIcon className={`w-6 h-6 ${platformConfig.textColor}`} />
+        <div className="space-y-4">
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Display Name</Label>
+              <div className="px-3 py-2 text-sm rounded-md bg-muted">
+                {account.displayName}
+              </div>
             </div>
-            <div className="flex-1">
-              <h3 className="font-medium">Platform</h3>
-              <p className="text-sm text-muted-foreground">{platformConfig.name}</p>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Handle</Label>
+              <div className="px-3 py-2 text-sm rounded-md bg-muted text-muted-foreground">
+                {account.handle}
+              </div>
             </div>
-            
-            <Button variant="ghost" size="sm" className="gap-2">
-              <ExternalLink className="h-4 w-4" />
-              View Profile
-            </Button>
-          </div>
 
-          <Separator />
-
-          {/* Account Details */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Account Details</h3>
-            
-            <div className="grid gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="displayName">Display Name</Label>
-                {isEditing ? (
-                  <Input
-                    id="displayName"
-                    value={formData.displayName || ''}
-                    onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
-                    placeholder="Display name"
-                  />
-                ) : (
-                  <div className="px-3 py-2 border rounded-md bg-muted/50">
-                    {account.displayName}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Tags</Label>
+              <div className="px-3 py-2 rounded-md bg-muted min-h-[36px] flex items-center">
+                {account.tags && account.tags.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {account.tags.map((tag, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs h-5">
+                        {tag}
+                      </Badge>
+                    ))}
                   </div>
+                ) : (
+                  <span className="text-sm text-muted-foreground">No tags</span>
                 )}
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="handle">Handle/Username</Label>
-                <div className="px-3 py-2 border rounded-md bg-muted/50">
-                  {account.handle}
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Platform</Label>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-muted">
+                  <PlatformIcon className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">{platformConfig.name}</span>
                 </div>
-                <p className="text-xs text-muted-foreground">Handle cannot be modified</p>
               </div>
-
-              
-
-              <div className="space-y-2">
-                <Label htmlFor="tags">Tags</Label>
-                {isEditing ? (
-                  <Textarea
-                    id="tags"
-                    value={formData.tags?.join(', ') || ''}
-                    onChange={(e) => setFormData({ 
-                      ...formData, 
-                      tags: e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag) 
-                    })}
-                    placeholder="Enter tags separated by commas"
-                    rows={2}
-                  />
-                ) : (
-                  <div className="px-3 py-2 border rounded-md bg-muted/50">
-                    {account.tags && account.tags.length > 0 ? (
-                      <div className="flex flex-wrap gap-1">
-                        {account.tags.map((tag, index) => (
-                          <Badge key={index} variant="outline" className="text-xs gap-1">
-                            <TagIcon className="h-2 w-2" />
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    ) : (
-                      <span className="text-muted-foreground">No tags</span>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Connection Info */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Connection Information</h3>
-            <div className="grid gap-4 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Status:</span>
-                <span>{getStatusDisplay()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Last Post:</span>
-                <span>{account.lastPost || 'Never'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Account ID:</span>
-                <span className="font-mono text-xs">{account.id}</span>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Last Post</Label>
+                <div className="px-3 py-2 text-sm rounded-md bg-muted">
+                  {account.lastPost || 'Never'}
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-end gap-2 pt-4 border-t">
-          <Button variant="outline" onClick={onClose}>
-            <Eye className="h-4 w-4 mr-2" />
+        <div className="flex justify-end gap-2 pt-4">
+          <Button variant="outline" size="sm" onClick={onClose}>
             Close
           </Button>
         </div>

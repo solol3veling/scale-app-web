@@ -224,9 +224,9 @@ export function PostDetailsModal({ isOpen, onClose, postId }: PostDetailsModalPr
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 h-full">
             {/* Left Column: Post Content, Media, Engagement */}
-            <div className="lg:col-span-2 flex flex-col border-r dark:border-gray-800">
-              <DialogHeader className="p-4 border-b dark:border-gray-800">
-                <DialogTitle className="text-lg font-semibold">Post Details</DialogTitle>
+            <div className="lg:col-span-2 flex flex-col border-r border-border">
+              <DialogHeader className="p-4 border-b border-border">
+                <DialogTitle className="text-lg font-semibold text-foreground">Post Details</DialogTitle>
                 <div className="flex items-center justify-between">
                   <div>
                     <DialogDescription className="text-sm">
@@ -269,7 +269,7 @@ export function PostDetailsModal({ isOpen, onClose, postId }: PostDetailsModalPr
                       {postData.media.map((mediaItem, index) => (
                         <div
                           key={index}
-                          className="relative w-full aspect-square rounded-md overflow-hidden cursor-pointer bg-gray-100 dark:bg-gray-800 flex items-center justify-center"
+                          className="relative w-full aspect-square rounded-md overflow-hidden cursor-pointer bg-muted flex items-center justify-center"
                           onClick={() => handleMediaClick(mediaItem)}
                         >
                           {mediaItem.type === 'image' ? (
@@ -305,22 +305,22 @@ export function PostDetailsModal({ isOpen, onClose, postId }: PostDetailsModalPr
             </div>
 
             {/* Right Column: Publishing Events, Extend Post */}
-            <div className="lg:col-span-1 flex flex-col bg-gray-50 dark:bg-gray-900">
-              <div className="p-6 space-y-6 flex-1 overflow-y-auto">
+            <div className="lg:col-span-1 flex flex-col bg-muted">
+              <div className="p-6 pt-12 space-y-6 flex-1 overflow-y-auto">
                 {/* Publishing Events Section */}
                 <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-medium">Publishing Events</h3>
+                  <h3 className="text-lg font-medium text-foreground mb-4">Publishing Events</h3>
+                  {!showExtendForm && (
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setShowExtendForm(!showExtendForm)}
-                      className="gap-1"
+                      onClick={() => setShowExtendForm(true)}
+                      className="gap-1 w-full mb-4"
                     >
                       <Plus className="h-4 w-4" />
-                      Extend
+                      Extend to More Accounts
                     </Button>
-                  </div>
+                  )}
 
                   <div className="space-y-3">
                     {eventsData.map((event) => {
@@ -441,13 +441,6 @@ export function PostDetailsModal({ isOpen, onClose, postId }: PostDetailsModalPr
                 )}
               </div>
 
-              {/* Action Buttons (moved to bottom of right column) */}
-              <div className="p-6 border-t dark:border-gray-800">
-                <Button variant="outline" onClick={onClose} className="w-full">
-                  <X className="h-4 w-4 mr-2" />
-                  Close
-                </Button>
-              </div>
             </div>
           </div>
         )}
