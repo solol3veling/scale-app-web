@@ -748,19 +748,35 @@ export function Calendar() {
                                 </Button>
                             )}
 
-                            {selectedPostIds.size > 0 ? (
+                            {selectedPostIds.size > 0 && (
                                 <>
-                                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                    <span className="text-sm font-medium text-muted-foreground">
                                         {selectedPostIds.size} selected
                                     </span>
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        onClick={handleDeleteSelected}
-                                        className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                        onClick={() => {
+                                            const allFilteredIds = new Set(filteredPosts.map(p => p.id))
+                                            setSelectedPostIds(allFilteredIds)
+                                        }}
+                                        className="text-gray-600 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                                     >
-                                        Delete
+                                        Select All
                                     </Button>
+                                    {statusFilter !== "all" && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => {
+                                                const typeFilteredIds = new Set(filteredPosts.map(p => p.id))
+                                                setSelectedPostIds(typeFilteredIds)
+                                            }}
+                                            className="text-gray-600 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                                        >
+                                            Select All {statusFilter === "scheduled" ? "Scheduled" : statusFilter === "drafts" ? "Drafts" : "Posted"}
+                                        </Button>
+                                    )}
                                     <Button
                                         variant="ghost"
                                         size="sm"
@@ -770,24 +786,18 @@ export function Calendar() {
                                         }}
                                         className="text-gray-600 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                                     >
-                                        Clear Selection
+                                        Clear
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={handleDeleteSelected}
+                                        className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                    >
+                                        Delete
                                     </Button>
                                 </>
-                            ) : (
-                                <>
-                                    <input
-                                        type="checkbox"
-                                        className="rounded"
-                                        checked={selectAllChecked}
-                                        onChange={handleSelectAllScheduled}
-                                    />
-                                    <span className="text-sm text-gray-600 dark:text-gray-400">Select All Scheduled</span>
-                                </>
                             )}
-
-                            <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-700">
-                                Unschedule
-                            </Button>
                         </div>
                     </div>
 
